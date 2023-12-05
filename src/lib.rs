@@ -1,47 +1,36 @@
 use board::Board;
-use piece::{Color, Piece};
+use position::Pos;
 
 mod board;
 mod piece;
+mod position;
 
-fn get_moves(board: &Board, row: usize, col: usize) -> Vec<(usize, usize)> {
-    let moved_piece = board.at(row, col);
-    moved_piece
-        .map_or(vec![], |piece| match piece {
-            Piece::Pawn(c, _) => match c {
-                Color::Black => vec![(row - 1, col), (row - 1, col - 1), (row - 1, col + 1)],
-                Color::White => vec![(row + 1, col), (row + 1, col - 1), (row + 1, col + 1)],
-            },
-            Piece::Rook(c, _)
-            | Piece::Knight(c, _)
-            | Piece::Bishop(c, _)
-            | Piece::Queen(c, _)
-            | Piece::King(c, _) => vec![],
-        })
+fn get_moves(board: &Board, pos: &Pos) -> Vec<Pos> {
+    let pset = board.at(pos).expect("cannot move where there is no piece");
+    let moves = pset.generate_moves(pos);
+    moves
         .into_iter()
-        .filter(|(row, col)| {
-            board.at(*row, *col).map_or(
-                if moved_piece.unwrap().is_pawn() {
-                    false
-                } else {
-                    true
-                },
-                |p| p.color() != moved_piece.unwrap().color(),
-            )
+        .filter(|pos| {
+            board
+                .at(pos)
+                .map_or(if pset.piece.is_pawn() { false } else { true }, |p| {
+                    p.color() != pset.color()
+                })
         })
         .collect()
 }
 
-fn print_board(board: &Board, highlights: Vec<(usize, usize)>) {
+fn print_board(board: &Board, highlights: Vec<Pos>) {
     for row in (0..8).rev() {
         print!("+---+---+---+---+---+---+---+---+\n");
         for col in 0..8 {
+            let p = Pos::new(row, col);
             print!(
                 "| {} ",
                 highlights
                     .iter()
-                    .find(|pos| pos.0 == row && pos.1 == col)
-                    .map_or(board.at(row, col).map_or(" ", |p| p.to_str()), |_| "@"),
+                    .find(|pos| pos.row() == row && pos.col() == col)
+                    .map_or(board.at(&p).map_or(" ", |p| p.piece.to_str()), |_| "@"),
             );
         }
         print!("| {}\n", row + 1);
@@ -51,7 +40,8 @@ fn print_board(board: &Board, highlights: Vec<(usize, usize)>) {
 }
 
 pub fn main() {
-    let board = Board::new();
+    let mut board = Board::new();
+    board.mov(&Pos::new(0, 0), &Pos::new(4, 5));
     board.save("board.cb");
-    print_board(&board, get_moves(&board, 5, 3));
+    print_board(&board, get_moves(&board, &Pos::new(4, 5)));
 }
