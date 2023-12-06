@@ -1,3 +1,5 @@
+use std::iter::zip;
+
 use crate::{BitBoard, Color, Piece, PieceSet, Pos};
 
 impl PieceSet {
@@ -30,31 +32,64 @@ impl PieceSet {
     }
 
     pub fn generate_moves(&self, pos: &Pos) -> Vec<Pos> {
+        println!("moves for {pos:?}");
         let mut moves = vec![];
         match &self.piece {
             Piece::Pawn(c) => match c {
                 Color::Black => {
                     moves.push(pos.d());
                     moves.push(pos.dr());
-                    moves.push(pos.dl());
+                    if pos.col() < 8 && pos.col() > 0 {
+                        moves.push(pos.dl());
+                    }
+                    if pos.row() == 6 {
+                        moves.push(pos.d().d());
+                    }
                 }
                 Color::White => {
                     moves.push(pos.u());
-                    moves.push(pos.ur());
+                    if pos.col() < 8 && pos.col() > 0 {
+                        moves.push(pos.ur());
+                    }
                     moves.push(pos.ul());
+                    if pos.row() == 1 {
+                        moves.push(pos.u().u());
+                    }
                 }
             },
-            Piece::Rook(_) => {
-                for r in (0..pos.row()).chain(pos.row() + 1..8) {
-                    moves.push(Pos::new(r, pos.col()));
-                }
-                for c in (0..pos.col()).chain(pos.col() + 1..8) {
-                    moves.push(Pos::new(pos.row(), c));
-                }
+            Piece::Rook(_) => cross(pos, &mut moves),
+            Piece::Bishop(_) => diagonals(pos, &mut moves),
+            Piece::Queen(_) => {
+                cross(pos, &mut moves);
+                diagonals(pos, &mut moves);
             }
-            Piece::Knight(_) | Piece::Bishop(_) | Piece::Queen(_) | Piece::King(_) => (),
+            Piece::Knight(_) | Piece::King(_) => (),
         };
         moves
+    }
+}
+
+fn cross(pos: &Pos, out: &mut Vec<Pos>) {
+    for r in (0..pos.row()).chain(pos.row() + 1..8) {
+        out.push(Pos::new(r, pos.col()));
+    }
+    for c in (0..pos.col()).chain(pos.col() + 1..8) {
+        out.push(Pos::new(pos.row(), c));
+    }
+}
+
+fn diagonals(pos: &Pos, out: &mut Vec<Pos>) {
+    for (row, col) in zip(pos.row() + 1..8, pos.col() + 1..8) {
+        out.push(Pos::new(row, col));
+    }
+    for (row, col) in zip(0..pos.row(), pos.col() + 1..8) {
+        out.push(Pos::new(pos.row() - 1 - row, col));
+    }
+    for (row, col) in zip(pos.row() + 1..8, 0..pos.col()) {
+        out.push(Pos::new(row, pos.col() - col - 1));
+    }
+    for (row, col) in zip(0..pos.row(), 0..pos.col()) {
+        out.push(Pos::new(pos.row() - row - 1, pos.col() - col - 1));
     }
 }
 

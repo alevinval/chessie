@@ -63,5 +63,15 @@ pub fn main() {
     let mut board = Board::new();
     board.mov(&Pos::new(0, 0), &Pos::new(4, 5));
     board.save("board.cb");
-    print_board(&board, get_moves(&board, &Pos::new(4, 5)));
+    board.clear();
+
+    let p1 = &Pos::new(5, 4);
+    let p2 = &Pos::new(1, 2);
+    board.set(p1, &Piece::Queen(Color::Black));
+    board.set(p2, &Piece::Queen(Color::White));
+
+    let mut moves = get_moves(&board, p1);
+    moves.extend(get_moves(&board, p2));
+
+    print_board(&board, moves);
 }
