@@ -1,9 +1,35 @@
-use board::Board;
-use position::Pos;
-
 mod board;
 mod piece;
+mod piece_set;
 mod position;
+
+pub type Table = u64;
+pub struct Pos(usize, usize);
+
+#[derive(PartialEq)]
+pub enum Color {
+    Black,
+    White,
+}
+
+pub enum Piece {
+    Pawn(Color),
+    Rook(Color),
+    Knight(Color),
+    Bishop(Color),
+    Queen(Color),
+    King(Color),
+}
+
+pub struct PieceSet {
+    pub piece: Piece,
+    pub table: Table,
+}
+
+pub struct Board {
+    white: [PieceSet; 6],
+    black: [PieceSet; 6],
+}
 
 fn get_moves(board: &Board, pos: &Pos) -> Vec<Pos> {
     let pset = board.at(pos).expect("cannot move where there is no piece");

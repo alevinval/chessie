@@ -1,4 +1,4 @@
-pub struct Pos(usize, usize);
+use crate::Pos;
 
 impl Pos {
     pub fn new(row: usize, col: usize) -> Self {

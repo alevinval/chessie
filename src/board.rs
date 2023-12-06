@@ -1,17 +1,10 @@
 use std::{fs::File, io::Write};
 
-use crate::{
-    piece::{Color, Piece, PieceSet},
-    position::Pos,
-};
+use crate::{Board, Piece, PieceSet};
+use crate::{Color, Pos};
 
 fn pos(value: u64, row: usize, col: usize) -> u64 {
     (value << row * 8) << col
-}
-
-pub struct Board {
-    white: [PieceSet; 6],
-    black: [PieceSet; 6],
 }
 
 impl Board {
