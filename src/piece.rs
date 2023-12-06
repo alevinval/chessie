@@ -48,3 +48,26 @@ impl Piece {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_piece_is_pawn() {
+        let sut = Piece::Pawn(Color::Black);
+        assert!(sut.is_pawn(), "should be pawn");
+
+        let sut = Piece::Rook(Color::Black);
+        assert!(!sut.is_pawn(), "should not be pawn");
+    }
+
+    #[test]
+    fn test_piece_color() {
+        let sut = Piece::Bishop(Color::Black);
+        assert!(sut.color() == &Color::Black, "should be pawn");
+
+        let sut = Piece::Bishop(Color::White);
+        assert!(sut.color() == &Color::White, "should not be pawn");
+    }
+}
