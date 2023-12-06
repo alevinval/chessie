@@ -42,7 +42,7 @@ impl Board {
         self.white
             .iter()
             .chain(self.black.iter())
-            .find(|piece| piece.at(pos) == 1)
+            .find(|piece| piece.at(pos) > 0)
     }
 
     pub fn at_mut(&mut self, pos: &Pos) -> Option<&mut PieceSet> {

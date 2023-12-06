@@ -1,17 +1,20 @@
 mod board;
 mod piece;
 mod piece_set;
-mod position;
+mod pos;
 
-pub type Table = u64;
+pub type BitBoard = u64;
+
+#[derive(Debug)]
 pub struct Pos(usize, usize);
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Color {
     Black,
     White,
 }
 
+#[derive(Clone, Copy)]
 pub enum Piece {
     Pawn(Color),
     Rook(Color),
@@ -23,7 +26,7 @@ pub enum Piece {
 
 pub struct PieceSet {
     pub piece: Piece,
-    pub table: Table,
+    pub bit_board: BitBoard,
 }
 
 pub struct Board {

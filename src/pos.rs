@@ -1,4 +1,6 @@
-use crate::Pos;
+use crate::{BitBoard, Pos};
+
+pub static ORIGIN: &Pos = &Pos(0, 0);
 
 impl Pos {
     pub fn new(row: usize, col: usize) -> Self {
@@ -35,5 +37,9 @@ impl Pos {
 
     pub fn dl(&self) -> Pos {
         Self(self.0 - 1, self.1 - 1)
+    }
+
+    pub fn as_bit_board(&self) -> BitBoard {
+        (1 << self.0 * 8) << self.1
     }
 }
