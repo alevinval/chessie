@@ -5,7 +5,7 @@ mod pos;
 
 pub type BitBoard = u64;
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct Pos(usize, usize);
 
 #[derive(PartialEq, Clone, Copy)]
@@ -14,7 +14,7 @@ pub enum Color {
     White,
 }
 
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Piece {
     Pawn(Color),
     Rook(Color),
@@ -36,29 +36,20 @@ pub struct Board {
 
 fn get_moves(board: &Board, pos: &Pos) -> Vec<Pos> {
     let pset = board.at(pos).expect("cannot move where there is no piece");
-    let moves = pset.generate_moves(pos);
-    moves
-        .into_iter()
-        .filter(|pos| {
-            board
-                .at(pos)
-                .map_or(if pset.piece.is_pawn() { false } else { true }, |p| {
-                    p.color() != pset.color()
-                })
-        })
-        .collect()
+    pset.generate_moves(pos)
 }
 
 fn print_board(board: &Board, highlights: Vec<Pos>) {
+    println!("{highlights:?}");
     for row in (0..8).rev() {
         print!("+---+---+---+---+---+---+---+---+\n");
         for col in 0..8 {
-            let p = Pos::new(row, col);
+            let p = &Pos::new(row, col);
             print!(
                 "| {} ",
                 highlights
                     .iter()
-                    .find(|pos| pos.row() == row && pos.col() == col)
+                    .find(|hpos| hpos.row() == p.row() && hpos.col() == p.col())
                     .map_or(board.at(&p).map_or(" ", |p| p.piece.to_str()), |_| "@"),
             );
         }

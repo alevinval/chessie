@@ -5,6 +5,10 @@ impl PieceSet {
         Self { piece, bit_board }
     }
 
+    pub fn clear(&mut self) {
+        self.bit_board = 0;
+    }
+
     pub fn at(&self, pos: &Pos) -> BitBoard {
         self.bit_board & self.mask_pos(pos)
     }
@@ -98,5 +102,14 @@ mod test {
     fn test_pieceset_color() {
         let sut = PieceSet::new(PIECE, 0);
         assert!(sut.color() == PIECE.color(), "color should match");
+    }
+
+    #[test]
+    fn test_pieceset_clear() {
+        let mut sut = PieceSet::new(PIECE, 1);
+        assert!(sut.at(ORIGIN) > 0, "should have piece at ORIGIN");
+
+        sut.clear();
+        assert!(sut.at(ORIGIN) == 0, "should be empty after clear");
     }
 }

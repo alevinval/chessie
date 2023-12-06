@@ -33,6 +33,22 @@ impl Board {
         }
     }
 
+    pub fn clear(&mut self) {
+        for pboard in self.white.iter_mut().chain(self.black.iter_mut()) {
+            pboard.clear();
+        }
+    }
+
+    pub fn set(&mut self, pos: &Pos, piece: &Piece) {
+        let pset = match piece.color() {
+            Color::Black => &mut self.black,
+            Color::White => &mut self.white,
+        };
+        pset.iter_mut()
+            .find(|ps| ps.piece == *piece)
+            .map(|ps| ps.bit_board |= pos.as_bit_board());
+    }
+
     pub fn mov(&mut self, from: &Pos, to: &Pos) {
         let pset = self.at_mut(from).expect("cannot move square without piece");
         pset.mov(from, to);
