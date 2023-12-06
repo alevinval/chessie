@@ -54,7 +54,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_piece_is_pawn() {
+    fn is_pawn() {
         let sut = Piece::Pawn(Color::Black);
         assert!(sut.is_pawn(), "should be pawn");
 
@@ -63,7 +63,7 @@ mod test {
     }
 
     #[test]
-    fn test_piece_color() {
+    fn color() {
         let sut = Piece::Bishop(Color::Black);
         assert!(sut.color() == &Color::Black, "should be pawn");
 

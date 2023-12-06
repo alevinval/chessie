@@ -1,3 +1,5 @@
+pub use pos::Pos;
+
 mod board;
 mod piece;
 mod piece_set;
@@ -5,8 +7,16 @@ mod pos;
 
 pub type BitBoard = u64;
 
-#[derive(PartialEq, Eq, Debug)]
-pub struct Pos(usize, usize);
+pub enum Direction {
+    Top,
+    Bottom,
+    Left,
+    Right,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum Color {
@@ -34,17 +44,11 @@ pub struct Board {
     black: [PieceSet; 6],
 }
 
-fn get_moves(board: &Board, pos: &Pos) -> Vec<Pos> {
-    let pset = board.at(pos).expect("cannot move where there is no piece");
-    pset.generate_moves(pos)
-}
-
 fn print_board(board: &Board, highlights: Vec<Pos>) {
-    println!("{highlights:?}");
     for row in (0..8).rev() {
         print!("+---+---+---+---+---+---+---+---+\n");
         for col in 0..8 {
-            let p = &Pos::new(row, col);
+            let p = &Pos(row, col);
             print!(
                 "| {} ",
                 highlights
@@ -61,17 +65,14 @@ fn print_board(board: &Board, highlights: Vec<Pos>) {
 
 pub fn main() {
     let mut board = Board::new();
-    board.mov(&Pos::new(0, 0), &Pos::new(4, 5));
-    board.save("board.cb");
-    board.clear();
+    board.apply_move(&Pos(1, 0), &Pos(7, 1));
+    // board.save("board.cb");
+    // board.clear();
 
-    let p1 = &Pos::new(5, 4);
-    let p2 = &Pos::new(1, 2);
-    board.set(p1, &Piece::Queen(Color::Black));
-    board.set(p2, &Piece::Queen(Color::White));
+    let pos = [&Pos(1, 1), &Pos(7, 1), &Pos(4, 5)];
+    // board.set(pos[1], &Piece::Queen(Color::Black));
+    // board.set(pos[2], &Piece::Queen(Color::White));
 
-    let mut moves = get_moves(&board, p1);
-    moves.extend(get_moves(&board, p2));
-
+    let moves = pos.iter().flat_map(|p| board.generate_moves(p)).collect();
     print_board(&board, moves);
 }
