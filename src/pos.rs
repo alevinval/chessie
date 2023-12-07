@@ -1,11 +1,12 @@
 use crate::{BitBoard, Direction};
 
-pub static ORIGIN: &Pos = &Pos(0, 0);
+pub static ORIGIN: Pos = Pos(0, 0);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Pos(pub usize, pub usize);
 
 impl Pos {
+    #[must_use]
     pub fn to(&self, d: Direction) -> Self {
         let (row, col) = (self.0, self.1);
         let pos = match d {
@@ -23,18 +24,22 @@ impl Pos {
         Self(pos.0, pos.1)
     }
 
+    #[must_use]
     pub fn row(&self) -> usize {
         self.assert_bounds();
         self.0
     }
 
+    #[must_use]
     pub fn col(&self) -> usize {
         self.assert_bounds();
         self.1
     }
 
+    #[must_use]
     pub fn as_bit_board(&self) -> BitBoard {
-        (1 << self.0 * 8) << self.1
+        self.assert_bounds();
+        BitBoard((1 << (self.0 * 8)) << self.1)
     }
 
     fn assert_bounds(&self) {
@@ -51,7 +56,7 @@ mod test {
 
     #[test]
     fn to() {
-        let sut = &Pos(4, 4);
+        let sut = Pos(4, 4);
 
         assert!(Pos(5, 4) == sut.to(Direction::Top), "should have moved top");
         assert!(
@@ -77,8 +82,8 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "")]
     fn to_outside_bounds() {
-        Pos(0, 0).to(Direction::Bottom);
+        let _ = Pos(0, 0).to(Direction::Bottom);
     }
 }

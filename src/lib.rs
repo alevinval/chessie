@@ -1,11 +1,11 @@
+pub use bitboard::BitBoard;
 pub use pos::Pos;
 
+mod bitboard;
 mod board;
 mod piece;
 mod piece_set;
 mod pos;
-
-pub type BitBoard = u64;
 
 pub enum Direction {
     Top,
@@ -44,35 +44,36 @@ pub struct Board {
     black: [PieceSet; 6],
 }
 
-fn print_board(board: &Board, highlights: Vec<Pos>) {
+fn print_board(board: &Board, highlights: &[BitBoard]) {
     for row in (0..8).rev() {
-        print!("+---+---+---+---+---+---+---+---+\n");
+        println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
-            let p = &Pos(row, col);
+            let p = Pos(row, col);
             print!(
                 "| {} ",
                 highlights
                     .iter()
-                    .find(|hpos| hpos.row() == p.row() && hpos.col() == p.col())
-                    .map_or(board.at(&p).map_or(" ", |p| p.piece.to_str()), |_| "@"),
+                    .find(|h| h.has_piece(p))
+                    .map_or(board.at(p).map_or(" ", |p| p.piece.to_str()), |_| "@"),
             );
         }
-        print!("| {}\n", row + 1);
+        println!("| {}", row + 1);
     }
-    print!("+---+---+---+---+---+---+---+---+\n");
-    print!("  a   b   c   d   e   f   g   h  \n");
+    println!("+---+---+---+---+---+---+---+---+");
+    println!("  a   b   c   d   e   f   g   h  ");
 }
 
 pub fn main() {
     let mut board = Board::new();
-    board.apply_move(&Pos(1, 0), &Pos(7, 1));
+    board.apply_move(Pos(1, 0), Pos(7, 1));
     // board.save("board.cb");
     // board.clear();
 
-    let pos = [&Pos(1, 1), &Pos(7, 1), &Pos(4, 5)];
-    // board.set(pos[1], &Piece::Queen(Color::Black));
-    // board.set(pos[2], &Piece::Queen(Color::White));
+    let positions = [Pos(1, 1), Pos(7, 1), Pos(4, 5)];
 
-    let moves = pos.iter().flat_map(|p| board.generate_moves(p)).collect();
-    print_board(&board, moves);
+    // board.set(pos[1], &Piece::Queen(Color::Black));
+    board.set(positions[2], Piece::Queen(Color::White));
+
+    let moves: Vec<BitBoard> = positions.iter().map(|p| board.generate_moves(*p)).collect();
+    print_board(&board, &moves);
 }

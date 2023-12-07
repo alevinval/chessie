@@ -1,6 +1,7 @@
 use crate::{Color, Piece};
 
 impl Piece {
+    #[must_use]
     pub fn to_str(&self) -> &str {
         match self {
             Piece::Pawn(c) => match c {
@@ -30,13 +31,12 @@ impl Piece {
         }
     }
 
+    #[must_use]
     pub fn is_pawn(&self) -> bool {
-        match self {
-            Piece::Pawn(_) => true,
-            _ => false,
-        }
+        matches!(self, Piece::Pawn(_))
     }
 
+    #[must_use]
     pub fn color(&self) -> &Color {
         match self {
             Piece::Pawn(c)
