@@ -1,15 +1,11 @@
-use crate::Pos;
+use crate::pos::Pos;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BitBoard(pub u64);
 
 impl BitBoard {
-    pub fn empty() -> Self {
-        Self(0)
-    }
-
-    pub fn load(value: u64, row: usize, col: usize) -> Self {
-        Self((value << (row * 8)) << col)
+    pub fn load_row(value: u64, row: usize) -> Self {
+        Self(value << (row * 8))
     }
 
     pub fn has_piece(&self, pos: Pos) -> bool {
@@ -43,7 +39,13 @@ impl BitBoard {
 
 impl From<Pos> for BitBoard {
     fn from(value: Pos) -> Self {
-        value.as_bit_board()
+        BitBoard((1 << (value.row() * 8)) << value.col())
+    }
+}
+
+impl From<u64> for BitBoard {
+    fn from(value: u64) -> Self {
+        BitBoard(value)
     }
 }
 
@@ -58,17 +60,17 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard::empty();
+        let sut = BitBoard(0);
         println!("SUT: {sut:?}");
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
         let sut = BitBoard(1);
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard::empty();
+        let sut = BitBoard(0);
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
-        let sut = TARGET.as_bit_board();
+        let sut: BitBoard = TARGET.into();
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
 

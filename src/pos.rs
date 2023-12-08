@@ -1,12 +1,21 @@
-use crate::{BitBoard, Direction};
-
+#[cfg(test)]
 pub static ORIGIN: Pos = Pos(0, 0);
+
+pub enum Direction {
+    Top,
+    Bottom,
+    Left,
+    Right,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Pos(pub usize, pub usize);
 
 impl Pos {
-    #[must_use]
     pub fn to(&self, d: Direction) -> Self {
         let (row, col) = (self.0, self.1);
         let pos = match d {
@@ -24,22 +33,14 @@ impl Pos {
         Self(pos.0, pos.1)
     }
 
-    #[must_use]
     pub fn row(&self) -> usize {
         self.assert_bounds();
         self.0
     }
 
-    #[must_use]
     pub fn col(&self) -> usize {
         self.assert_bounds();
         self.1
-    }
-
-    #[must_use]
-    pub fn as_bit_board(&self) -> BitBoard {
-        self.assert_bounds();
-        BitBoard((1 << (self.0 * 8)) << self.1)
     }
 
     fn assert_bounds(&self) {
