@@ -30,7 +30,7 @@ impl Board {
             Color::Black => &mut self.black,
             Color::White => &mut self.white,
         };
-        if let Some(ps) = pieces.0.iter_mut().find(|ps| ps.piece == piece) {
+        if let Some(ps) = pieces.iter_mut().find(|ps| ps.piece == piece) {
             ps.bitboard.or_mut(pos);
         }
     }
@@ -42,26 +42,24 @@ impl Board {
 
     pub fn at(&self, pos: Pos) -> Option<&PieceSet> {
         self.white
-            .0
             .iter()
-            .chain(self.black.0.iter())
+            .chain(self.black.iter())
             .find(|piece_set| !piece_set.at(pos).is_empty())
     }
 
     pub fn at_mut(&mut self, pos: Pos) -> Option<&mut PieceSet> {
         self.white
-            .0
             .iter_mut()
-            .chain(self.black.0.iter_mut())
+            .chain(self.black.iter_mut())
             .find(|piece| !piece.at(pos).is_empty())
     }
 
     pub fn save(&self, fname: &str) {
         let mut w = File::create(fname).unwrap();
-        self.white.0.iter().for_each(|pset| {
+        self.white.iter().for_each(|pset| {
             w.write_all(&pset.bitboard.to_le_bytes()).unwrap();
         });
-        self.black.0.iter().for_each(|pset| {
+        self.black.iter().for_each(|pset| {
             w.write_all(&pset.bitboard.to_le_bytes()).unwrap();
         });
     }
@@ -86,28 +84,24 @@ mod test {
 
     use super::*;
 
-    static COLOR: Color = Color::White;
-
     #[test]
     fn generates_all_positions() {
-        let mut sut = Board::new();
-        sut.clear();
-        sut.white = Pieces::new(COLOR);
-
         let positions: Vec<Pos> = (0..8)
             .flat_map(|row| (0..8).map(move |col| Pos(row, col)))
             .collect();
 
         for pos in positions {
-            for i in 0..sut.white.0.len() {
-                sut.white.0[i].bitboard = pos.into();
+            let sut = Board::new();
+            if sut.at(pos).is_none() {
+                continue;
+            }
+            for piece_set in sut.white.iter() {
                 let gen = vec![sut.generate_moves(pos)];
                 print_board(&sut, &gen);
                 assert!(
                     gen[0] != 0.into()
-                        || (sut.white.0[i].piece.is_pawn() && (pos.row() == 7 || pos.row() == 0))
+                        || (piece_set.piece.is_pawn() && (pos.row() == 7 || pos.row() == 0))
                 );
-                sut.clear();
             }
         }
     }

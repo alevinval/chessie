@@ -1,3 +1,5 @@
+use std::slice::{Iter, IterMut};
+
 pub use self::color::Color;
 pub use bitboard::BitBoard;
 pub use piece::Piece;
@@ -9,21 +11,33 @@ mod movement;
 mod piece;
 mod pieceset;
 
-pub struct Pieces(pub [PieceSet; 6]);
+pub struct Pieces {
+    pieces: [PieceSet; 6],
+}
 
 impl Pieces {
     pub fn new(color: Color) -> Self {
-        Self([
-            PieceSet::new(Piece::Pawn(color)),
-            PieceSet::new(Piece::Rook(color)),
-            PieceSet::new(Piece::Knight(color)),
-            PieceSet::new(Piece::Bishop(color)),
-            PieceSet::new(Piece::Queen(color)),
-            PieceSet::new(Piece::King(color)),
-        ])
+        Self {
+            pieces: [
+                PieceSet::new(Piece::Pawn(color)),
+                PieceSet::new(Piece::Rook(color)),
+                PieceSet::new(Piece::Knight(color)),
+                PieceSet::new(Piece::Bishop(color)),
+                PieceSet::new(Piece::Queen(color)),
+                PieceSet::new(Piece::King(color)),
+            ],
+        }
+    }
+
+    pub fn iter(&self) -> Iter<'_, PieceSet> {
+        self.pieces.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> IterMut<'_, PieceSet> {
+        self.pieces.iter_mut()
     }
 
     pub fn clear(&mut self) {
-        self.0.iter_mut().for_each(|pset| pset.clear());
+        self.iter_mut().for_each(|pset| pset.clear());
     }
 }
