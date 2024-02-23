@@ -1,51 +1,65 @@
 use crate::pos::Pos;
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct BitBoard(pub u64);
+#[derive(Default, Debug, PartialEq, Eq)]
+pub struct BitBoard {
+    value: u64,
+}
 
 impl BitBoard {
+    pub fn new(value: u64) -> Self {
+        Self { value }
+    }
+
     pub fn load_row(value: u64, row: usize) -> Self {
-        Self(value << (row * 8))
+        Self {
+            value: value << (row * 8),
+        }
     }
 
     pub fn has_piece(&self, pos: Pos) -> bool {
-        ((self.0 >> (pos.row() * 8)) >> pos.col()) & 1 == 1
+        ((self.value >> (pos.row() * 8)) >> pos.col()) & 1 == 1
     }
 
     pub fn or_mut<P: Into<BitBoard>>(&mut self, other: P) {
-        self.0 |= other.into().0
+        self.value |= other.into().value
     }
 
     pub fn or<P: Into<BitBoard>>(&self, other: P) -> BitBoard {
-        BitBoard(self.0 | other.into().0)
+        BitBoard {
+            value: self.value | other.into().value,
+        }
     }
 
     pub fn and<P: Into<BitBoard>>(&self, other: P) -> BitBoard {
-        BitBoard(self.0 & other.into().0)
+        BitBoard {
+            value: self.value & other.into().value,
+        }
     }
 
     pub fn xor_mut<P: Into<BitBoard>>(&mut self, other: P) {
-        self.0 ^= other.into().0;
+        self.value ^= other.into().value;
     }
 
     pub fn is_empty(&self) -> bool {
-        self.0 == 0
+        self.value == 0
     }
 
     pub fn to_le_bytes(&self) -> [u8; 8] {
-        u64::to_le_bytes(self.0)
+        u64::to_le_bytes(self.value)
     }
 }
 
 impl From<Pos> for BitBoard {
     fn from(value: Pos) -> Self {
-        BitBoard((1 << (value.row() * 8)) << value.col())
+        BitBoard {
+            value: (1 << (value.row() * 8)) << value.col(),
+        }
     }
 }
 
 impl From<u64> for BitBoard {
     fn from(value: u64) -> Self {
-        BitBoard(value)
+        BitBoard { value }
     }
 }
 
@@ -60,14 +74,13 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard(0);
-        println!("SUT: {sut:?}");
+        let sut = BitBoard::new(0);
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard(1);
+        let sut = BitBoard::new(1);
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard(0);
+        let sut = BitBoard::new(0);
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
         let sut: BitBoard = TARGET.into();
@@ -76,8 +89,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let input = u64::MAX;
-        let sut = BitBoard(input);
+        let sut = BitBoard::new(u64::MAX);
         let actual = sut.to_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");

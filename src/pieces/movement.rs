@@ -3,26 +3,26 @@ use std::iter::zip;
 use crate::{pos::Direction, BitBoard, Pos};
 
 pub fn bishop(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     diagonals(pos, &mut out);
     out
 }
 
 pub fn rook(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     cross(pos, &mut out);
     out
 }
 
 pub fn queen(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     diagonals(pos, &mut out);
     cross(pos, &mut out);
     out
 }
 
 pub fn black_pawn(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     if pos.row() > 0 {
         out.or_mut(pos.to(Direction::Bottom));
         if pos.row() == 6 {
@@ -39,7 +39,7 @@ pub fn black_pawn(pos: Pos) -> BitBoard {
 }
 
 pub fn white_pawn(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     if pos.row() < 7 {
         out.or_mut(pos.to(Direction::Top));
         if pos.row() == 1 {
@@ -56,7 +56,7 @@ pub fn white_pawn(pos: Pos) -> BitBoard {
 }
 
 pub fn knight(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     let has_one_right = pos.col() < 7;
     let has_two_right = pos.col() < 6;
     let has_one_left = pos.col() > 0;
@@ -101,7 +101,7 @@ pub fn knight(pos: Pos) -> BitBoard {
 }
 
 pub fn king(pos: Pos) -> BitBoard {
-    let mut out = BitBoard(0);
+    let mut out = BitBoard::default();
     if pos.row() < 7 {
         out.or_mut(pos.to(Direction::Top));
 

@@ -20,7 +20,7 @@ impl PieceSet {
     }
 
     pub fn clear(&mut self) {
-        self.bitboard = BitBoard(0);
+        self.bitboard = BitBoard::default();
     }
 
     pub fn at(&self, pos: Pos) -> BitBoard {
@@ -55,10 +55,10 @@ mod test {
 
     #[test]
     fn at() {
-        let sut = PieceSet::new_bitboard(PIECE, BitBoard(0b0));
+        let sut = PieceSet::new_bitboard(PIECE, 0b0);
         assert!(sut.at(ORIGIN).is_empty(), "{ORIGIN:?} should be empty");
 
-        let sut = PieceSet::new_bitboard(PIECE, BitBoard(0b1));
+        let sut = PieceSet::new_bitboard(PIECE, 0b1);
         assert!(!sut.at(ORIGIN).is_empty(), "{ORIGIN:?} should not be empty");
 
         let sut = PieceSet::new_bitboard(PIECE, TARGET);
@@ -67,7 +67,7 @@ mod test {
 
     #[test]
     fn mov() {
-        let mut sut = PieceSet::new_bitboard(PIECE, BitBoard(0b1));
+        let mut sut = PieceSet::new_bitboard(PIECE, 0b1);
         assert!(
             !sut.at(ORIGIN).is_empty(),
             "should have piece at {ORIGIN:?}"
@@ -83,7 +83,7 @@ mod test {
 
     #[test]
     fn clear() {
-        let mut sut = PieceSet::new_bitboard(PIECE, BitBoard(1));
+        let mut sut = PieceSet::new_bitboard(PIECE, 1);
         assert!(!sut.at(ORIGIN).is_empty(), "should have piece at ORIGIN");
 
         sut.clear();

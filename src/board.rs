@@ -67,8 +67,9 @@ impl Board {
     }
 
     pub fn generate_moves(&self, pos: Pos) -> BitBoard {
-        self.at(pos)
-            .map_or(BitBoard(0), |piece_set| piece_set.piece.movements(pos))
+        self.at(pos).map_or(BitBoard::default(), |piece_set| {
+            piece_set.piece.movements(pos)
+        })
     }
 }
 
