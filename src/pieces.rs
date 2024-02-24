@@ -37,8 +37,4 @@ impl Pieces {
     pub fn iter_mut(&mut self) -> IterMut<'_, PieceSet> {
         self.pieces.iter_mut()
     }
-
-    pub fn clear(&mut self) {
-        self.iter_mut().for_each(|pset| pset.clear());
-    }
 }

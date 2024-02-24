@@ -1,7 +1,5 @@
 use std::{fs::File, io::Write};
 
-#[cfg(test)]
-use crate::pieces::Piece;
 use crate::pieces::{BitBoard, Color, PieceSet, Pieces};
 use crate::pos::Pos;
 
@@ -16,23 +14,6 @@ impl Board {
         Self {
             white: Pieces::new(Color::White),
             black: Pieces::new(Color::Black),
-        }
-    }
-
-    #[cfg(test)]
-    pub fn clear(&mut self) {
-        self.white.clear();
-        self.black.clear();
-    }
-
-    #[cfg(test)]
-    pub fn set(&mut self, pos: Pos, piece: Piece) {
-        let pieces = match piece.color() {
-            Color::Black => &mut self.black,
-            Color::White => &mut self.white,
-        };
-        if let Some(ps) = pieces.iter_mut().find(|ps| ps.piece == piece) {
-            ps.bitboard.or_mut(pos);
         }
     }
 
@@ -91,14 +72,11 @@ impl Board {
             .iter()
             .map(|ps| ps.bitboard.positions().len() as f32 * ps.piece.score())
             .sum();
-        let eval = match color {
+
+        match color {
             Color::Black => black - white,
             Color::White => white - black,
-        };
-
-        println!("eval={eval}");
-
-        eval
+        }
     }
 }
 

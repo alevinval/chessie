@@ -6,6 +6,7 @@ pub struct BitBoard {
 }
 
 impl BitBoard {
+    #[cfg(test)]
     pub fn new(value: u64) -> Self {
         Self { value }
     }

@@ -47,6 +47,7 @@ impl Piece {
         }
     }
 
+    #[cfg(test)]
     pub fn is_pawn(&self) -> bool {
         matches!(self, Piece::Pawn(_))
     }

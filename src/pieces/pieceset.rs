@@ -20,6 +20,7 @@ impl PieceSet {
         }
     }
 
+    #[cfg(test)]
     pub fn clear(&mut self) {
         self.bitboard = BitBoard::default();
     }
