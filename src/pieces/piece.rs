@@ -51,6 +51,17 @@ impl Piece {
         matches!(self, Piece::Pawn(_))
     }
 
+    pub fn score(&self) -> f32 {
+        match self {
+            Piece::Pawn(_) => 0.5,
+            Piece::Rook(_) => 5.0,
+            Piece::Knight(_) => 2.5,
+            Piece::Bishop(_) => 3.0,
+            Piece::Queen(_) => 10.0,
+            Piece::King(_) => 0.0,
+        }
+    }
+
     pub fn as_str(&self) -> &'static str {
         match self {
             Piece::Pawn(c) => match c {

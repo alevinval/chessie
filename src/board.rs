@@ -5,7 +5,7 @@ use crate::pieces::Piece;
 use crate::pieces::{BitBoard, Color, PieceSet, Pieces};
 use crate::pos::Pos;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Board {
     white: Pieces,
     black: Pieces,
@@ -37,8 +37,17 @@ impl Board {
     }
 
     pub fn apply_move(&mut self, from: Pos, to: Pos) {
-        let pset = self.at_mut(from).expect("cannot move square without piece");
-        pset.apply_move(from, to);
+        if self.at(from).is_none() {
+            return;
+        }
+
+        if let Some(dst) = self.at_mut(to) {
+            dst.bitboard.xor_mut(to);
+        }
+
+        self.at_mut(from)
+            .expect("cannot move square without piece")
+            .apply_move(from, to);
     }
 
     pub fn at(&self, pos: Pos) -> Option<&PieceSet> {
@@ -69,6 +78,27 @@ impl Board {
         self.at(pos).map_or(BitBoard::default(), |piece_set| {
             piece_set.piece.movements(self, pos)
         })
+    }
+
+    pub fn evaluate(&self, color: Color) -> f32 {
+        let white: f32 = self
+            .white
+            .iter()
+            .map(|ps| ps.bitboard.positions().len() as f32 * ps.piece.score())
+            .sum();
+        let black: f32 = self
+            .black
+            .iter()
+            .map(|ps| ps.bitboard.positions().len() as f32 * ps.piece.score())
+            .sum();
+        let eval = match color {
+            Color::Black => black - white,
+            Color::White => white - black,
+        };
+
+        println!("eval={eval}");
+
+        eval
     }
 }
 

@@ -1,5 +1,5 @@
 use board::Board;
-use pieces::BitBoard;
+use pieces::{BitBoard, Color};
 
 use crate::pos::Pos;
 
@@ -29,10 +29,24 @@ pub fn main() {
     board.save("board.cb");
     // board.clear();
 
-    let positions = [test_pos, Pos(0, 1), Pos(1, 3)];
-    // board.set(positions[1], Piece::Queen(Color::Black));
-    // board.set(positions[2], Piece::Queen(Color::White));
+    let positions = [test_pos]; //, Pos(0, 1), Pos(1, 3)];
+                                // board.set(positions[1], Piece::Queen(Color::Black));
+                                // board.set(positions[2], Piece::Queen(Color::White));
 
-    let moves: Vec<BitBoard> = positions.iter().map(|p| board.generate_moves(*p)).collect();
-    print_board(&board, &moves);
+    print_board(&board, &[board.generate_moves(test_pos)]);
+    for pos in positions {
+        board
+            .generate_moves(pos)
+            .positions()
+            .into_iter()
+            .for_each(|gen_pos| {
+                let mut new_board = board.clone();
+                new_board.apply_move(pos, gen_pos);
+                let eval = new_board.evaluate(Color::White);
+                if eval > 0.0 {
+                    print_board(&new_board, &[new_board.generate_moves(gen_pos)]);
+                    println!("candidate={gen_pos:?} eval={eval}");
+                }
+            })
+    }
 }

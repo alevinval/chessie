@@ -2,7 +2,7 @@ use crate::pos::Pos;
 
 use super::{BitBoard, Piece};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PieceSet {
     pub piece: Piece,
     pub bitboard: BitBoard,
