@@ -2,43 +2,37 @@
 pub static ORIGIN: Pos = Pos(0, 0);
 
 pub enum Direction {
-    Top,
-    Bottom,
-    Left,
-    Right,
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight,
+    Top(u8),
+    Bottom(u8),
+    Left(u8),
+    Right(u8),
+    Custom(i8, i8),
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Pos(pub usize, pub usize);
+pub struct Pos(pub u8, pub u8);
 
 impl Pos {
     pub fn to(&self, d: Direction) -> Self {
         let (row, col) = (self.0, self.1);
         let pos = match d {
-            Direction::Top => (row + 1, col),
-            Direction::TopLeft => (row + 1, col - 1),
-            Direction::TopRight => (row + 1, col + 1),
-            Direction::Bottom => (row - 1, col),
-            Direction::BottomLeft => (row - 1, col - 1),
-            Direction::BottomRight => (row - 1, col + 1),
-            Direction::Left => (row, col - 1),
-            Direction::Right => (row, col + 1),
+            Direction::Top(n) => (row + n, col),
+            Direction::Bottom(n) => (row - n, col),
+            Direction::Left(n) => (row, col - n),
+            Direction::Right(n) => (row, col + n),
+            Direction::Custom(nr, nc) => (((row as i8) + nr) as u8, ((col as i8) + nc) as u8),
         };
 
         self.assert_bounds();
         Self(pos.0, pos.1)
     }
 
-    pub fn row(&self) -> usize {
+    pub fn row(&self) -> u8 {
         self.assert_bounds();
         self.0
     }
 
-    pub fn col(&self) -> usize {
+    pub fn col(&self) -> u8 {
         self.assert_bounds();
         self.1
     }
@@ -59,32 +53,27 @@ mod test {
     fn to() {
         let sut = Pos(4, 4);
 
-        assert!(Pos(5, 4) == sut.to(Direction::Top), "should have moved top");
         assert!(
-            Pos(5, 5) == sut.to(Direction::TopRight),
-            "should have moved top-right"
+            Pos(5, 4) == sut.to(Direction::Top(1)),
+            "should have moved top"
         );
         assert!(
-            Pos(5, 3) == sut.to(Direction::TopLeft),
-            "should have moved top-left"
-        );
-        assert!(
-            Pos(3, 4) == sut.to(Direction::Bottom),
+            Pos(3, 4) == sut.to(Direction::Bottom(1)),
             "should have moved bottom"
         );
         assert!(
-            Pos(3, 5) == sut.to(Direction::BottomRight),
-            "should have moved bottom-right"
+            Pos(4, 3) == sut.to(Direction::Left(1)),
+            "should have moved left"
         );
         assert!(
-            Pos(3, 3) == sut.to(Direction::BottomLeft),
-            "should have moved bottom-left"
+            Pos(4, 5) == sut.to(Direction::Right(1)),
+            "should have moved right"
         );
     }
 
     #[test]
     #[should_panic(expected = "")]
     fn to_outside_bounds() {
-        let _ = Pos(0, 0).to(Direction::Bottom);
+        let _ = Pos(0, 0).to(Direction::Bottom(1));
     }
 }

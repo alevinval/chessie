@@ -1,12 +1,14 @@
 use std::fmt::Display;
 
+use crate::board::Board;
 use crate::pos::Pos;
 
 use super::movement;
+use super::movement::Generator;
 use super::BitBoard;
 use super::Color;
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Piece {
     Pawn(Color),
     Rook(Color),
@@ -19,17 +21,18 @@ pub enum Piece {
 impl Piece {
     // TODO: It will need access to full current board and past bitboards for castling or
     // en-passant rules, etc.
-    pub fn movements(&self, pos: Pos) -> BitBoard {
+    pub fn movements(&self, board: &Board, pos: Pos) -> BitBoard {
+        let g = Generator::new(board, pos);
         match self {
             Piece::Pawn(c) => match c {
-                Color::Black => movement::black_pawn(pos),
-                Color::White => movement::white_pawn(pos),
+                Color::Black => movement::black_pawn(g),
+                Color::White => movement::white_pawn(g),
             },
-            Piece::Rook(_) => movement::rook(pos),
-            Piece::Bishop(_) => movement::bishop(pos),
-            Piece::Queen(_) => movement::queen(pos),
-            Piece::Knight(_) => movement::knight(pos),
-            Piece::King(_) => movement::king(pos),
+            Piece::Rook(_) => movement::rook(g),
+            Piece::Bishop(_) => movement::bishop(g),
+            Piece::Queen(_) => movement::queen(g),
+            Piece::Knight(_) => movement::knight(g),
+            Piece::King(_) => movement::king(g),
         }
     }
 

@@ -11,6 +11,7 @@ mod movement;
 mod piece;
 mod pieceset;
 
+#[derive(Debug)]
 pub struct Pieces {
     pieces: [PieceSet; 6],
 }

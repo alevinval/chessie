@@ -29,7 +29,7 @@ pub fn main() {
     board.save("board.cb");
     // board.clear();
 
-    let positions = [test_pos];
+    let positions = [test_pos, Pos(0, 1), Pos(1, 3)];
     // board.set(positions[1], Piece::Queen(Color::Black));
     // board.set(positions[2], Piece::Queen(Color::White));
 
