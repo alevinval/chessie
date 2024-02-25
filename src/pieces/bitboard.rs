@@ -72,6 +72,13 @@ impl From<Pos> for BitBoard {
     }
 }
 
+impl From<(u8, u8)> for BitBoard {
+    fn from(value: (u8, u8)) -> Self {
+        let p: Pos = value.into();
+        p.into()
+    }
+}
+
 impl From<u64> for BitBoard {
     fn from(value: u64) -> Self {
         BitBoard { value }
