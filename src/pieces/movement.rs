@@ -20,16 +20,16 @@ pub fn queen(mut g: Generator) -> BitBoard {
 
 pub fn black_pawn(mut g: Generator) -> BitBoard {
     if g.row() > 0 {
-        if g.gen(g.to(Direction::Bottom(1)), is_empty).yes() && g.row() == 6 {
-            g.gen(g.to(Direction::Bottom(2)), is_empty);
+        if g.dir(Direction::Bottom(1), is_empty).yes() && g.row() == 6 {
+            g.dir(Direction::Bottom(2), is_empty);
         }
 
         if g.col() < 7 {
-            g.gen(g.to(Direction::Custom(-1, 1)), is_opposite);
+            g.dir(Direction::Custom(-1, 1), is_opposite);
         }
 
         if g.col() > 0 {
-            g.gen(g.to(Direction::Custom(-1, -1)), is_opposite);
+            g.dir(Direction::Custom(-1, -1), is_opposite);
         }
     }
     g.moves
@@ -37,14 +37,14 @@ pub fn black_pawn(mut g: Generator) -> BitBoard {
 
 pub fn white_pawn(mut g: Generator) -> BitBoard {
     if g.row() < 7 {
-        if g.gen(g.to(Direction::Top(1)), is_empty).yes() && g.row() == 1 {
-            g.gen(g.to(Direction::Top(2)), is_empty);
+        if g.dir(Direction::Top(1), is_empty).yes() && g.row() == 1 {
+            g.dir(Direction::Top(2), is_empty);
         }
         if g.col() < 7 {
-            g.gen(g.to(Direction::Custom(1, 1)), is_opposite);
+            g.dir(Direction::Custom(1, 1), is_opposite);
         }
         if g.col() > 0 {
-            g.gen(g.to(Direction::Custom(1, -1)), is_opposite);
+            g.dir(Direction::Custom(1, -1), is_opposite);
         }
     }
     g.moves
@@ -58,37 +58,37 @@ pub fn knight(mut g: Generator) -> BitBoard {
 
     if g.row() < 6 {
         if has_one_left {
-            g.gen(g.to(Direction::Custom(2, -1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(2, -1), is_empty_or_opposite);
         }
         if has_one_right {
-            g.gen(g.to(Direction::Custom(2, 1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(2, 1), is_empty_or_opposite);
         }
     }
 
     if g.row() > 2 {
         if has_one_left {
-            g.gen(g.to(Direction::Custom(-2, -1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(-2, -1), is_empty_or_opposite);
         }
         if has_one_right {
-            g.gen(g.to(Direction::Custom(-2, 1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(-2, 1), is_empty_or_opposite);
         }
     }
 
     if g.row() < 7 {
         if has_two_left {
-            g.gen(g.to(Direction::Custom(1, -2)), is_empty_or_opposite);
+            g.dir(Direction::Custom(1, -2), is_empty_or_opposite);
         }
         if has_two_right {
-            g.gen(g.to(Direction::Custom(1, 2)), is_empty_or_opposite);
+            g.dir(Direction::Custom(1, 2), is_empty_or_opposite);
         }
     }
 
     if g.row() > 0 {
         if has_two_left {
-            g.gen(g.to(Direction::Custom(-1, -2)), is_empty_or_opposite);
+            g.dir(Direction::Custom(-1, -2), is_empty_or_opposite);
         }
         if has_two_right {
-            g.gen(g.to(Direction::Custom(-1, 2)), is_empty_or_opposite);
+            g.dir(Direction::Custom(-1, 2), is_empty_or_opposite);
         }
     }
     g.moves
@@ -96,92 +96,90 @@ pub fn knight(mut g: Generator) -> BitBoard {
 
 pub fn king(mut g: Generator) -> BitBoard {
     if g.row() < 7 {
-        g.gen(g.to(Direction::Top(1)), is_empty_or_opposite);
+        g.dir(Direction::Top(1), is_empty_or_opposite);
 
         if g.col() < 7 {
-            g.gen(g.to(Direction::Custom(1, 1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(1, 1), is_empty_or_opposite);
         }
 
         if g.col() > 0 {
-            g.gen(g.to(Direction::Custom(1, -1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(1, -1), is_empty_or_opposite);
         }
     }
 
     if g.row() > 0 {
-        g.gen(g.to(Direction::Bottom(1)), is_empty_or_opposite);
+        g.dir(Direction::Bottom(1), is_empty_or_opposite);
 
         if g.col() < 7 {
-            g.gen(g.to(Direction::Custom(-1, 1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(-1, 1), is_empty_or_opposite);
         }
 
         if g.col() > 0 {
-            g.gen(g.to(Direction::Custom(-1, -1)), is_empty_or_opposite);
+            g.dir(Direction::Custom(-1, -1), is_empty_or_opposite);
         }
     }
 
     if g.col() < 7 {
-        g.gen(g.to(Direction::Right(1)), is_empty_or_opposite);
+        g.dir(Direction::Right(1), is_empty_or_opposite);
     }
 
     if g.col() > 0 {
-        g.gen(g.to(Direction::Left(1)), is_empty_or_opposite);
+        g.dir(Direction::Left(1), is_empty_or_opposite);
     }
     g.moves
 }
 
 fn cross(g: &mut Generator) {
-    let row = g.row();
-    let col = g.col();
+    let (row, col) = (g.row(), g.col());
 
-    for pos in (0..row).rev().map(|r| Pos(r, col)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for r in (0..row).rev() {
+        if g.pos((r, col), is_empty_or_opposite).should_stop() {
             break;
         }
     }
 
-    for pos in (row + 1..8).map(|r| Pos(r, col)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for r in row + 1..8 {
+        if g.pos((r, col), is_empty_or_opposite).should_stop() {
             break;
         }
     }
 
-    for pos in (0..col).rev().map(|c| Pos(row, c)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for c in (0..col).rev() {
+        if g.pos((row, c), is_empty_or_opposite).should_stop() {
             break;
         }
     }
 
-    for pos in (col + 1..8).map(|c| Pos(row, c)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for c in col + 1..8 {
+        if g.pos((row, c), is_empty_or_opposite).should_stop() {
             break;
         }
     }
 }
 
 fn diagonals(g: &mut Generator) {
-    let row = g.row();
-    let col = g.col();
+    let (row, col) = (g.row(), g.col());
 
-    for pos in zip(row + 1..8, col + 1..8).map(|(r, c)| Pos(r, c)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for pos in zip(row + 1..8, col + 1..8) {
+        if g.pos(pos, is_empty_or_opposite).should_stop() {
             break;
         }
     }
 
-    for pos in zip((0..row).rev(), col + 1..8).map(|(r, c)| Pos(r, c)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for pos in zip((0..row).rev(), col + 1..8) {
+        if g.pos(pos, is_empty_or_opposite).should_stop() {
             break;
         }
     }
 
-    for pos in zip(row + 1..8, (0..col).rev()).map(|(r, c)| Pos(r, c)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for pos in zip(row + 1..8, (0..col).rev()) {
+        if g.pos(pos, is_empty_or_opposite).should_stop() {
             break;
         }
     }
 
-    for pos in zip((0..row).rev(), (0..col).rev()).map(|(r, c)| Pos(r, c)) {
-        if g.gen(pos, is_empty_or_opposite).should_stop() {
+    for pos in zip((0..row).rev(), (0..col).rev()) {
+        if g.pos(pos, is_empty_or_opposite).should_stop() {
             break;
         }
     }
@@ -243,11 +241,17 @@ impl<'b> Generator<'b> {
         self.from.col()
     }
 
-    pub fn to(&self, direction: Direction) -> Pos {
-        self.from.to(direction)
+    pub fn dir(&mut self, d: Direction, condition: fn(&Board, Pos, Pos) -> Placement) -> Placement {
+        let to = self.from.to(d);
+        self.pos(to, condition)
     }
 
-    pub fn gen(&mut self, to: Pos, condition: fn(&Board, Pos, Pos) -> Placement) -> Placement {
+    pub fn pos<P: Into<Pos>>(
+        &mut self,
+        to: P,
+        condition: fn(&Board, Pos, Pos) -> Placement,
+    ) -> Placement {
+        let to = to.into();
         match condition(self.board, self.from, to) {
             Placement::No => Placement::No,
             placement => {

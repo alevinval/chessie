@@ -45,6 +45,12 @@ impl Pos {
     }
 }
 
+impl From<(u8, u8)> for Pos {
+    fn from(value: (u8, u8)) -> Self {
+        Pos(value.0, value.1)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
