@@ -3,8 +3,8 @@ use std::fmt::Display;
 use crate::board::Board;
 use crate::pos::Pos;
 
+use super::generator::Generator;
 use super::movement;
-use super::movement::Generator;
 use super::BitBoard;
 use super::Color;
 

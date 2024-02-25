@@ -2,20 +2,22 @@ use std::iter::zip;
 
 use crate::{board::Board, pos::Direction, BitBoard, Pos};
 
+use super::generator::{Generator, Placement};
+
 pub fn bishop(mut g: Generator) -> BitBoard {
     diagonals(&mut g);
-    g.moves
+    g.moves()
 }
 
 pub fn rook(mut g: Generator) -> BitBoard {
     cross(&mut g);
-    g.moves
+    g.moves()
 }
 
 pub fn queen(mut g: Generator) -> BitBoard {
     diagonals(&mut g);
     cross(&mut g);
-    g.moves
+    g.moves()
 }
 
 pub fn black_pawn(mut g: Generator) -> BitBoard {
@@ -32,7 +34,7 @@ pub fn black_pawn(mut g: Generator) -> BitBoard {
             g.dir(Direction::Custom(-1, -1), is_opposite);
         }
     }
-    g.moves
+    g.moves()
 }
 
 pub fn white_pawn(mut g: Generator) -> BitBoard {
@@ -47,7 +49,7 @@ pub fn white_pawn(mut g: Generator) -> BitBoard {
             g.dir(Direction::Custom(1, -1), is_opposite);
         }
     }
-    g.moves
+    g.moves()
 }
 
 pub fn knight(mut g: Generator) -> BitBoard {
@@ -91,7 +93,7 @@ pub fn knight(mut g: Generator) -> BitBoard {
             g.dir(Direction::Custom(-1, 2), is_empty_or_opposite);
         }
     }
-    g.moves
+    g.moves()
 }
 
 pub fn king(mut g: Generator) -> BitBoard {
@@ -126,7 +128,7 @@ pub fn king(mut g: Generator) -> BitBoard {
     if g.col() > 0 {
         g.dir(Direction::Left(1), is_empty_or_opposite);
     }
-    g.moves
+    g.moves()
 }
 
 fn cross(g: &mut Generator) {
@@ -214,70 +216,5 @@ fn is_empty_or_opposite(board: &Board, from: Pos, to: Pos) -> Placement {
     match is_empty(board, from, to) {
         Placement::EmptyCell => Placement::EmptyCell,
         _ => is_opposite(board, from, to),
-    }
-}
-
-#[derive(Debug)]
-pub struct Generator<'b> {
-    board: &'b Board,
-    from: Pos,
-    moves: BitBoard,
-}
-
-impl<'b> Generator<'b> {
-    pub fn new(board: &'b Board, from: Pos) -> Self {
-        Generator {
-            board,
-            from,
-            moves: BitBoard::default(),
-        }
-    }
-
-    pub fn row(&self) -> u8 {
-        self.from.row()
-    }
-
-    pub fn col(&self) -> u8 {
-        self.from.col()
-    }
-
-    pub fn dir(&mut self, d: Direction, condition: fn(&Board, Pos, Pos) -> Placement) -> Placement {
-        let to = self.from.to(d);
-        self.pos(to, condition)
-    }
-
-    pub fn pos<P: Into<Pos>>(
-        &mut self,
-        to: P,
-        condition: fn(&Board, Pos, Pos) -> Placement,
-    ) -> Placement {
-        let to = to.into();
-        match condition(self.board, self.from, to) {
-            Placement::No => Placement::No,
-            placement => {
-                self.moves.or_mut(to);
-                placement
-            }
-        }
-    }
-}
-
-pub enum Placement {
-    No,
-    EmptyCell,
-    Takes,
-}
-
-impl Placement {
-    fn should_stop(&self) -> bool {
-        matches!(self, Self::No | Self::Takes)
-    }
-
-    fn no(&self) -> bool {
-        matches!(self, Self::No)
-    }
-
-    fn yes(&self) -> bool {
-        !self.no()
     }
 }

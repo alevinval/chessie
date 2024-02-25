@@ -7,6 +7,7 @@ pub use pieceset::PieceSet;
 
 mod bitboard;
 mod color;
+mod generator;
 mod movement;
 mod piece;
 mod pieceset;
