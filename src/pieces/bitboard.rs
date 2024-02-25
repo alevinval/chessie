@@ -49,18 +49,16 @@ impl BitBoard {
         u64::to_le_bytes(self.value)
     }
 
-    pub fn positions(&self) -> Vec<Pos> {
-        let mut positions: Vec<Pos> = vec![];
-
-        for row in 0..8 {
-            for col in 0..8 {
+    pub fn positions(&self) -> impl Iterator<Item = Pos> + '_ {
+        (0..8).flat_map(move |row| {
+            (0..8).flat_map(move |col| {
                 if ((self.value >> (row * 8)) >> col) & 1 == 1 {
-                    positions.push(Pos(row, col));
+                    Some(Pos(row, col))
+                } else {
+                    None
                 }
-            }
-        }
-
-        positions
+            })
+        })
     }
 }
 

@@ -36,14 +36,14 @@ impl Piece {
         }
     }
 
-    pub fn color(&self) -> &Color {
+    pub fn color(&self) -> Color {
         match self {
             Piece::Pawn(c)
             | Piece::Rook(c)
             | Piece::Knight(c)
             | Piece::Bishop(c)
             | Piece::Queen(c)
-            | Piece::King(c) => c,
+            | Piece::King(c) => *c,
         }
     }
 
@@ -54,12 +54,12 @@ impl Piece {
 
     pub fn score(&self) -> f32 {
         match self {
-            Piece::Pawn(_) => 0.5,
+            Piece::Pawn(_) => 1.0,
             Piece::Rook(_) => 5.0,
             Piece::Knight(_) => 2.5,
             Piece::Bishop(_) => 3.0,
-            Piece::Queen(_) => 10.0,
-            Piece::King(_) => 0.0,
+            Piece::Queen(_) => 9.0,
+            Piece::King(_) => 25.0,
         }
     }
 
@@ -115,9 +115,9 @@ mod test {
     #[test]
     fn color() {
         let sut = Piece::Bishop(Color::Black);
-        assert!(sut.color() == &Color::Black, "should be pawn");
+        assert!(sut.color() == Color::Black, "should be pawn");
 
         let sut = Piece::Bishop(Color::White);
-        assert!(sut.color() == &Color::White, "should not be pawn");
+        assert!(sut.color() == Color::White, "should not be pawn");
     }
 }

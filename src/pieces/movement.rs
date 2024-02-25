@@ -201,7 +201,7 @@ fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
             board
                 .at(to)
                 .map(|ps_to| {
-                    if ps_from.piece.color() != ps_to.piece.color() {
+                    if ps_from.color() != ps_to.color() {
                         Placement::Takes
                     } else {
                         Placement::Invalid

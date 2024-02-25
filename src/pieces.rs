@@ -22,9 +22,9 @@ impl Pieces {
         Self {
             pieces: [
                 PieceSet::new(Piece::Pawn(color)),
-                PieceSet::new(Piece::Rook(color)),
                 PieceSet::new(Piece::Knight(color)),
                 PieceSet::new(Piece::Bishop(color)),
+                PieceSet::new(Piece::Rook(color)),
                 PieceSet::new(Piece::Queen(color)),
                 PieceSet::new(Piece::King(color)),
             ],

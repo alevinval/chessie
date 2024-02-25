@@ -17,18 +17,28 @@ impl Board {
         }
     }
 
-    pub fn apply_move(&mut self, from: Pos, to: Pos) {
+    pub fn apply_move<P: Into<Pos>>(&mut self, from: P, to: P) {
+        let from = from.into();
+        let to = to.into();
+
         if self.at(from).is_none() {
             return;
         }
 
         if let Some(dst) = self.at_mut(to) {
-            dst.bitboard.xor_mut(to);
+            dst.unset(to)
         }
 
         self.at_mut(from)
             .expect("cannot move square without piece")
             .apply_move(from, to);
+    }
+
+    pub fn pieces(&self, color: Color) -> &Pieces {
+        match color {
+            Color::Black => &self.black,
+            Color::White => &self.white,
+        }
     }
 
     pub fn at(&self, pos: Pos) -> Option<&PieceSet> {
@@ -48,30 +58,22 @@ impl Board {
     pub fn save(&self, fname: &str) {
         let mut w = File::create(fname).unwrap();
         self.white.iter().for_each(|pset| {
-            w.write_all(&pset.bitboard.to_le_bytes()).unwrap();
+            w.write_all(&pset.to_le_bytes()).unwrap();
         });
         self.black.iter().for_each(|pset| {
-            w.write_all(&pset.bitboard.to_le_bytes()).unwrap();
+            w.write_all(&pset.to_le_bytes()).unwrap();
         });
     }
 
     pub fn generate_moves(&self, pos: Pos) -> BitBoard {
         self.at(pos).map_or(BitBoard::default(), |piece_set| {
-            piece_set.piece.movements(self, pos)
+            piece_set.movements(self, pos)
         })
     }
 
-    pub fn evaluate(&self, color: Color) -> f32 {
-        let white: f32 = self
-            .white
-            .iter()
-            .map(|ps| ps.bitboard.positions().len() as f32 * ps.piece.score())
-            .sum();
-        let black: f32 = self
-            .black
-            .iter()
-            .map(|ps| ps.bitboard.positions().len() as f32 * ps.piece.score())
-            .sum();
+    pub fn eval(&self, color: Color) -> f32 {
+        let white: f32 = self.white.iter().map(|ps| ps.score()).sum();
+        let black: f32 = self.black.iter().map(|ps| ps.score()).sum();
 
         match color {
             Color::Black => black - white,

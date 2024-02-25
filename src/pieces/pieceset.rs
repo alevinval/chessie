@@ -1,11 +1,11 @@
-use crate::pos::Pos;
+use crate::{board::Board, pos::Pos};
 
-use super::{BitBoard, Piece};
+use super::{BitBoard, Color, Piece};
 
 #[derive(Debug, Clone)]
 pub struct PieceSet {
-    pub piece: Piece,
-    pub bitboard: BitBoard,
+    piece: Piece,
+    bitboard: BitBoard,
 }
 
 impl PieceSet {
@@ -32,6 +32,36 @@ impl PieceSet {
     pub fn apply_move(&mut self, from: Pos, to: Pos) {
         let from: BitBoard = from.into();
         self.bitboard.xor_mut(from.or(to));
+    }
+
+    pub fn piece(&self) -> Piece {
+        self.piece
+    }
+
+    pub fn color(&self) -> Color {
+        self.piece.color()
+    }
+
+    pub fn score(&self) -> f32 {
+        self.positions()
+            .map(|p| self.piece.score() + if p.is_central() { 0.5 } else { -0.1 })
+            .sum()
+    }
+
+    pub fn movements(&self, board: &Board, pos: Pos) -> BitBoard {
+        self.piece.movements(board, pos)
+    }
+
+    pub fn unset(&mut self, pos: Pos) {
+        self.bitboard.xor_mut(pos);
+    }
+
+    pub fn positions(&self) -> impl Iterator<Item = Pos> + '_ {
+        self.bitboard.positions()
+    }
+
+    pub fn to_le_bytes(&self) -> [u8; 8] {
+        self.bitboard.to_le_bytes()
     }
 
     fn initial_position(piece: &Piece) -> BitBoard {
