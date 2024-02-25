@@ -44,7 +44,7 @@ impl PieceSet {
 
     pub fn score(&self) -> f32 {
         self.positions()
-            .map(|p| self.piece.score() + if p.is_central() { 0.5 } else { -0.1 })
+            .map(|p| self.piece.score() + if p.is_central() { 0.25 } else { 0.0 })
             .sum()
     }
 
@@ -57,7 +57,7 @@ impl PieceSet {
     }
 
     pub fn positions(&self) -> impl Iterator<Item = Pos> + '_ {
-        self.bitboard.positions()
+        self.bitboard.iter_pos()
     }
 
     pub fn to_le_bytes(&self) -> [u8; 8] {

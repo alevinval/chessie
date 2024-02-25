@@ -49,10 +49,11 @@ impl BitBoard {
         u64::to_le_bytes(self.value)
     }
 
-    pub fn positions(&self) -> impl Iterator<Item = Pos> + '_ {
+    pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
         (0..8).flat_map(move |row| {
+            let ro = row * 8;
             (0..8).flat_map(move |col| {
-                if ((self.value >> (row * 8)) >> col) & 1 == 1 {
+                if ((self.value >> ro) >> col) & 1 == 1 {
                     Some(Pos(row, col))
                 } else {
                     None

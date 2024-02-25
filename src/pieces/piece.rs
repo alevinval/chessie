@@ -47,19 +47,22 @@ impl Piece {
         }
     }
 
-    #[cfg(test)]
     pub fn is_pawn(&self) -> bool {
         matches!(self, Piece::Pawn(_))
+    }
+
+    pub fn is_king(&self) -> bool {
+        matches!(self, Piece::King(_))
     }
 
     pub fn score(&self) -> f32 {
         match self {
             Piece::Pawn(_) => 1.0,
             Piece::Rook(_) => 5.0,
-            Piece::Knight(_) => 2.5,
+            Piece::Knight(_) => 2.8,
             Piece::Bishop(_) => 3.0,
             Piece::Queen(_) => 9.0,
-            Piece::King(_) => 25.0,
+            Piece::King(_) => 1000.0,
         }
     }
 

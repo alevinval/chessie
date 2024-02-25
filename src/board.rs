@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write};
 
-use crate::pieces::{BitBoard, Color, PieceSet, Pieces};
+use crate::pieces::{BitBoard, Color, Piece, PieceSet, Pieces};
 use crate::pos::Pos;
 
 #[derive(Debug, Clone)]
@@ -71,9 +71,40 @@ impl Board {
         })
     }
 
-    pub fn eval(&self, color: Color) -> f32 {
-        let white: f32 = self.white.iter().map(|ps| ps.score()).sum();
-        let black: f32 = self.black.iter().map(|ps| ps.score()).sum();
+    pub fn eval(&self, color: Color, print: bool) -> f32 {
+        let mut white: f32 = self.white.iter().map(|ps| ps.score()).sum();
+        let mut black: f32 = self.black.iter().map(|ps| ps.score()).sum();
+
+        if print {
+            println!("material score");
+            println!(" white: {white}");
+            println!(" black: {black}");
+        }
+
+        let white_space_score: f32 = self
+            .white
+            .get(Piece::Pawn(Color::White))
+            .positions()
+            .map(|p| (p.row() as f32 - 1.0) * if p.is_central() { 1.2 } else { 1.0 })
+            .sum();
+
+        let black_space_score: f32 = self
+            .black
+            .get(Piece::Pawn(Color::Black))
+            .positions()
+            .map(|p| (p.row() as f32 - 6.0) * if p.is_central() { -1.2 } else { -1.0 })
+            .sum();
+
+        white += white_space_score / 100.0;
+        black += black_space_score / 100.0;
+
+        if print {
+            println!("space score");
+            println!(" white: {white_space_score}");
+            println!(" black: {black_space_score}");
+        }
+
+        // self.white.get(Piece::King(Color::White)).movements(self, )
 
         match color {
             Color::Black => black - white,
@@ -86,35 +117,4 @@ impl Default for Board {
     fn default() -> Self {
         Self::new()
     }
-}
-
-#[cfg(test)]
-mod test {
-
-    use crate::print_board;
-
-    use super::*;
-
-    // #[test]
-    // fn generates_all_positions() {
-    //     let mut sut = Board::new();
-    //     sut.clear();
-    //     sut.white = Pieces::new(Color::White);
-
-    //     let positions: Vec<Pos> = (0..8)
-    //         .flat_map(|row| (0..8).map(move |col| Pos(row, col)))
-    //         .collect();
-
-    //     for pos in positions {
-    //         for piece_set in sut.white.iter() {
-    //             let gen = vec![sut.generate_moves(pos)];
-    //             print_board(&sut, &gen);
-    //             println!("pos={pos:?} gen={gen:?}");
-    //             assert!(
-    //                 gen[0] != 0.into()
-    //                     || (piece_set.piece.is_pawn() && (pos.row() == 7 || pos.row() == 0))
-    //             );
-    //         }
-    //     }
-    // }
 }

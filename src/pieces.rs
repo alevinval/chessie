@@ -31,11 +31,26 @@ impl Pieces {
         }
     }
 
+    pub fn get(&self, piece: Piece) -> &PieceSet {
+        &self.pieces[self.offset(piece)]
+    }
+
     pub fn iter(&self) -> Iter<'_, PieceSet> {
         self.pieces.iter()
     }
 
     pub fn iter_mut(&mut self) -> IterMut<'_, PieceSet> {
         self.pieces.iter_mut()
+    }
+
+    fn offset(&self, piece: Piece) -> usize {
+        match piece {
+            Piece::Pawn(_) => 0,
+            Piece::Knight(_) => 1,
+            Piece::Bishop(_) => 2,
+            Piece::Rook(_) => 3,
+            Piece::Queen(_) => 4,
+            Piece::King(_) => 5,
+        }
     }
 }

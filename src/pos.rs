@@ -38,7 +38,7 @@ impl Pos {
     }
 
     pub fn is_central(&self) -> bool {
-        self.0 > 3 && self.1 > 3 && self.0 < 5 && self.1 < 5
+        self.0 >= 3 && self.1 >= 3 && self.0 <= 4 && self.1 <= 4
     }
 
     fn assert_bounds(&self) {
