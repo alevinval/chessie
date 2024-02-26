@@ -1,9 +1,8 @@
 use crate::{
     board::Board,
+    pieces::BitBoard,
     pos::{Dir, Pos},
 };
-
-use super::BitBoard;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Placement {
@@ -35,21 +34,11 @@ pub struct Generator<'board> {
     moves: BitBoard,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Movements {
     pub bitboard: BitBoard,
     pub takes: Vec<(Pos, Pos)>,
     pub empty: Vec<(Pos, Pos)>,
-}
-
-impl Default for Movements {
-    fn default() -> Self {
-        Movements {
-            bitboard: BitBoard::default(),
-            takes: vec![],
-            empty: vec![],
-        }
-    }
 }
 
 impl<'board> Generator<'board> {

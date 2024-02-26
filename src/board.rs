@@ -1,6 +1,8 @@
 use std::{fs::File, io::Write};
 
-use crate::pieces::{Color, Movements, Piece, PieceSet, Pieces};
+use crate::movement::generator::Movements;
+use crate::movement::MoveGen;
+use crate::pieces::{Color, Piece, PieceSet, Pieces};
 use crate::pos::Pos;
 
 #[derive(Debug, Clone)]
@@ -67,7 +69,7 @@ impl Board {
 
     pub fn generate_moves(&self, pos: Pos) -> Movements {
         self.at(pos).map_or(Movements::default(), |piece_set| {
-            piece_set.movements(self, pos)
+            MoveGen::new(self, pos).gen(&piece_set.piece())
         })
     }
 

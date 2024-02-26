@@ -6,6 +6,7 @@ use pieces::{BitBoard, Color};
 use crate::pos::Pos;
 
 mod board;
+pub mod movement;
 mod pieces;
 mod pos;
 

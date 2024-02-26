@@ -1,6 +1,6 @@
-use crate::{board::Board, pos::Pos};
+use crate::pos::Pos;
 
-use super::{generator::Movements, BitBoard, Color, Piece};
+use super::{BitBoard, Color, Piece};
 
 #[derive(Debug, Clone)]
 pub struct PieceSet {
@@ -47,10 +47,6 @@ impl PieceSet {
         self.positions()
             .map(|p| self.piece.score() + if p.is_central() { 0.25 } else { 0.0 })
             .sum()
-    }
-
-    pub fn movements(&self, board: &Board, pos: Pos) -> Movements {
-        self.piece.movements(board, pos)
     }
 
     pub fn unset(&mut self, pos: Pos) {

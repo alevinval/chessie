@@ -2,14 +2,11 @@ use std::slice::{Iter, IterMut};
 
 pub use self::color::Color;
 pub use bitboard::BitBoard;
-pub use generator::Movements;
 pub use piece::Piece;
 pub use pieceset::PieceSet;
 
 mod bitboard;
 mod color;
-mod generator;
-mod movement;
 mod piece;
 mod pieceset;
 

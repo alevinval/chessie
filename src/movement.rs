@@ -1,26 +1,73 @@
 use std::iter::zip;
 
-use crate::{board::Board, pos::Dir, Pos};
+pub mod generator;
 
-use super::generator::{Generator, Movements, Placement};
+use crate::{
+    board::Board,
+    pieces::{Color, Piece},
+    pos::Dir,
+    Pos,
+};
 
-pub fn bishop(mut g: Generator) -> Movements {
-    diagonals(&mut g);
-    g.moves()
+use self::generator::{Generator, Movements, Placement};
+
+pub struct MoveGen<'board> {
+    gen: Generator<'board>,
 }
 
-pub fn rook(mut g: Generator) -> Movements {
-    cross(&mut g);
-    g.moves()
+impl<'board> MoveGen<'board> {
+    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
+        Self {
+            gen: Generator::new(board, from),
+        }
+    }
+
+    pub fn gen(mut self, piece: &Piece) -> Movements {
+        match piece {
+            Piece::Pawn(color) => match color {
+                Color::Black => self.black_pawn(),
+                Color::White => self.white_pawn(),
+            },
+            Piece::Rook(_) => self.rook(),
+            Piece::Bishop(_) => self.bishop(),
+            Piece::Queen(_) => self.queen(),
+            Piece::Knight(_) => self.knight(),
+            Piece::King(_) => self.king(),
+        };
+        self.gen.moves()
+    }
+
+    fn bishop(&mut self) {
+        diagonals(&mut self.gen);
+    }
+
+    fn rook(&mut self) {
+        cross(&mut self.gen);
+    }
+
+    fn queen(&mut self) {
+        diagonals(&mut self.gen);
+        cross(&mut self.gen);
+    }
+
+    fn black_pawn(&mut self) {
+        black_pawn(&mut self.gen);
+    }
+
+    fn white_pawn(&mut self) {
+        white_pawn(&mut self.gen);
+    }
+
+    fn knight(&mut self) {
+        knight(&mut self.gen);
+    }
+
+    fn king(&mut self) {
+        king(&mut self.gen);
+    }
 }
 
-pub fn queen(mut g: Generator) -> Movements {
-    diagonals(&mut g);
-    cross(&mut g);
-    g.moves()
-}
-
-pub fn black_pawn(mut g: Generator) -> Movements {
+fn black_pawn(g: &mut Generator) {
     if g.row() > 0 {
         if g.dir(Dir::Down(1), is_empty).placed() && g.row() == 6 {
             g.dir(Dir::Down(2), is_empty);
@@ -34,10 +81,9 @@ pub fn black_pawn(mut g: Generator) -> Movements {
             g.dir(Dir::Custom(-1, -1), takes);
         }
     }
-    g.moves()
 }
 
-pub fn white_pawn(mut g: Generator) -> Movements {
+fn white_pawn(g: &mut Generator) {
     if g.row() < 7 {
         if g.dir(Dir::Up(1), is_empty).placed() && g.row() == 1 {
             g.dir(Dir::Up(2), is_empty);
@@ -49,10 +95,9 @@ pub fn white_pawn(mut g: Generator) -> Movements {
             g.dir(Dir::Custom(1, -1), takes);
         }
     }
-    g.moves()
 }
 
-pub fn knight(mut g: Generator) -> Movements {
+fn knight(g: &mut Generator) {
     let has_one_right = g.col() < 7;
     let has_two_right = g.col() < 6;
     let has_one_left = g.col() > 0;
@@ -93,10 +138,9 @@ pub fn knight(mut g: Generator) -> Movements {
             g.dir(Dir::Custom(-1, 2), empty_or_take);
         }
     }
-    g.moves()
 }
 
-pub fn king(mut g: Generator) -> Movements {
+fn king(g: &mut Generator) {
     if g.row() < 7 {
         g.dir(Dir::Up(1), empty_or_take);
 
@@ -128,7 +172,6 @@ pub fn king(mut g: Generator) -> Movements {
     if g.col() > 0 {
         g.dir(Dir::Right(1), empty_or_take);
     }
-    g.moves()
 }
 
 fn cross(g: &mut Generator) {

@@ -1,12 +1,5 @@
 use std::fmt::Display;
 
-use crate::board::Board;
-use crate::pos::Pos;
-
-use super::generator::Generator;
-use super::generator::Movements;
-use super::movement;
-
 use super::Color;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -20,23 +13,6 @@ pub enum Piece {
 }
 
 impl Piece {
-    // TODO: It will need access to full current board and past bitboards for castling or
-    // en-passant rules, etc.
-    pub fn movements(&self, board: &Board, pos: Pos) -> Movements {
-        let g = Generator::new(board, pos);
-        match self {
-            Piece::Pawn(c) => match c {
-                Color::Black => movement::black_pawn(g),
-                Color::White => movement::white_pawn(g),
-            },
-            Piece::Rook(_) => movement::rook(g),
-            Piece::Bishop(_) => movement::bishop(g),
-            Piece::Queen(_) => movement::queen(g),
-            Piece::Knight(_) => movement::knight(g),
-            Piece::King(_) => movement::king(g),
-        }
-    }
-
     pub fn color(&self) -> Color {
         match self {
             Piece::Pawn(c)
