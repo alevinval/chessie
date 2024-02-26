@@ -3,24 +3,7 @@ use crate::{
     pos::{Dir, Pos},
 };
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum Placement {
-    Invalid,
-    Empty(Pos, Pos),
-    Takes(Pos, Pos),
-}
-
-impl Placement {
-    pub fn stop(&self) -> bool {
-        matches!(self, Self::Invalid | Self::Takes(_, _))
-    }
-
-    pub fn placed(&self) -> bool {
-        matches!(self, Self::Takes(_, _) | Self::Empty(_, _))
-    }
-}
-
-type PlacementCnd = fn(&Board, Pos, Pos) -> Placement;
+use super::placement::{Placement, PlacementCnd};
 
 #[derive(Debug)]
 pub struct Generator<'board> {
@@ -31,7 +14,7 @@ pub struct Generator<'board> {
 }
 
 #[derive(Debug, Default, Eq, PartialEq)]
-pub struct Movements {
+pub struct Moves {
     pub takes: Vec<(Pos, Pos)>,
     pub empty: Vec<(Pos, Pos)>,
 }
@@ -71,8 +54,8 @@ impl<'board> Generator<'board> {
         placement
     }
 
-    pub fn moves(self) -> Movements {
-        Movements {
+    pub fn moves(self) -> Moves {
+        Moves {
             takes: self.takes,
             empty: self.empty,
         }
@@ -128,7 +111,7 @@ mod test {
         let board = Board::default();
         let sut = Generator::new(&board, (1, 3));
 
-        assert_eq!(Movements::default(), sut.moves());
+        assert_eq!(Moves::default(), sut.moves());
     }
 
     #[test]
@@ -141,7 +124,7 @@ mod test {
             sut.dir(Dir::Up(1), empty_placement)
         );
 
-        let expected = Movements {
+        let expected = Moves {
             empty: vec![((1, 3).into(), (2, 3).into())],
             takes: vec![],
         };
@@ -158,7 +141,7 @@ mod test {
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = Movements {
+        let expected = Moves {
             takes: vec![((1, 3).into(), (2, 3).into())],
             empty: vec![],
         };
@@ -172,6 +155,6 @@ mod test {
 
         assert_eq!(Placement::Invalid, sut.dir(Dir::Up(1), invalid_placement));
 
-        assert_eq!(Movements::default(), sut.moves());
+        assert_eq!(Moves::default(), sut.moves());
     }
 }

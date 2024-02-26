@@ -1,6 +1,7 @@
 use std::iter::zip;
 
-pub mod generator;
+mod generator;
+mod placement;
 
 use crate::{
     board::Board,
@@ -9,7 +10,11 @@ use crate::{
     Pos,
 };
 
-use self::generator::{Generator, Movements, Placement};
+pub use self::generator::Moves;
+use self::{
+    generator::Generator,
+    placement::{empty_or_take, is_empty, takes},
+};
 
 pub struct MoveGen<'board> {
     gen: Generator<'board>,
@@ -22,7 +27,7 @@ impl<'board> MoveGen<'board> {
         }
     }
 
-    pub fn gen(mut self, piece: &Piece) -> Movements {
+    pub fn gen(mut self, piece: &Piece) -> Moves {
         match piece {
             Piece::Pawn(color) => match color {
                 Color::Black => self.black_pawn(),
@@ -227,37 +232,5 @@ fn diagonals(g: &mut Generator) {
         if g.pos(pos, empty_or_take).stop() {
             break;
         }
-    }
-}
-
-fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
-    board
-        .at(to)
-        .map(|_| Placement::Invalid)
-        .unwrap_or(Placement::Empty(from, to))
-}
-
-fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
-    board
-        .at(from)
-        .map(|ps_from| {
-            board
-                .at(to)
-                .map(|ps_to| {
-                    if ps_from.color() != ps_to.color() {
-                        Placement::Takes(from, to)
-                    } else {
-                        Placement::Invalid
-                    }
-                })
-                .unwrap_or(Placement::Invalid)
-        })
-        .unwrap_or(Placement::Invalid)
-}
-
-fn empty_or_take(board: &Board, from: Pos, to: Pos) -> Placement {
-    match is_empty(board, from, to) {
-        Placement::Empty(from, to) => Placement::Empty(from, to),
-        _ => takes(board, from, to),
     }
 }

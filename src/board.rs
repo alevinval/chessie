@@ -1,7 +1,7 @@
 use std::{fs::File, io::Write};
 
-use crate::movement::generator::Movements;
 use crate::movement::MoveGen;
+use crate::movement::Moves;
 use crate::pieces::{BitBoard, Color, Piece, Pieces};
 use crate::pos::Pos;
 
@@ -67,8 +67,8 @@ impl Board {
         });
     }
 
-    pub fn generate_moves(&self, pos: Pos) -> Movements {
-        self.at(pos).map_or(Movements::default(), |piece_set| {
+    pub fn generate_moves(&self, pos: Pos) -> Moves {
+        self.at(pos).map_or(Moves::default(), |piece_set| {
             MoveGen::new(self, pos).gen(&piece_set.piece())
         })
     }
