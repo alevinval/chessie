@@ -108,8 +108,8 @@ impl<'board> Generator<'board> {
 mod test {
     use super::*;
 
-    static FROM: Pos = Pos(1, 1);
-    static TO: Pos = Pos(2, 2);
+    static FROM: Pos = Pos::new(1, 1);
+    static TO: Pos = Pos::new(2, 2);
 
     fn empty_placement(_b: &Board, from: Pos, to: Pos) -> Placement {
         Placement::Empty(from, to)
@@ -162,13 +162,13 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(
-            Placement::Empty(Pos(1, 3), Pos(2, 3)),
+            Placement::Empty((1, 3).into(), (2, 3).into()),
             sut.dir(Direction::Top(1), empty_placement)
         );
 
         let expected = Movements {
             bitboard: sut.moves.clone(),
-            empty: vec![(Pos(1, 3), Pos(2, 3))],
+            empty: vec![((1, 3).into(), (2, 3).into())],
             takes: vec![],
         };
         assert_eq!(expected, sut.moves());
@@ -180,13 +180,13 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(
-            Placement::Takes(Pos(1, 3), Pos(2, 3)),
+            Placement::Takes((1, 3).into(), (2, 3).into()),
             sut.dir(Direction::Top(1), takes_placement)
         );
 
         let expected = Movements {
             bitboard: sut.moves.clone(),
-            takes: vec![(Pos(1, 3), Pos(2, 3))],
+            takes: vec![((1, 3).into(), (2, 3).into())],
             empty: vec![],
         };
         assert_eq!(expected, sut.moves());

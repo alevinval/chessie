@@ -54,7 +54,7 @@ impl BitBoard {
             let ro = row * 8;
             (0..8).flat_map(move |col| {
                 if ((self.value >> ro) >> col) & 1 == 1 {
-                    Some(Pos(row, col))
+                    Some((row, col).into())
                 } else {
                     None
                 }
@@ -87,11 +87,10 @@ impl From<u64> for BitBoard {
 #[cfg(test)]
 mod test {
 
-    use crate::pos::ORIGIN;
-
     use super::*;
 
-    static TARGET: Pos = Pos(3, 3);
+    static ORIGIN: Pos = Pos::new(0, 0);
+    static TARGET: Pos = Pos::new(3, 3);
 
     #[test]
     fn has_piece() {

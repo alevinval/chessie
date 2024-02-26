@@ -1,6 +1,3 @@
-#[cfg(test)]
-pub static ORIGIN: Pos = Pos(0, 0);
-
 pub enum Direction {
     Top(u8),
     Bottom(u8),
@@ -10,9 +7,14 @@ pub enum Direction {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Pos(pub u8, pub u8);
+pub struct Pos(u8, u8);
 
 impl Pos {
+    #[cfg(test)]
+    pub const fn new(row: u8, col: u8) -> Self {
+        Self(row, col)
+    }
+
     pub fn to(&self, d: Direction) -> Self {
         let (row, col) = (self.0, self.1);
         let pos = match d {
@@ -28,12 +30,10 @@ impl Pos {
     }
 
     pub fn row(&self) -> u8 {
-        self.assert_bounds();
         self.0
     }
 
     pub fn col(&self) -> u8 {
-        self.assert_bounds();
         self.1
     }
 
@@ -41,17 +41,18 @@ impl Pos {
         self.0 >= 3 && self.1 >= 3 && self.0 <= 4 && self.1 <= 4
     }
 
-    fn assert_bounds(&self) {
+    fn assert_bounds(self) -> Self {
         debug_assert!(
             self.0 < 8 && self.1 < 8,
             "position outside of bounds ({self:?})"
         );
+        self
     }
 }
 
 impl From<(u8, u8)> for Pos {
     fn from(value: (u8, u8)) -> Self {
-        Pos(value.0, value.1)
+        Pos(value.0, value.1).assert_bounds()
     }
 }
 

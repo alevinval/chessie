@@ -13,7 +13,7 @@ fn print_board(board: &Board, highlights: &[BitBoard]) {
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in (0..8).rev() {
-            let pos = Pos(row, col);
+            let pos: Pos = (row, col).into();
             let mark = highlights.iter().find(|h| h.has_piece(pos)).map(|_| "@");
             let piece = board.at(pos).map(|set| set.piece().as_str()).unwrap_or(" ");
             print!("| {} ", mark.unwrap_or(piece));

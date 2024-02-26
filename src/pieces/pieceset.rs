@@ -25,13 +25,14 @@ impl PieceSet {
         self.bitboard = BitBoard::default();
     }
 
-    pub fn at(&self, pos: Pos) -> BitBoard {
-        self.bitboard.and(pos)
+    pub fn at<P: Into<Pos>>(&self, pos: P) -> BitBoard {
+        self.bitboard.and(pos.into())
     }
 
-    pub fn apply_move(&mut self, from: Pos, to: Pos) {
+    pub fn apply_move<P: Into<Pos>>(&mut self, from: P, to: P) {
+        let from = from.into();
         let from: BitBoard = from.into();
-        self.bitboard.xor_mut(from.or(to));
+        self.bitboard.xor_mut(from.or(to.into()));
     }
 
     pub fn piece(&self) -> Piece {
@@ -78,12 +79,13 @@ impl PieceSet {
 
 #[cfg(test)]
 mod test {
-    use crate::{pieces::Color, pos::ORIGIN};
+    use crate::pieces::Color;
 
     use super::*;
 
     static PIECE: Piece = Piece::Pawn(Color::White);
-    static TARGET: Pos = Pos(3, 3);
+    static ORIGIN: Pos = Pos::new(0, 0);
+    static TARGET: Pos = Pos::new(3, 3);
 
     #[test]
     fn at() {
