@@ -1,6 +1,5 @@
 use crate::{
     board::Board,
-    pieces::BitBoard,
     pos::{Dir, Pos},
 };
 
@@ -29,14 +28,10 @@ pub struct Generator<'board> {
     from: Pos,
     takes: Vec<(Pos, Pos)>,
     empty: Vec<(Pos, Pos)>,
-
-    // TODO: Clean
-    moves: BitBoard,
 }
 
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Movements {
-    pub bitboard: BitBoard,
     pub takes: Vec<(Pos, Pos)>,
     pub empty: Vec<(Pos, Pos)>,
 }
@@ -48,9 +43,6 @@ impl<'board> Generator<'board> {
             from: from.into(),
             takes: vec![],
             empty: vec![],
-
-            // TODO: Clean
-            moves: BitBoard::default(),
         }
     }
 
@@ -76,17 +68,11 @@ impl<'board> Generator<'board> {
             Placement::Invalid => {}
         }
 
-        //TODO: clean
-        match placement {
-            Placement::Invalid => {}
-            _ => self.moves.set(to),
-        }
         placement
     }
 
     pub fn moves(self) -> Movements {
         Movements {
-            bitboard: self.moves,
             takes: self.takes,
             empty: self.empty,
         }
@@ -156,7 +142,6 @@ mod test {
         );
 
         let expected = Movements {
-            bitboard: sut.moves.clone(),
             empty: vec![((1, 3).into(), (2, 3).into())],
             takes: vec![],
         };
@@ -174,7 +159,6 @@ mod test {
         );
 
         let expected = Movements {
-            bitboard: sut.moves.clone(),
             takes: vec![((1, 3).into(), (2, 3).into())],
             empty: vec![],
         };

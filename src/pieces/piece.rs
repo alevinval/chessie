@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use super::Color;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Piece {
     Pawn(Color),
     Rook(Color),

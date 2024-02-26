@@ -2,7 +2,7 @@ use std::{fs::File, io::Write};
 
 use crate::movement::generator::Movements;
 use crate::movement::MoveGen;
-use crate::pieces::{Color, Piece, PieceSet, Pieces};
+use crate::pieces::{BitBoard, Color, Piece, Pieces};
 use crate::pos::Pos;
 
 #[derive(Debug, Clone)]
@@ -43,14 +43,14 @@ impl Board {
         }
     }
 
-    pub fn at(&self, pos: Pos) -> Option<&PieceSet> {
+    pub fn at(&self, pos: Pos) -> Option<&BitBoard> {
         self.white
             .iter()
             .chain(self.black.iter())
             .find(|piece_set| piece_set.has_piece(pos))
     }
 
-    pub fn at_mut(&mut self, pos: Pos) -> Option<&mut PieceSet> {
+    pub fn at_mut(&mut self, pos: Pos) -> Option<&mut BitBoard> {
         self.white
             .iter_mut()
             .chain(self.black.iter_mut())

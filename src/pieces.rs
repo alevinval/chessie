@@ -3,41 +3,39 @@ use std::slice::{Iter, IterMut};
 pub use self::color::Color;
 pub use bitboard::BitBoard;
 pub use piece::Piece;
-pub use pieceset::PieceSet;
 
 mod bitboard;
 mod color;
 mod piece;
-mod pieceset;
 
 #[derive(Debug, Clone)]
 pub struct Pieces {
-    pieces: [PieceSet; 6],
+    pieces: [BitBoard; 6],
 }
 
 impl Pieces {
     pub fn new(color: Color) -> Self {
         Self {
             pieces: [
-                PieceSet::new(Piece::Pawn(color)),
-                PieceSet::new(Piece::Knight(color)),
-                PieceSet::new(Piece::Bishop(color)),
-                PieceSet::new(Piece::Rook(color)),
-                PieceSet::new(Piece::Queen(color)),
-                PieceSet::new(Piece::King(color)),
+                BitBoard::new(Piece::Pawn(color)),
+                BitBoard::new(Piece::Knight(color)),
+                BitBoard::new(Piece::Bishop(color)),
+                BitBoard::new(Piece::Rook(color)),
+                BitBoard::new(Piece::Queen(color)),
+                BitBoard::new(Piece::King(color)),
             ],
         }
     }
 
-    pub fn get(&self, piece: Piece) -> &PieceSet {
+    pub fn get(&self, piece: Piece) -> &BitBoard {
         &self.pieces[self.offset(piece)]
     }
 
-    pub fn iter(&self) -> Iter<'_, PieceSet> {
+    pub fn iter(&self) -> Iter<'_, BitBoard> {
         self.pieces.iter()
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<'_, PieceSet> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, BitBoard> {
         self.pieces.iter_mut()
     }
 

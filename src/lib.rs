@@ -41,7 +41,7 @@ pub fn play() {
 
     loop {
         let from = read_pos();
-        print_board(&board, &[board.generate_moves(from).bitboard]);
+        // print_board(&board, &[board.generate_moves(from).map(|p| )]);
 
         let to = read_pos();
         board.apply_move(from, to);
