@@ -28,7 +28,7 @@ impl Pieces {
     }
 
     pub fn get(&self, piece: Piece) -> &BitBoard {
-        &self.pieces[self.offset(piece)]
+        &self.pieces[Self::offset(piece)]
     }
 
     pub fn iter(&self) -> Iter<'_, BitBoard> {
@@ -39,7 +39,7 @@ impl Pieces {
         self.pieces.iter_mut()
     }
 
-    fn offset(&self, piece: Piece) -> usize {
+    fn offset(piece: Piece) -> usize {
         match piece {
             Piece::Pawn(_) => 0,
             Piece::Knight(_) => 1,

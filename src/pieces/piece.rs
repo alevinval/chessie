@@ -13,26 +13,26 @@ pub enum Piece {
 }
 
 impl Piece {
-    pub fn color(&self) -> Color {
+    pub fn color(self) -> Color {
         match self {
             Piece::Pawn(c)
             | Piece::Rook(c)
             | Piece::Knight(c)
             | Piece::Bishop(c)
             | Piece::Queen(c)
-            | Piece::King(c) => *c,
+            | Piece::King(c) => c,
         }
     }
 
-    pub fn is_pawn(&self) -> bool {
+    pub fn is_pawn(self) -> bool {
         matches!(self, Piece::Pawn(_))
     }
 
-    pub fn is_king(&self) -> bool {
+    pub fn is_king(self) -> bool {
         matches!(self, Piece::King(_))
     }
 
-    pub fn as_str(&self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Piece::Pawn(c) => match c {
                 Color::Black => "♟",

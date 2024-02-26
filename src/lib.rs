@@ -18,7 +18,7 @@ fn print_board(board: &Board, highlights: &[BitBoard]) {
         for col in (0..8).rev() {
             let pos: Pos = (row, col).into();
             let mark = highlights.iter().find(|h| h.has_piece(pos)).map(|_| "@");
-            let piece = board.at(pos).map(|set| set.piece().as_str()).unwrap_or(" ");
+            let piece = board.at(pos).map_or(" ", |set| set.piece().as_str());
             print!("| {} ", mark.unwrap_or(piece));
         }
         println!("| {}", row + 1);
@@ -112,8 +112,8 @@ pub fn explore(
 
     for ps in board.pieces(mover).iter() {
         for from in ps.iter_pos() {
-            let moves = board.generate_moves(from);
-            for (_, to) in moves.takes.iter().chain(moves.empty.iter()) {
+            let movements = board.generate_moves(from);
+            for (_, to) in movements.takes.iter().chain(movements.empty.iter()) {
                 let mut new_board = board.clone();
                 new_board.apply_move(from, *to);
                 let (_, _, eval) = explore(

@@ -1,3 +1,4 @@
+#[derive(Debug, Copy, Clone)]
 pub enum Dir {
     Up(u8),
     Down(u8),
@@ -15,7 +16,7 @@ impl Pos {
         Self(row, col)
     }
 
-    pub fn to(&self, d: Dir) -> Self {
+    pub fn to(self, d: Dir) -> Self {
         let (row, col) = (self.0, self.1);
         let pos = match d {
             Dir::Up(n) => (row + n, col),
@@ -29,15 +30,15 @@ impl Pos {
         Self(pos.0, pos.1)
     }
 
-    pub fn row(&self) -> u8 {
+    pub fn row(self) -> u8 {
         self.0
     }
 
-    pub fn col(&self) -> u8 {
+    pub fn col(self) -> u8 {
         self.1
     }
 
-    pub fn is_central(&self) -> bool {
+    pub fn is_central(self) -> bool {
         self.0 >= 3 && self.1 >= 3 && self.0 <= 4 && self.1 <= 4
     }
 

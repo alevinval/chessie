@@ -5,21 +5,21 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn piece_row(&self) -> usize {
+    pub fn piece_row(self) -> usize {
         match self {
             Color::Black => 7,
             Color::White => 0,
         }
     }
 
-    pub fn pawn_row(&self) -> usize {
+    pub fn pawn_row(self) -> usize {
         match self {
             Color::Black => 6,
             Color::White => 1,
         }
     }
 
-    pub fn opposite(&self) -> Self {
+    pub fn opposite(self) -> Self {
         match self {
             Color::Black => Color::White,
             Color::White => Color::Black,

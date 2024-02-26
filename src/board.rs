@@ -28,7 +28,7 @@ impl Board {
         }
 
         if let Some(dst) = self.at_mut(to) {
-            dst.unset(to)
+            dst.unset(to);
         }
 
         self.at_mut(from)

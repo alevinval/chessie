@@ -34,11 +34,11 @@ impl BitBoard {
     }
 
     pub fn apply_move<P: Into<u64>>(&mut self, from: P, to: P) {
-        self.value ^= from.into() | to.into()
+        self.value ^= from.into() | to.into();
     }
 
     pub fn set<P: Into<u64>>(&mut self, other: P) {
-        self.value |= other.into()
+        self.value |= other.into();
     }
 
     pub fn unset<P: Into<u64>>(&mut self, other: P) {
@@ -52,7 +52,7 @@ impl BitBoard {
     pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
         (0..8).flat_map(move |row| {
             let ro = row * 8;
-            (0..8).flat_map(move |col| {
+            (0..8).filter_map(move |col| {
                 if self.value >> (ro + col) & 1 == 1 {
                     Some((row, col).into())
                 } else {
@@ -64,12 +64,12 @@ impl BitBoard {
 
     fn initial_position(piece: Piece) -> BitBoard {
         match piece {
-            Piece::Pawn(c) => BitBoard::load(piece, 0b11111111 << 8 * c.pawn_row()),
-            Piece::Rook(c) => BitBoard::load(piece, 0b10000001 << 8 * c.piece_row()),
-            Piece::Knight(c) => BitBoard::load(piece, 0b01000010 << 8 * c.piece_row()),
-            Piece::Bishop(c) => BitBoard::load(piece, 0b00100100 << 8 * c.piece_row()),
-            Piece::Queen(c) => BitBoard::load(piece, 0b00010000 << 8 * c.piece_row()),
-            Piece::King(c) => BitBoard::load(piece, 0b00001000 << 8 * c.piece_row()),
+            Piece::Pawn(c) => BitBoard::load(piece, 0b11111111 << (8 * c.pawn_row())),
+            Piece::Rook(c) => BitBoard::load(piece, 0b10000001 << (8 * c.piece_row())),
+            Piece::Knight(c) => BitBoard::load(piece, 0b01000010 << (8 * c.piece_row())),
+            Piece::Bishop(c) => BitBoard::load(piece, 0b00100100 << (8 * c.piece_row())),
+            Piece::Queen(c) => BitBoard::load(piece, 0b00010000 << (8 * c.piece_row())),
+            Piece::King(c) => BitBoard::load(piece, 0b00001000 << (8 * c.piece_row())),
         }
     }
 }

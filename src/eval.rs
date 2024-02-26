@@ -8,23 +8,23 @@ pub struct Scorer {}
 
 impl Scorer {
     pub fn eval(&self, board: &Board, color: Color) -> f32 {
-        self.inner_eval(board, color, false)
+        Self::inner_eval(board, color, false)
     }
 
     pub fn debug_eval(&self, board: &Board, color: Color) -> f32 {
-        self.inner_eval(board, color, true)
+        Self::inner_eval(board, color, true)
     }
 
-    fn inner_eval(&self, board: &Board, color: Color, debug: bool) -> f32 {
+    fn inner_eval(board: &Board, color: Color, debug: bool) -> f32 {
         let mut white: f32 = board
             .pieces(Color::White)
             .iter()
-            .map(|ps| self.score_bitboard(ps))
+            .map(Self::score_bitboard)
             .sum();
         let mut black: f32 = board
             .pieces(Color::Black)
             .iter()
-            .map(|ps| self.score_bitboard(ps))
+            .map(Self::score_bitboard)
             .sum();
 
         if debug {
@@ -62,7 +62,7 @@ impl Scorer {
         }
     }
 
-    fn score_piece(&self, piece: &Piece) -> f32 {
+    fn score_piece(piece: Piece) -> f32 {
         match piece {
             Piece::Pawn(_) => 1.0,
             Piece::Rook(_) => 5.0,
@@ -73,10 +73,10 @@ impl Scorer {
         }
     }
 
-    fn score_bitboard(&self, bitboard: &BitBoard) -> f32 {
+    fn score_bitboard(bitboard: &BitBoard) -> f32 {
         bitboard
             .iter_pos()
-            .map(|p| self.score_piece(&bitboard.piece()) + if p.is_central() { 0.25 } else { 0.0 })
+            .map(|p| Self::score_piece(bitboard.piece()) + if p.is_central() { 0.25 } else { 0.0 })
             .sum()
     }
 }

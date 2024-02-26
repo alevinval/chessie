@@ -22,26 +22,19 @@ pub type PlacementCnd = fn(&Board, Pos, Pos) -> Placement;
 pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
     board
         .at(to)
-        .map(|_| Placement::Invalid)
-        .unwrap_or(Placement::Empty(from, to))
+        .map_or(Placement::Empty(from, to), |_| Placement::Invalid)
 }
 
 pub fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
-    board
-        .at(from)
-        .map(|ps_from| {
-            board
-                .at(to)
-                .map(|ps_to| {
-                    if ps_from.color() != ps_to.color() {
-                        Placement::Takes(from, to)
-                    } else {
-                        Placement::Invalid
-                    }
-                })
-                .unwrap_or(Placement::Invalid)
+    board.at(from).map_or(Placement::Invalid, |ps_from| {
+        board.at(to).map_or(Placement::Invalid, |ps_to| {
+            if ps_from.color() == ps_to.color() {
+                Placement::Invalid
+            } else {
+                Placement::Takes(from, to)
+            }
         })
-        .unwrap_or(Placement::Invalid)
+    })
 }
 
 pub fn empty_or_take(board: &Board, from: Pos, to: Pos) -> Placement {
