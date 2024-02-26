@@ -4,8 +4,9 @@ use crate::board::Board;
 use crate::pos::Pos;
 
 use super::generator::Generator;
+use super::generator::Movements;
 use super::movement;
-use super::BitBoard;
+
 use super::Color;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -21,7 +22,7 @@ pub enum Piece {
 impl Piece {
     // TODO: It will need access to full current board and past bitboards for castling or
     // en-passant rules, etc.
-    pub fn movements(&self, board: &Board, pos: Pos) -> BitBoard {
+    pub fn movements(&self, board: &Board, pos: Pos) -> Movements {
         let g = Generator::new(board, pos);
         match self {
             Piece::Pawn(c) => match c {

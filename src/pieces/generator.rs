@@ -5,20 +5,20 @@ use crate::{
 
 use super::BitBoard;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Placement {
     Invalid,
-    Empty,
-    Takes,
+    Empty(Pos, Pos),
+    Takes(Pos, Pos),
 }
 
 impl Placement {
     pub fn stop(&self) -> bool {
-        matches!(self, Self::Invalid | Self::Takes)
+        matches!(self, Self::Invalid | Self::Takes(_, _))
     }
 
     pub fn placed(&self) -> bool {
-        matches!(self, Self::Takes | Self::Empty)
+        matches!(self, Self::Takes(_, _) | Self::Empty(_, _))
     }
 }
 
@@ -28,7 +28,28 @@ type PlacementCnd = fn(&Board, Pos, Pos) -> Placement;
 pub struct Generator<'board> {
     board: &'board Board,
     from: Pos,
+    takes: Vec<(Pos, Pos)>,
+    empty: Vec<(Pos, Pos)>,
+
+    // TODO: Clean
     moves: BitBoard,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Movements {
+    pub bitboard: BitBoard,
+    pub takes: Vec<(Pos, Pos)>,
+    pub empty: Vec<(Pos, Pos)>,
+}
+
+impl Default for Movements {
+    fn default() -> Self {
+        Movements {
+            bitboard: BitBoard::default(),
+            takes: vec![],
+            empty: vec![],
+        }
+    }
 }
 
 impl<'board> Generator<'board> {
@@ -36,6 +57,10 @@ impl<'board> Generator<'board> {
         Generator {
             board,
             from: from.into(),
+            takes: vec![],
+            empty: vec![],
+
+            // TODO: Clean
             moves: BitBoard::default(),
         }
     }
@@ -55,17 +80,27 @@ impl<'board> Generator<'board> {
 
     pub fn pos<P: Into<Pos>>(&mut self, to: P, cnd: PlacementCnd) -> Placement {
         let to = to.into();
-        match cnd(self.board, self.from, to) {
-            Placement::Invalid => Placement::Invalid,
-            placement => {
-                self.moves.or_mut(to);
-                placement
-            }
+        let placement = cnd(self.board, self.from, to);
+        match placement {
+            Placement::Empty(from, to) => self.empty.push((from, to)),
+            Placement::Takes(from, to) => self.takes.push((from, to)),
+            Placement::Invalid => {}
         }
+
+        //TODO: clean
+        match placement {
+            Placement::Invalid => {}
+            _ => self.moves.or_mut(to),
+        }
+        placement
     }
 
-    pub fn moves(self) -> BitBoard {
-        self.moves
+    pub fn moves(self) -> Movements {
+        Movements {
+            bitboard: self.moves,
+            takes: self.takes,
+            empty: self.empty,
+        }
     }
 }
 
@@ -73,30 +108,33 @@ impl<'board> Generator<'board> {
 mod test {
     use super::*;
 
-    fn empty_placement(_b: &Board, _from: Pos, _to: Pos) -> Placement {
-        Placement::Empty
+    static FROM: Pos = Pos(1, 1);
+    static TO: Pos = Pos(2, 2);
+
+    fn empty_placement(_b: &Board, from: Pos, to: Pos) -> Placement {
+        Placement::Empty(from, to)
     }
 
     fn invalid_placement(_b: &Board, _from: Pos, _to: Pos) -> Placement {
         Placement::Invalid
     }
 
-    fn takes_placement(_b: &Board, _from: Pos, _to: Pos) -> Placement {
-        Placement::Takes
+    fn takes_placement(_b: &Board, from: Pos, to: Pos) -> Placement {
+        Placement::Takes(from, to)
     }
 
     #[test]
     fn placement_stop_when_applicable() {
         assert!(Placement::Invalid.stop());
-        assert!(Placement::Takes.stop());
+        assert!(Placement::Takes(FROM, TO).stop());
 
-        assert!(!Placement::Empty.stop());
+        assert!(!Placement::Empty(FROM, TO).stop());
     }
 
     #[test]
     fn placement_is_placed_when_applicable() {
-        assert!(Placement::Empty.placed());
-        assert!(Placement::Takes.placed());
+        assert!(Placement::Empty(FROM, TO).placed());
+        assert!(Placement::Takes(FROM, TO).placed());
 
         assert!(!Placement::Invalid.placed());
     }
@@ -115,7 +153,7 @@ mod test {
         let board = Board::default();
         let sut = Generator::new(&board, (1, 3));
 
-        assert_eq!(BitBoard::default(), sut.moves());
+        assert_eq!(Movements::default(), sut.moves());
     }
 
     #[test]
@@ -124,11 +162,15 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(
-            Placement::Empty,
+            Placement::Empty(Pos(1, 3), Pos(2, 3)),
             sut.dir(Direction::Top(1), empty_placement)
         );
 
-        let expected: BitBoard = (2, 3).into();
+        let expected = Movements {
+            bitboard: sut.moves.clone(),
+            empty: vec![(Pos(1, 3), Pos(2, 3))],
+            takes: vec![],
+        };
         assert_eq!(expected, sut.moves());
     }
 
@@ -138,11 +180,15 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(
-            Placement::Takes,
+            Placement::Takes(Pos(1, 3), Pos(2, 3)),
             sut.dir(Direction::Top(1), takes_placement)
         );
 
-        let expected: BitBoard = (2, 3).into();
+        let expected = Movements {
+            bitboard: sut.moves.clone(),
+            takes: vec![(Pos(1, 3), Pos(2, 3))],
+            empty: vec![],
+        };
         assert_eq!(expected, sut.moves());
     }
 
@@ -156,6 +202,6 @@ mod test {
             sut.dir(Direction::Top(1), invalid_placement)
         );
 
-        assert_eq!(BitBoard::default(), sut.moves());
+        assert_eq!(Movements::default(), sut.moves());
     }
 }

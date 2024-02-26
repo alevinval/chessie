@@ -1,26 +1,26 @@
 use std::iter::zip;
 
-use crate::{board::Board, pos::Direction, BitBoard, Pos};
+use crate::{board::Board, pos::Direction, Pos};
 
-use super::generator::{Generator, Placement};
+use super::generator::{Generator, Movements, Placement};
 
-pub fn bishop(mut g: Generator) -> BitBoard {
+pub fn bishop(mut g: Generator) -> Movements {
     diagonals(&mut g);
     g.moves()
 }
 
-pub fn rook(mut g: Generator) -> BitBoard {
+pub fn rook(mut g: Generator) -> Movements {
     cross(&mut g);
     g.moves()
 }
 
-pub fn queen(mut g: Generator) -> BitBoard {
+pub fn queen(mut g: Generator) -> Movements {
     diagonals(&mut g);
     cross(&mut g);
     g.moves()
 }
 
-pub fn black_pawn(mut g: Generator) -> BitBoard {
+pub fn black_pawn(mut g: Generator) -> Movements {
     if g.row() > 0 {
         if g.dir(Direction::Bottom(1), is_empty).placed() && g.row() == 6 {
             g.dir(Direction::Bottom(2), is_empty);
@@ -37,7 +37,7 @@ pub fn black_pawn(mut g: Generator) -> BitBoard {
     g.moves()
 }
 
-pub fn white_pawn(mut g: Generator) -> BitBoard {
+pub fn white_pawn(mut g: Generator) -> Movements {
     if g.row() < 7 {
         if g.dir(Direction::Top(1), is_empty).placed() && g.row() == 1 {
             g.dir(Direction::Top(2), is_empty);
@@ -52,7 +52,7 @@ pub fn white_pawn(mut g: Generator) -> BitBoard {
     g.moves()
 }
 
-pub fn knight(mut g: Generator) -> BitBoard {
+pub fn knight(mut g: Generator) -> Movements {
     let has_one_right = g.col() < 7;
     let has_two_right = g.col() < 6;
     let has_one_left = g.col() > 0;
@@ -96,7 +96,7 @@ pub fn knight(mut g: Generator) -> BitBoard {
     g.moves()
 }
 
-pub fn king(mut g: Generator) -> BitBoard {
+pub fn king(mut g: Generator) -> Movements {
     if g.row() < 7 {
         g.dir(Direction::Top(1), empty_or_take);
 
@@ -187,11 +187,11 @@ fn diagonals(g: &mut Generator) {
     }
 }
 
-fn is_empty(board: &Board, _from: Pos, to: Pos) -> Placement {
+fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
     board
         .at(to)
         .map(|_| Placement::Invalid)
-        .unwrap_or(Placement::Empty)
+        .unwrap_or(Placement::Empty(from, to))
 }
 
 fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
@@ -202,7 +202,7 @@ fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
                 .at(to)
                 .map(|ps_to| {
                     if ps_from.color() != ps_to.color() {
-                        Placement::Takes
+                        Placement::Takes(from, to)
                     } else {
                         Placement::Invalid
                     }
@@ -214,7 +214,7 @@ fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
 
 fn empty_or_take(board: &Board, from: Pos, to: Pos) -> Placement {
     match is_empty(board, from, to) {
-        Placement::Empty => Placement::Empty,
+        Placement::Empty(from, to) => Placement::Empty(from, to),
         _ => takes(board, from, to),
     }
 }

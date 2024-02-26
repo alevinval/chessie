@@ -40,7 +40,7 @@ pub fn play() {
 
     loop {
         let from = read_pos();
-        print_board(&board, &[board.generate_moves(from)]);
+        print_board(&board, &[board.generate_moves(from).bitboard]);
 
         let to = read_pos();
         board.apply_move(from, to);
@@ -96,9 +96,10 @@ pub fn explore(
 
     for ps in board.pieces(mover).iter() {
         for from in ps.positions() {
-            for to in board.generate_moves(from).iter_pos() {
+            let moves = board.generate_moves(from);
+            for (_, to) in moves.takes.iter().chain(moves.empty.iter()) {
                 let mut new_board = board.clone();
-                new_board.apply_move(from, to);
+                new_board.apply_move(from, *to);
                 let (_, _, eval) = explore(
                     &new_board,
                     mover.opposite(),
@@ -112,7 +113,7 @@ pub fn explore(
                     if eval > value {
                         value = eval;
                         best_from = Some(from);
-                        best_to = Some(to);
+                        best_to = Some(*to);
                     }
                     alpha = alpha.max(value);
                     if value >= beta {
@@ -122,7 +123,7 @@ pub fn explore(
                     if eval < value {
                         value = eval;
                         best_from = Some(from);
-                        best_to = Some(to);
+                        best_to = Some(*to);
                     }
                     beta = beta.min(value);
                     if value <= alpha {
@@ -137,6 +138,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(Color::White, 25, 4);
+    auto_play(Color::White, 25, 5);
     // play();
 }

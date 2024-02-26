@@ -1,6 +1,6 @@
 use crate::{board::Board, pos::Pos};
 
-use super::{BitBoard, Color, Piece};
+use super::{generator::Movements, BitBoard, Color, Piece};
 
 #[derive(Debug, Clone)]
 pub struct PieceSet {
@@ -48,7 +48,7 @@ impl PieceSet {
             .sum()
     }
 
-    pub fn movements(&self, board: &Board, pos: Pos) -> BitBoard {
+    pub fn movements(&self, board: &Board, pos: Pos) -> Movements {
         self.piece.movements(board, pos)
     }
 
