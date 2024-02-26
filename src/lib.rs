@@ -1,11 +1,13 @@
 use std::io;
 
 use board::Board;
+use eval::Scorer;
 use pieces::{BitBoard, Color};
 
 use crate::pos::Pos;
 
 mod board;
+mod eval;
 pub mod movement;
 mod pieces;
 mod pos;
@@ -36,6 +38,7 @@ fn read_pos() -> Pos {
 }
 
 pub fn play() {
+    let eval = Scorer::default();
     let mut board = Board::default();
     print_board(&board, &[]);
 
@@ -48,6 +51,7 @@ pub fn play() {
         print_board(&board, &[]);
 
         let (from, to, _) = explore(
+            &eval,
             &board,
             Color::Black,
             Color::Black,
@@ -61,11 +65,21 @@ pub fn play() {
 }
 
 pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
+    let scorer = Scorer::default();
     let mut board = Board::new();
+
     for _ in 0..moves {
-        let (from, to, eval) = explore(&board, color, color, -f32::INFINITY, f32::INFINITY, depth);
+        let (from, to, eval) = explore(
+            &scorer,
+            &board,
+            color,
+            color,
+            -f32::INFINITY,
+            f32::INFINITY,
+            depth,
+        );
         board.apply_move(from.unwrap(), to.unwrap());
-        board.eval(color, true);
+        scorer.debug_eval(&board, color);
 
         println!("{color:?} to play... {from:?} -> {to:?} ({eval})");
         print_board(&board, &[]);
@@ -75,6 +89,7 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
 }
 
 pub fn explore(
+    scorer: &Scorer,
     board: &Board,
     mover: Color,
     maxing_color: Color,
@@ -83,7 +98,7 @@ pub fn explore(
     depth: u8,
 ) -> (Option<Pos>, Option<Pos>, f32) {
     if depth == 0 {
-        let eval = board.eval(maxing_color, false);
+        let eval = scorer.eval(board, maxing_color);
         return (None, None, eval);
     }
 
@@ -102,6 +117,7 @@ pub fn explore(
                 let mut new_board = board.clone();
                 new_board.apply_move(from, *to);
                 let (_, _, eval) = explore(
+                    scorer,
                     &new_board,
                     mover.opposite(),
                     maxing_color,

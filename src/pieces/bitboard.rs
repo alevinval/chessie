@@ -25,12 +25,6 @@ impl BitBoard {
         self.piece.color()
     }
 
-    pub fn score(&self) -> f32 {
-        self.iter_pos()
-            .map(|p| self.piece.score() + if p.is_central() { 0.25 } else { 0.0 })
-            .sum()
-    }
-
     pub fn is_empty(&self) -> bool {
         self.value == 0
     }
