@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    pos::{Direction, Pos},
+    pos::{Dir, Pos},
 };
 
 use super::BitBoard;
@@ -73,7 +73,7 @@ impl<'board> Generator<'board> {
         self.from.col()
     }
 
-    pub fn dir(&mut self, d: Direction, cnd: PlacementCnd) -> Placement {
+    pub fn dir(&mut self, d: Dir, cnd: PlacementCnd) -> Placement {
         let to = self.from.to(d);
         self.pos(to, cnd)
     }
@@ -163,7 +163,7 @@ mod test {
 
         assert_eq!(
             Placement::Empty((1, 3).into(), (2, 3).into()),
-            sut.dir(Direction::Top(1), empty_placement)
+            sut.dir(Dir::Up(1), empty_placement)
         );
 
         let expected = Movements {
@@ -181,7 +181,7 @@ mod test {
 
         assert_eq!(
             Placement::Takes((1, 3).into(), (2, 3).into()),
-            sut.dir(Direction::Top(1), takes_placement)
+            sut.dir(Dir::Up(1), takes_placement)
         );
 
         let expected = Movements {
@@ -197,10 +197,7 @@ mod test {
         let board = Board::default();
         let mut sut = Generator::new(&board, (1, 3));
 
-        assert_eq!(
-            Placement::Invalid,
-            sut.dir(Direction::Top(1), invalid_placement)
-        );
+        assert_eq!(Placement::Invalid, sut.dir(Dir::Up(1), invalid_placement));
 
         assert_eq!(Movements::default(), sut.moves());
     }

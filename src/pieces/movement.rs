@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-use crate::{board::Board, pos::Direction, Pos};
+use crate::{board::Board, pos::Dir, Pos};
 
 use super::generator::{Generator, Movements, Placement};
 
@@ -22,16 +22,16 @@ pub fn queen(mut g: Generator) -> Movements {
 
 pub fn black_pawn(mut g: Generator) -> Movements {
     if g.row() > 0 {
-        if g.dir(Direction::Bottom(1), is_empty).placed() && g.row() == 6 {
-            g.dir(Direction::Bottom(2), is_empty);
+        if g.dir(Dir::Down(1), is_empty).placed() && g.row() == 6 {
+            g.dir(Dir::Down(2), is_empty);
         }
 
         if g.col() < 7 {
-            g.dir(Direction::Custom(-1, 1), takes);
+            g.dir(Dir::Custom(-1, 1), takes);
         }
 
         if g.col() > 0 {
-            g.dir(Direction::Custom(-1, -1), takes);
+            g.dir(Dir::Custom(-1, -1), takes);
         }
     }
     g.moves()
@@ -39,14 +39,14 @@ pub fn black_pawn(mut g: Generator) -> Movements {
 
 pub fn white_pawn(mut g: Generator) -> Movements {
     if g.row() < 7 {
-        if g.dir(Direction::Top(1), is_empty).placed() && g.row() == 1 {
-            g.dir(Direction::Top(2), is_empty);
+        if g.dir(Dir::Up(1), is_empty).placed() && g.row() == 1 {
+            g.dir(Dir::Up(2), is_empty);
         }
         if g.col() < 7 {
-            g.dir(Direction::Custom(1, 1), takes);
+            g.dir(Dir::Custom(1, 1), takes);
         }
         if g.col() > 0 {
-            g.dir(Direction::Custom(1, -1), takes);
+            g.dir(Dir::Custom(1, -1), takes);
         }
     }
     g.moves()
@@ -60,37 +60,37 @@ pub fn knight(mut g: Generator) -> Movements {
 
     if g.row() < 6 {
         if has_one_left {
-            g.dir(Direction::Custom(2, -1), empty_or_take);
+            g.dir(Dir::Custom(2, -1), empty_or_take);
         }
         if has_one_right {
-            g.dir(Direction::Custom(2, 1), empty_or_take);
+            g.dir(Dir::Custom(2, 1), empty_or_take);
         }
     }
 
     if g.row() > 2 {
         if has_one_left {
-            g.dir(Direction::Custom(-2, -1), empty_or_take);
+            g.dir(Dir::Custom(-2, -1), empty_or_take);
         }
         if has_one_right {
-            g.dir(Direction::Custom(-2, 1), empty_or_take);
+            g.dir(Dir::Custom(-2, 1), empty_or_take);
         }
     }
 
     if g.row() < 7 {
         if has_two_left {
-            g.dir(Direction::Custom(1, -2), empty_or_take);
+            g.dir(Dir::Custom(1, -2), empty_or_take);
         }
         if has_two_right {
-            g.dir(Direction::Custom(1, 2), empty_or_take);
+            g.dir(Dir::Custom(1, 2), empty_or_take);
         }
     }
 
     if g.row() > 0 {
         if has_two_left {
-            g.dir(Direction::Custom(-1, -2), empty_or_take);
+            g.dir(Dir::Custom(-1, -2), empty_or_take);
         }
         if has_two_right {
-            g.dir(Direction::Custom(-1, 2), empty_or_take);
+            g.dir(Dir::Custom(-1, 2), empty_or_take);
         }
     }
     g.moves()
@@ -98,35 +98,35 @@ pub fn knight(mut g: Generator) -> Movements {
 
 pub fn king(mut g: Generator) -> Movements {
     if g.row() < 7 {
-        g.dir(Direction::Top(1), empty_or_take);
+        g.dir(Dir::Up(1), empty_or_take);
 
         if g.col() < 7 {
-            g.dir(Direction::Custom(1, 1), empty_or_take);
+            g.dir(Dir::Custom(1, 1), empty_or_take);
         }
 
         if g.col() > 0 {
-            g.dir(Direction::Custom(1, -1), empty_or_take);
+            g.dir(Dir::Custom(1, -1), empty_or_take);
         }
     }
 
     if g.row() > 0 {
-        g.dir(Direction::Bottom(1), empty_or_take);
+        g.dir(Dir::Down(1), empty_or_take);
 
         if g.col() < 7 {
-            g.dir(Direction::Custom(-1, 1), empty_or_take);
+            g.dir(Dir::Custom(-1, 1), empty_or_take);
         }
 
         if g.col() > 0 {
-            g.dir(Direction::Custom(-1, -1), empty_or_take);
+            g.dir(Dir::Custom(-1, -1), empty_or_take);
         }
     }
 
     if g.col() < 7 {
-        g.dir(Direction::Right(1), empty_or_take);
+        g.dir(Dir::Left(1), empty_or_take);
     }
 
     if g.col() > 0 {
-        g.dir(Direction::Left(1), empty_or_take);
+        g.dir(Dir::Right(1), empty_or_take);
     }
     g.moves()
 }
