@@ -6,43 +6,30 @@ pub struct BitBoard {
 }
 
 impl BitBoard {
-    #[cfg(test)]
-    pub fn new(value: u64) -> Self {
-        Self { value }
-    }
-
     pub fn load_row(value: u64, row: usize) -> Self {
         Self {
             value: value << (row * 8),
         }
     }
 
-    pub fn has_piece(&self, pos: Pos) -> bool {
-        ((self.value >> (pos.row() * 8)) >> pos.col()) & 1 == 1
-    }
-
-    pub fn or_mut<P: Into<BitBoard>>(&mut self, other: P) {
-        self.value |= other.into().value
-    }
-
-    pub fn or<P: Into<BitBoard>>(&self, other: P) -> BitBoard {
-        BitBoard {
-            value: self.value | other.into().value,
-        }
-    }
-
-    pub fn and<P: Into<BitBoard>>(&self, other: P) -> BitBoard {
-        BitBoard {
-            value: self.value & other.into().value,
-        }
-    }
-
-    pub fn xor_mut<P: Into<BitBoard>>(&mut self, other: P) {
-        self.value ^= other.into().value;
-    }
-
     pub fn is_empty(&self) -> bool {
         self.value == 0
+    }
+
+    pub fn has_piece<P: Into<Pos>>(&self, pos: P) -> bool {
+        rshiftpos(self.value, pos.into()) == 1
+    }
+
+    pub fn apply_move<P: Into<u64>>(&mut self, from: P, to: P) {
+        self.value ^= from.into() | to.into()
+    }
+
+    pub fn set<P: Into<u64>>(&mut self, other: P) {
+        self.value |= other.into()
+    }
+
+    pub fn unset<P: Into<u64>>(&mut self, other: P) {
+        self.value &= !other.into();
     }
 
     pub fn to_le_bytes(&self) -> [u8; 8] {
@@ -53,7 +40,7 @@ impl BitBoard {
         (0..8).flat_map(move |row| {
             let ro = row * 8;
             (0..8).flat_map(move |col| {
-                if ((self.value >> ro) >> col) & 1 == 1 {
+                if self.value >> (ro + col) & 1 == 1 {
                     Some((row, col).into())
                 } else {
                     None
@@ -63,24 +50,27 @@ impl BitBoard {
     }
 }
 
-impl From<Pos> for BitBoard {
-    fn from(value: Pos) -> Self {
-        BitBoard {
-            value: (1 << (value.row() * 8)) << value.col(),
-        }
-    }
-}
-
-impl From<(u8, u8)> for BitBoard {
-    fn from(value: (u8, u8)) -> Self {
-        let p: Pos = value.into();
-        p.into()
-    }
+fn rshiftpos(value: u64, pos: Pos) -> u64 {
+    let other: u64 = pos.into();
+    (value & other) >> (pos.row() * 8 + pos.col())
 }
 
 impl From<u64> for BitBoard {
     fn from(value: u64) -> Self {
         BitBoard { value }
+    }
+}
+
+impl From<Pos> for BitBoard {
+    fn from(value: Pos) -> Self {
+        let value: u64 = value.into();
+        BitBoard { value }
+    }
+}
+
+impl From<Pos> for u64 {
+    fn from(value: Pos) -> Self {
+        1 << (value.row() * 8 + value.col())
     }
 }
 
@@ -94,13 +84,13 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard::new(0);
+        let sut: BitBoard = 0.into();
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard::new(1);
+        let sut: BitBoard = 1.into();
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard::new(0);
+        let sut: BitBoard = 0.into();
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
         let sut: BitBoard = TARGET.into();
@@ -109,7 +99,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard::new(u64::MAX);
+        let sut: BitBoard = u64::MAX.into();
         let actual = sut.to_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");

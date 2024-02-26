@@ -47,14 +47,14 @@ impl Board {
         self.white
             .iter()
             .chain(self.black.iter())
-            .find(|piece_set| !piece_set.at(pos).is_empty())
+            .find(|piece_set| piece_set.has_piece(pos))
     }
 
     pub fn at_mut(&mut self, pos: Pos) -> Option<&mut PieceSet> {
         self.white
             .iter_mut()
             .chain(self.black.iter_mut())
-            .find(|piece| !piece.at(pos).is_empty())
+            .find(|piece| piece.has_piece(pos))
     }
 
     pub fn save(&self, fname: &str) {
@@ -86,14 +86,14 @@ impl Board {
         let white_space_score: f32 = self
             .white
             .get(Piece::Pawn(Color::White))
-            .positions()
+            .iter_pos()
             .map(|p| (p.row() as f32 - 1.0) * if p.is_central() { 1.2 } else { 1.0 })
             .sum();
 
         let black_space_score: f32 = self
             .black
             .get(Piece::Pawn(Color::Black))
-            .positions()
+            .iter_pos()
             .map(|p| (p.row() as f32 - 6.0) * if p.is_central() { -1.2 } else { -1.0 })
             .sum();
 

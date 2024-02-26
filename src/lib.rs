@@ -96,7 +96,7 @@ pub fn explore(
     let mut best_to = None;
 
     for ps in board.pieces(mover).iter() {
-        for from in ps.positions() {
+        for from in ps.iter_pos() {
             let moves = board.generate_moves(from);
             for (_, to) in moves.takes.iter().chain(moves.empty.iter()) {
                 let mut new_board = board.clone();
@@ -139,6 +139,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(Color::White, 25, 5);
+    auto_play(Color::White, u8::MAX, 3);
     // play();
 }

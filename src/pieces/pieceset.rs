@@ -13,26 +13,19 @@ impl PieceSet {
         Self::new_bitboard(piece, Self::initial_position(&piece))
     }
 
-    pub fn new_bitboard<P: Into<BitBoard>>(piece: Piece, bitboard: P) -> Self {
+    fn new_bitboard<P: Into<BitBoard>>(piece: Piece, bitboard: P) -> Self {
         Self {
             piece,
             bitboard: bitboard.into(),
         }
     }
 
-    #[cfg(test)]
-    pub fn clear(&mut self) {
-        self.bitboard = BitBoard::default();
+    pub fn has_piece<P: Into<Pos>>(&self, pos: P) -> bool {
+        self.bitboard.has_piece(pos)
     }
 
-    pub fn at<P: Into<Pos>>(&self, pos: P) -> BitBoard {
-        self.bitboard.and(pos.into())
-    }
-
-    pub fn apply_move<P: Into<Pos>>(&mut self, from: P, to: P) {
-        let from = from.into();
-        let from: BitBoard = from.into();
-        self.bitboard.xor_mut(from.or(to.into()));
+    pub fn apply_move<P: Into<u64>>(&mut self, from: P, to: P) {
+        self.bitboard.apply_move(from, to);
     }
 
     pub fn piece(&self) -> Piece {
@@ -44,16 +37,16 @@ impl PieceSet {
     }
 
     pub fn score(&self) -> f32 {
-        self.positions()
+        self.iter_pos()
             .map(|p| self.piece.score() + if p.is_central() { 0.25 } else { 0.0 })
             .sum()
     }
 
     pub fn unset(&mut self, pos: Pos) {
-        self.bitboard.xor_mut(pos);
+        self.bitboard.unset(pos);
     }
 
-    pub fn positions(&self) -> impl Iterator<Item = Pos> + '_ {
+    pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
         self.bitboard.iter_pos()
     }
 
@@ -86,37 +79,22 @@ mod test {
     #[test]
     fn at() {
         let sut = PieceSet::new_bitboard(PIECE, 0b0);
-        assert!(sut.at(ORIGIN).is_empty(), "{ORIGIN:?} should be empty");
+        assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should be empty");
 
         let sut = PieceSet::new_bitboard(PIECE, 0b1);
-        assert!(!sut.at(ORIGIN).is_empty(), "{ORIGIN:?} should not be empty");
+        assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should not be empty");
 
         let sut = PieceSet::new_bitboard(PIECE, TARGET);
-        assert!(!sut.at(TARGET).is_empty(), "{TARGET:?} should not be empty");
+        assert!(sut.has_piece(TARGET), "{TARGET:?} should not be empty");
     }
 
     #[test]
     fn mov() {
         let mut sut = PieceSet::new_bitboard(PIECE, 0b1);
-        assert!(
-            !sut.at(ORIGIN).is_empty(),
-            "should have piece at {ORIGIN:?}"
-        );
+        assert!(sut.has_piece(ORIGIN), "should have piece at {ORIGIN:?}");
 
         sut.apply_move(ORIGIN, TARGET);
-        assert!(sut.at(ORIGIN).is_empty(), "{ORIGIN:?} should be empty");
-        assert!(
-            !sut.at(TARGET).is_empty(),
-            "{TARGET:?} should contain a piece"
-        );
-    }
-
-    #[test]
-    fn clear() {
-        let mut sut = PieceSet::new_bitboard(PIECE, 1);
-        assert!(!sut.at(ORIGIN).is_empty(), "should have piece at ORIGIN");
-
-        sut.clear();
-        assert!(sut.at(ORIGIN).is_empty(), "should be empty after clear");
+        assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should be empty");
+        assert!(sut.has_piece(TARGET), "{TARGET:?} should contain a piece");
     }
 }

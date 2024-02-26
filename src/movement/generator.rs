@@ -79,7 +79,7 @@ impl<'board> Generator<'board> {
         //TODO: clean
         match placement {
             Placement::Invalid => {}
-            _ => self.moves.or_mut(to),
+            _ => self.moves.set(to),
         }
         placement
     }
