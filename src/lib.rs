@@ -2,6 +2,7 @@ use std::io;
 
 use board::Board;
 use eval::Scorer;
+use movement::Moves;
 use pieces::{BitBoard, Color};
 
 use crate::pos::Pos;
@@ -110,43 +111,52 @@ pub fn explore(
     let mut best_from = None;
     let mut best_to = None;
 
-    for ps in board.pieces(mover).iter() {
-        for from in ps.iter_pos() {
-            let movements = board.generate_moves(from);
-            for (_, to) in movements.takes.iter().chain(movements.empty.iter()) {
-                let mut new_board = board.clone();
-                new_board.apply_move(from, *to);
-                let (_, _, eval) = explore(
-                    scorer,
-                    &new_board,
-                    mover.opposite(),
-                    maxing_color,
-                    alpha,
-                    beta,
-                    depth - 1,
-                );
+    let mut movements: Vec<_> = board
+        .pieces(mover)
+        .iter()
+        .flat_map(BitBoard::iter_pos)
+        .map(|p| board.generate_moves(p))
+        .flat_map(Moves::into_iter)
+        .map(|(from, to)| {
+            let mut b = board.clone();
+            b.apply_move(from, to);
+            let eval = scorer.eval(&b, maxing_color);
+            (b, eval, from, to)
+        })
+        .collect();
 
-                if mover == maxing_color {
-                    if eval > value {
-                        value = eval;
-                        best_from = Some(from);
-                        best_to = Some(*to);
-                    }
-                    alpha = alpha.max(value);
-                    if value >= beta {
-                        return (best_from, best_to, value);
-                    }
-                } else {
-                    if eval < value {
-                        value = eval;
-                        best_from = Some(from);
-                        best_to = Some(*to);
-                    }
-                    beta = beta.min(value);
-                    if value <= alpha {
-                        return (best_from, best_to, value);
-                    }
-                }
+    movements.sort_by(|a, b| b.1.total_cmp(&a.1));
+
+    for (new_board, _, from, to) in movements {
+        let (_, _, eval) = explore(
+            scorer,
+            &new_board,
+            mover.opposite(),
+            maxing_color,
+            alpha,
+            beta,
+            depth - 1,
+        );
+
+        if mover == maxing_color {
+            if eval > value {
+                value = eval;
+                best_from = Some(from);
+                best_to = Some(to);
+            }
+            alpha = alpha.max(value);
+            if value >= beta {
+                return (best_from, best_to, value);
+            }
+        } else {
+            if eval < value {
+                value = eval;
+                best_from = Some(from);
+                best_to = Some(to);
+            }
+            beta = beta.min(value);
+            if value <= alpha {
+                return (best_from, best_to, value);
             }
         }
     }

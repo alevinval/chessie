@@ -62,6 +62,12 @@ impl<'board> Generator<'board> {
     }
 }
 
+impl Moves {
+    pub fn into_iter(self) -> impl Iterator<Item = (Pos, Pos)> {
+        self.takes.into_iter().chain(self.empty)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
