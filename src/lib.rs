@@ -4,6 +4,7 @@ use board::Board;
 use eval::Scorer;
 use movement::Moves;
 use pieces::{BitBoard, Color};
+use pos::ORIGIN;
 
 use crate::pos::Pos;
 
@@ -60,7 +61,7 @@ pub fn play() {
             f32::INFINITY,
             4,
         );
-        board.apply_move(from.unwrap(), to.unwrap());
+        board.apply_move(from, to);
         print_board(&board, &[]);
     }
 }
@@ -79,7 +80,7 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
             f32::INFINITY,
             depth,
         );
-        board.apply_move(from.unwrap(), to.unwrap());
+        board.apply_move(from, to);
         scorer.debug_eval(&board, color);
 
         println!("{color:?} to play... {from:?} -> {to:?} ({eval})");
@@ -97,10 +98,10 @@ pub fn explore(
     mut alpha: f32,
     mut beta: f32,
     depth: u8,
-) -> (Option<Pos>, Option<Pos>, f32) {
+) -> (Pos, Pos, f32) {
     if depth == 0 {
         let eval = scorer.eval(board, maxing_color);
-        return (None, None, eval);
+        return (ORIGIN, ORIGIN, eval);
     }
 
     let mut value: f32 = if mover == maxing_color {
@@ -108,15 +109,15 @@ pub fn explore(
     } else {
         f32::INFINITY
     };
-    let mut best_from = None;
-    let mut best_to = None;
+
+    let (mut best_from, mut best_to) = (ORIGIN, ORIGIN);
 
     let mut movements: Vec<_> = board
         .pieces(mover)
         .iter()
         .flat_map(BitBoard::iter_pos)
         .map(|p| board.generate_moves(p))
-        .flat_map(Moves::into_iter)
+        .flat_map(Moves::iter_pos)
         .map(|(from, to)| {
             let mut b = board.clone();
             b.apply_move(from, to);
@@ -141,8 +142,8 @@ pub fn explore(
         if mover == maxing_color {
             if eval > value {
                 value = eval;
-                best_from = Some(from);
-                best_to = Some(to);
+                best_from = from;
+                best_to = to;
             }
             alpha = alpha.max(value);
             if value >= beta {
@@ -151,8 +152,8 @@ pub fn explore(
         } else {
             if eval < value {
                 value = eval;
-                best_from = Some(from);
-                best_to = Some(to);
+                best_from = from;
+                best_to = to;
             }
             beta = beta.min(value);
             if value <= alpha {
@@ -161,10 +162,15 @@ pub fn explore(
         }
     }
 
+    debug_assert!(
+        best_from != best_to,
+        "should always find a legal move for the moment"
+    );
+
     (best_from, best_to, value)
 }
 
 pub fn main() {
-    auto_play(Color::White, u8::MAX, 3);
+    auto_play(Color::White, u8::MAX, 4);
     // play();
 }

@@ -47,8 +47,8 @@ impl Scorer {
             .map(|p| (p.row() as f32 - 6.0) * if p.is_central() { -1.2 } else { -1.0 })
             .sum();
 
-        white += white_space_score / 100.0;
-        black += black_space_score / 100.0;
+        white += white_space_score / 1000.0;
+        black += black_space_score / 1000.0;
 
         if debug {
             println!("space score");
@@ -69,7 +69,7 @@ impl Scorer {
             Piece::Knight(_) => 2.8,
             Piece::Bishop(_) => 3.0,
             Piece::Queen(_) => 9.0,
-            Piece::King(_) => 1000.0,
+            Piece::King(_) => 25.0,
         }
     }
 
