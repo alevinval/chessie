@@ -20,9 +20,9 @@ impl Pieces {
                 BitBoard::new(Piece::Pawn(color)),
                 BitBoard::new(Piece::Knight(color)),
                 BitBoard::new(Piece::Bishop(color)),
-                BitBoard::new(Piece::Rook(color)),
+                BitBoard::new(Piece::Rook(color, false, false)),
                 BitBoard::new(Piece::Queen(color)),
-                BitBoard::new(Piece::King(color)),
+                BitBoard::new(Piece::King(color, false)),
             ],
         }
     }
@@ -44,9 +44,9 @@ impl Pieces {
             Piece::Pawn(_) => 0,
             Piece::Knight(_) => 1,
             Piece::Bishop(_) => 2,
-            Piece::Rook(_) => 3,
+            Piece::Rook(_, _, _) => 3,
             Piece::Queen(_) => 4,
-            Piece::King(_) => 5,
+            Piece::King(_, _) => 5,
         }
     }
 }

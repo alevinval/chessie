@@ -33,11 +33,11 @@ impl<'board> MoveGen<'board> {
                 Color::Black => self.black_pawn(),
                 Color::White => self.white_pawn(),
             },
-            Piece::Rook(_) => self.rook(),
+            Piece::Rook(_, _, _) => self.rook(),
             Piece::Bishop(_) => self.bishop(),
             Piece::Queen(_) => self.queen(),
             Piece::Knight(_) => self.knight(),
-            Piece::King(_) => self.king(),
+            Piece::King(_, _) => self.king(),
         };
         self.gen.moves()
     }

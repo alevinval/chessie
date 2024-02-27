@@ -5,22 +5,22 @@ use super::Color;
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Piece {
     Pawn(Color),
-    Rook(Color),
+    Rook(Color, bool, bool),
     Knight(Color),
     Bishop(Color),
     Queen(Color),
-    King(Color),
+    King(Color, bool),
 }
 
 impl Piece {
     pub fn color(self) -> Color {
         match self {
             Piece::Pawn(c)
-            | Piece::Rook(c)
+            | Piece::Rook(c, _, _)
             | Piece::Knight(c)
             | Piece::Bishop(c)
             | Piece::Queen(c)
-            | Piece::King(c) => c,
+            | Piece::King(c, _) => c,
         }
     }
 
@@ -29,7 +29,7 @@ impl Piece {
     }
 
     pub fn is_king(self) -> bool {
-        matches!(self, Piece::King(_))
+        matches!(self, Piece::King(_, _))
     }
 
     pub fn as_str(self) -> &'static str {
@@ -38,7 +38,7 @@ impl Piece {
                 Color::Black => "♟",
                 Color::White => "♙",
             },
-            Piece::Rook(c) => match c {
+            Piece::Rook(c, _, _) => match c {
                 Color::Black => "♜",
                 Color::White => "♖",
             },
@@ -54,7 +54,7 @@ impl Piece {
                 Color::Black => "♛",
                 Color::White => "♕",
             },
-            Piece::King(c) => match c {
+            Piece::King(c, _) => match c {
                 Color::Black => "♚",
                 Color::White => "♔",
             },
@@ -77,7 +77,7 @@ mod test {
         let sut = Piece::Pawn(Color::Black);
         assert!(sut.is_pawn(), "should be pawn");
 
-        let sut = Piece::Rook(Color::Black);
+        let sut = Piece::Rook(Color::Black, false, false);
         assert!(!sut.is_pawn(), "should not be pawn");
     }
 

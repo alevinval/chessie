@@ -65,11 +65,11 @@ impl BitBoard {
     fn initial_position(piece: Piece) -> BitBoard {
         match piece {
             Piece::Pawn(c) => BitBoard::load(piece, 0b11111111 << (8 * c.pawn_row())),
-            Piece::Rook(c) => BitBoard::load(piece, 0b10000001 << (8 * c.piece_row())),
+            Piece::Rook(c, _, _) => BitBoard::load(piece, 0b10000001 << (8 * c.piece_row())),
             Piece::Knight(c) => BitBoard::load(piece, 0b01000010 << (8 * c.piece_row())),
             Piece::Bishop(c) => BitBoard::load(piece, 0b00100100 << (8 * c.piece_row())),
             Piece::Queen(c) => BitBoard::load(piece, 0b00010000 << (8 * c.piece_row())),
-            Piece::King(c) => BitBoard::load(piece, 0b00001000 << (8 * c.piece_row())),
+            Piece::King(c, _) => BitBoard::load(piece, 0b00001000 << (8 * c.piece_row())),
         }
     }
 }
