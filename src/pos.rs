@@ -1,5 +1,3 @@
-pub static ORIGIN: Pos = Pos(0, 0);
-
 #[derive(Debug, Copy, Clone)]
 pub enum Dir {
     Up(u8),

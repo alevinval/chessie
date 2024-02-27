@@ -3,20 +3,16 @@ use crate::{
     pos::{Dir, Pos},
 };
 
-use super::placement::{Placement, PlacementCnd};
+use super::{
+    placement::{Placement, PlacementCnd},
+    Move,
+};
 
 #[derive(Debug)]
 pub struct Generator<'board> {
     board: &'board Board,
     from: Pos,
-    takes: Vec<(Pos, Pos)>,
-    empty: Vec<(Pos, Pos)>,
-}
-
-#[derive(Debug, Default, Eq, PartialEq)]
-pub struct Moves {
-    pub takes: Vec<(Pos, Pos)>,
-    pub empty: Vec<(Pos, Pos)>,
+    moves: Vec<Move>,
 }
 
 impl<'board> Generator<'board> {
@@ -24,8 +20,7 @@ impl<'board> Generator<'board> {
         Generator {
             board,
             from: from.into(),
-            takes: vec![],
-            empty: vec![],
+            moves: vec![],
         }
     }
 
@@ -45,26 +40,14 @@ impl<'board> Generator<'board> {
     pub fn pos<P: Into<Pos>>(&mut self, to: P, cnd: PlacementCnd) -> Placement {
         let to = to.into();
         let placement = cnd(self.board, self.from, to);
-        match placement {
-            Placement::Empty(from, to) => self.empty.push((from, to)),
-            Placement::Takes(from, to) => self.takes.push((from, to)),
-            Placement::Invalid => {}
+        if let Some(m) = placement.movement() {
+            self.moves.push(m);
         }
-
         placement
     }
 
-    pub fn moves(self) -> Moves {
-        Moves {
-            takes: self.takes,
-            empty: self.empty,
-        }
-    }
-}
-
-impl Moves {
-    pub fn iter_pos(self) -> impl Iterator<Item = (Pos, Pos)> {
-        self.takes.into_iter().chain(self.empty)
+    pub fn moves(self) -> Vec<Move> {
+        self.moves
     }
 }
 
@@ -117,7 +100,7 @@ mod test {
         let board = Board::default();
         let sut = Generator::new(&board, (1, 3));
 
-        assert_eq!(Moves::default(), sut.moves());
+        assert!(sut.moves().is_empty());
     }
 
     #[test]
@@ -130,10 +113,7 @@ mod test {
             sut.dir(Dir::Up(1), empty_placement)
         );
 
-        let expected = Moves {
-            empty: vec![((1, 3).into(), (2, 3).into())],
-            takes: vec![],
-        };
+        let expected: Vec<Move> = vec![Move::Basic((1, 3).into(), (2, 3).into())];
         assert_eq!(expected, sut.moves());
     }
 
@@ -147,10 +127,7 @@ mod test {
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = Moves {
-            takes: vec![((1, 3).into(), (2, 3).into())],
-            empty: vec![],
-        };
+        let expected = vec![Move::Basic((1, 3).into(), (2, 3).into())];
         assert_eq!(expected, sut.moves());
     }
 
@@ -161,6 +138,6 @@ mod test {
 
         assert_eq!(Placement::Invalid, sut.dir(Dir::Up(1), invalid_placement));
 
-        assert_eq!(Moves::default(), sut.moves());
+        assert!(sut.moves().is_empty());
     }
 }

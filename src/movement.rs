@@ -1,6 +1,7 @@
 use std::iter::zip;
 
 mod generator;
+mod movement;
 mod placement;
 
 use crate::{
@@ -10,7 +11,7 @@ use crate::{
     Pos,
 };
 
-pub use self::generator::Moves;
+pub use self::movement::Move;
 use self::{
     generator::Generator,
     placement::{empty_or_take, is_empty, takes},
@@ -27,7 +28,7 @@ impl<'board> MoveGen<'board> {
         }
     }
 
-    pub fn gen(mut self, piece: &Piece) -> Moves {
+    pub fn gen(mut self, piece: &Piece) -> Vec<Move> {
         match piece {
             Piece::Pawn(color) => match color {
                 Color::Black => self.black_pawn(),

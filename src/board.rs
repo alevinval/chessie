@@ -1,7 +1,6 @@
 use std::{fs::File, io::Write};
 
-use crate::movement::MoveGen;
-use crate::movement::Moves;
+use crate::movement::{Move, MoveGen};
 use crate::pieces::{BitBoard, Color, Pieces};
 use crate::pos::Pos;
 
@@ -17,23 +16,6 @@ impl Board {
             white: Pieces::new(Color::White),
             black: Pieces::new(Color::Black),
         }
-    }
-
-    pub fn apply_move<P: Into<Pos>>(&mut self, from: P, to: P) {
-        let from = from.into();
-        let to = to.into();
-
-        if self.at(from).is_none() {
-            return;
-        }
-
-        if let Some(dst) = self.at_mut(to) {
-            dst.unset(to);
-        }
-
-        self.at_mut(from)
-            .expect("cannot move square without piece")
-            .apply_move(from, to);
     }
 
     pub fn pieces(&self, color: Color) -> &Pieces {
@@ -67,8 +49,8 @@ impl Board {
         });
     }
 
-    pub fn generate_moves(&self, pos: Pos) -> Moves {
-        self.at(pos).map_or(Moves::default(), |piece_set| {
+    pub fn generate_moves(&self, pos: Pos) -> Vec<Move> {
+        self.at(pos).map_or(vec![], |piece_set| {
             MoveGen::new(self, pos).gen(&piece_set.piece())
         })
     }

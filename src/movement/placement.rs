@@ -1,5 +1,7 @@
 use crate::{board::Board, pos::Pos};
 
+use super::Move;
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Placement {
     Invalid,
@@ -14,6 +16,13 @@ impl Placement {
 
     pub fn placed(&self) -> bool {
         matches!(self, Self::Takes(_, _) | Self::Empty(_, _))
+    }
+
+    pub fn movement(&self) -> Option<Move> {
+        match *self {
+            Placement::Invalid => None,
+            Placement::Empty(from, to) | Placement::Takes(from, to) => Some(Move::Basic(from, to)),
+        }
     }
 }
 
