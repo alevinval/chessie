@@ -21,22 +21,22 @@ impl Move {
             }
             Move::LeftCastle(c) => match c {
                 Color::Black => {
-                    self.apply_move(board, Pos::new(7, 4), Pos::new(7, 2));
-                    self.apply_move(board, Pos::new(7, 0), Pos::new(7, 3));
+                    self.apply_move(board, (7, 4), (7, 2));
+                    self.apply_move(board, (7, 0), (7, 3));
                 }
                 Color::White => {
-                    self.apply_move(board, Pos::new(0, 4), Pos::new(0, 2));
-                    self.apply_move(board, Pos::new(0, 0), Pos::new(0, 3));
+                    self.apply_move(board, (0, 4), (0, 2));
+                    self.apply_move(board, (0, 0), (0, 3));
                 }
             },
             Move::RightCastle(c) => match c {
                 Color::Black => {
-                    self.apply_move(board, Pos::new(7, 4), Pos::new(7, 6));
-                    self.apply_move(board, Pos::new(7, 7), Pos::new(7, 5));
+                    self.apply_move(board, (7, 4), (7, 6));
+                    self.apply_move(board, (7, 7), (7, 5));
                 }
                 Color::White => {
-                    self.apply_move(board, Pos::new(0, 4), Pos::new(0, 6));
-                    self.apply_move(board, Pos::new(0, 7), Pos::new(0, 5));
+                    self.apply_move(board, (0, 4), (0, 6));
+                    self.apply_move(board, (0, 7), (0, 5));
                 }
             },
             Move::None => unreachable!("should never apply a non-move"),
@@ -49,15 +49,16 @@ impl Move {
         }
     }
 
-    fn apply_move(&self, board: &mut Board, from: Pos, to: Pos) {
+    fn apply_move<P: Into<Pos>>(&self, board: &mut Board, from: P, to: P) {
+        let from = from.into();
         match board.at_mut(from) {
             Some(bb) => {
                 bb.unset(from);
-                bb.set(to);
+                bb.set(to.into());
                 self.flag_piece_movement(bb);
             }
             None => {
-                unreachable!("cannot move square without piece {from:?} to {to:?}");
+                unreachable!("cannot move square without piece {from:?}");
             }
         }
     }
