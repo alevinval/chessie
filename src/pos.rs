@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, Copy, Clone)]
 pub enum Dir {
     Up(u8),
@@ -11,22 +13,21 @@ pub enum Dir {
 pub struct Pos(u8, u8);
 
 impl Pos {
+    #[cfg(test)]
     pub const fn new(row: u8, col: u8) -> Self {
         Self(row, col)
     }
 
     pub fn to(self, d: Dir) -> Self {
         let (row, col) = (self.0, self.1);
-        let pos = match d {
+        match d {
             Dir::Up(n) => (row + n, col),
             Dir::Down(n) => (row - n, col),
             Dir::Left(n) => (row, col - n),
             Dir::Right(n) => (row, col + n),
             Dir::Custom(nr, nc) => (((row as i8) + nr) as u8, ((col as i8) + nc) as u8),
-        };
-
-        self.assert_bounds();
-        Self(pos.0, pos.1)
+        }
+        .into()
     }
 
     pub fn row(self) -> u8 {
@@ -44,15 +45,21 @@ impl Pos {
     fn assert_bounds(self) -> Self {
         debug_assert!(
             self.0 < 8 && self.1 < 8,
-            "position outside of bounds ({self:?})"
+            "position {self} outside of bounds"
         );
         self
     }
 }
 
+impl Display for Pos {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("({},{})", self.0, self.1))
+    }
+}
+
 impl From<(u8, u8)> for Pos {
     fn from(value: (u8, u8)) -> Self {
-        Pos(value.0, value.1).assert_bounds()
+        Self(value.0, value.1).assert_bounds()
     }
 }
 
@@ -64,18 +71,47 @@ mod test {
     fn to() {
         let sut = Pos(4, 4);
 
-        assert!(Pos(5, 4) == sut.to(Dir::Up(1)), "should have moved top");
-        assert!(
-            Pos(3, 4) == sut.to(Dir::Down(1)),
-            "should have moved bottom"
-        );
-        assert!(Pos(4, 5) == sut.to(Dir::Right(1)), "should have moved left");
-        assert!(Pos(4, 3) == sut.to(Dir::Left(1)), "should have moved right");
+        assert_eq!(Pos(5, 4), sut.to(Dir::Up(1)));
+        assert_eq!(Pos(3, 4), sut.to(Dir::Down(1)));
+        assert_eq!(Pos(4, 5), sut.to(Dir::Right(1)));
+        assert_eq!(Pos(4, 3), sut.to(Dir::Left(1)));
+        assert_eq!(Pos(7, 0), sut.to(Dir::Custom(3, -4)));
     }
 
     #[test]
-    #[should_panic(expected = "")]
-    fn to_outside_bounds() {
-        let _ = Pos(0, 0).to(Dir::Down(1));
+    fn is_central() {
+        let mut sut: Pos = (4, 4).into();
+        assert!(sut.is_central());
+        sut = (3, 4).into();
+        assert!(sut.is_central());
+        sut = (3, 3).into();
+        assert!(sut.is_central());
+        sut = (4, 3).into();
+        assert!(sut.is_central());
+
+        sut = (5, 3).into();
+        assert!(!sut.is_central());
+        sut = (2, 3).into();
+        assert!(!sut.is_central());
+        sut = (4, 5).into();
+        assert!(!sut.is_central());
+    }
+
+    #[test]
+    #[should_panic(expected = "attempt to subtract with overflow")]
+    fn to_outside_bounds_lower() {
+        Pos(0, 0).to(Dir::Down(1));
+    }
+
+    #[test]
+    #[should_panic(expected = "position (9,7) outside of bounds")]
+    fn to_outside_bounds_upper() {
+        Pos(7, 7).to(Dir::Up(2));
+    }
+
+    #[test]
+    #[should_panic(expected = "position (8,8) outside of bounds")]
+    fn into_outside_bounds() {
+        let _: Pos = (8, 8).into();
     }
 }
