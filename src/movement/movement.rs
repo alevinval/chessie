@@ -16,7 +16,7 @@ impl Move {
     pub fn apply(&self, board: &mut Board) {
         match *self {
             Move::Basic(from, to) => {
-                self.clear_dst(board, to);
+                Self::clear_dst(board, to);
                 self.apply_move(board, from, to);
             }
             Move::LeftCastle(c) => match c {
@@ -43,7 +43,7 @@ impl Move {
         }
     }
 
-    fn clear_dst(&self, board: &mut Board, to: Pos) {
+    fn clear_dst(board: &mut Board, to: Pos) {
         if let Some(dst) = board.at_mut(to) {
             dst.unset(to);
         }
@@ -65,13 +65,13 @@ impl Move {
 
     fn flag_piece_movement(&self, bb: &mut BitBoard) {
         bb.update_piece(match bb.piece() {
-            Piece::Rook(c, lrm, rrm) => match self {
+            Piece::Rook(c, left, right) => match self {
                 Move::Basic(from, _) => {
-                    Piece::Rook(c, lrm || from.col() == 0, rrm || from.col() == 7)
+                    Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
                 }
-                Move::LeftCastle(_) => Piece::Rook(c, true, rrm),
-                Move::RightCastle(_) => Piece::Rook(c, lrm, true),
-                _ => unreachable!(),
+                Move::LeftCastle(_) => Piece::Rook(c, true, right),
+                Move::RightCastle(_) => Piece::Rook(c, left, true),
+                Move::None => unreachable!(),
             },
             Piece::King(c, _) => Piece::King(c, true),
             piece => piece,

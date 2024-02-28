@@ -7,59 +7,59 @@ use crate::{
 pub struct Scorer {}
 
 impl Scorer {
-    pub fn eval(&self, board: &Board, color: Color) -> f32 {
+    pub fn eval(board: &Board, color: Color) -> f32 {
         Self::inner_eval(board, color, false)
     }
 
-    pub fn debug_eval(&self, board: &Board, color: Color) -> f32 {
+    pub fn debug_eval(board: &Board, color: Color) -> f32 {
         Self::inner_eval(board, color, true)
     }
 
     fn inner_eval(board: &Board, color: Color, debug: bool) -> f32 {
-        let mut white: f32 = board
-            .pieces(Color::White)
-            .iter()
-            .map(Self::score_bitboard)
-            .sum();
-        let mut black: f32 = board
-            .pieces(Color::Black)
-            .iter()
-            .map(Self::score_bitboard)
-            .sum();
-
-        if debug {
-            println!("material score");
-            println!(" white: {white}");
-            println!(" black: {black}");
-        }
-
-        let white_space_score: f32 = board
-            .pieces(Color::White)
-            .pawns
-            .iter_pos()
-            .map(|p| (p.row() as f32 - 1.0) * if p.is_central() { 1.2 } else { 1.0 })
-            .sum();
-
-        let black_space_score: f32 = board
-            .pieces(Color::Black)
-            .pawns
-            .iter_pos()
-            .map(|p| (p.row() as f32 - 6.0) * if p.is_central() { -1.2 } else { -1.0 })
-            .sum();
-
-        white += white_space_score / 1000.0;
-        black += black_space_score / 1000.0;
-
-        if debug {
-            println!("space score");
-            println!(" white: {white_space_score}");
-            println!(" black: {black_space_score}");
-        }
-
+        let white = Scorer::score(board, Color::White, debug);
+        let black = Scorer::score(board, Color::Black, debug);
         match color {
             Color::Black => black - white,
             Color::White => white - black,
         }
+    }
+
+    fn score(board: &Board, color: Color, debug: bool) -> f32 {
+        let material_score: f32 = board.pieces(color).iter().map(Self::score_bitboard).sum();
+
+        let mut space_score: f32 = board
+            .pieces(color)
+            .pawns
+            .iter_pos()
+            .map(|p| if p.is_central() { 1.2 } else { 1.0 })
+            .sum();
+        space_score /= 100.0;
+
+        let mut king_score = 0.0;
+
+        let king = &board.pieces(color).king;
+        if let Piece::King(_, moved) = king.piece() {
+            if let Piece::Rook(_, left, right) = &board.pieces(color).rooks.piece() {
+                if !moved && !right {
+                    king_score -= 0.2;
+                } else if !moved && !left {
+                    king_score -= 0.1;
+                }
+            }
+        }
+
+        let total = material_score + space_score + king_score;
+
+        if debug {
+            println!("----");
+            println!("{color:?}:");
+            println!("  material: {material_score}");
+            println!("     space: {space_score}");
+            println!("      king: {king_score}");
+            println!("     total: {total}");
+        }
+
+        total
     }
 
     fn score_piece(piece: Piece) -> f32 {

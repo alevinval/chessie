@@ -26,7 +26,7 @@ impl Placement {
     }
 }
 
-pub type PlacementCnd = fn(&Board, Pos, Pos) -> Placement;
+pub type StopCondition = fn(&Board, Pos, Pos) -> Placement;
 
 pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
     board

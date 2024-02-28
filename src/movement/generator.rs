@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::{
-    placement::{Placement, PlacementCnd},
+    placement::{Placement, StopCondition},
     Move,
 };
 
@@ -38,12 +38,12 @@ impl<'board> Generator<'board> {
         self.moves.push(m);
     }
 
-    pub fn dir(&mut self, d: Dir, stop_at: PlacementCnd) -> Placement {
+    pub fn dir(&mut self, d: Dir, stop_at: StopCondition) -> Placement {
         let to = self.from.to(d);
         self.pos(to, stop_at)
     }
 
-    pub fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: PlacementCnd) -> Placement {
+    pub fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Placement {
         let to = to.into();
         let placement = stop_at(self.board, self.from, to);
         if let Some(m) = placement.movement() {
@@ -56,7 +56,7 @@ impl<'board> Generator<'board> {
         self.moves
     }
 
-    pub fn left(&mut self, stop_at: PlacementCnd) {
+    pub fn left(&mut self, stop_at: StopCondition) {
         for c in (0..self.col()).rev() {
             if self.pos((self.row(), c), stop_at).stop() {
                 break;
@@ -64,7 +64,7 @@ impl<'board> Generator<'board> {
         }
     }
 
-    pub fn right(&mut self, stop_at: PlacementCnd) {
+    pub fn right(&mut self, stop_at: StopCondition) {
         for c in self.col() + 1..8 {
             if self.pos((self.row(), c), stop_at).stop() {
                 break;
@@ -72,7 +72,7 @@ impl<'board> Generator<'board> {
         }
     }
 
-    pub fn cross(&mut self, stop_at: PlacementCnd) {
+    pub fn cross(&mut self, stop_at: StopCondition) {
         let (row, col) = (self.row(), self.col());
 
         for r in (0..row).rev() {
@@ -91,7 +91,7 @@ impl<'board> Generator<'board> {
         self.right(stop_at);
     }
 
-    pub fn diagonals(&mut self, stop_at: PlacementCnd) {
+    pub fn diagonals(&mut self, stop_at: StopCondition) {
         let (row, col) = (self.row(), self.col());
 
         for pos in zip(row + 1..8, col + 1..8) {

@@ -70,12 +70,12 @@ impl From<Piece> for BitBoard {
     fn from(piece: Piece) -> Self {
         let color = piece.color();
         let mut value = match piece {
-            Piece::Pawn(_) => 0b11111111,
-            Piece::Rook(_, _, _) => 0b10000001,
-            Piece::Knight(_) => 0b01000010,
-            Piece::Bishop(_) => 0b00100100,
-            Piece::Queen(_) => 0b00001000,
-            Piece::King(_, _) => 0b00010000,
+            Piece::Pawn(_) => 0b1111_1111,
+            Piece::Rook(_, _, _) => 0b1000_0001,
+            Piece::Knight(_) => 0b0100_0010,
+            Piece::Bishop(_) => 0b0010_0100,
+            Piece::Queen(_) => 0b0000_1000,
+            Piece::King(_, _) => 0b000_10000,
         };
         value <<= 8 * if piece.is_pawn() {
             color.pawn_row()

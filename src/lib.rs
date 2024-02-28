@@ -22,7 +22,7 @@ fn print_board(board: &Board, highlights: &[BitBoard]) {
             let piece = board.at(pos).map_or(" ", |set| set.piece().as_str());
             print!("| {} ", mark.unwrap_or(piece));
         }
-        println!("| {}", row);
+        println!("| {row}");
     }
     println!("+---+---+---+---+---+---+---+---+");
     println!("  0   1   2   3   4   5   6   7  ");
@@ -39,7 +39,6 @@ fn read_pos() -> Pos {
 }
 
 pub fn play() {
-    let eval = Scorer::default();
     let mut board = Board::default();
     print_board(&board, &[]);
 
@@ -54,7 +53,6 @@ pub fn play() {
         print_board(&board, &[]);
 
         let (mov, _) = explore(
-            &eval,
             &board,
             Color::Black,
             Color::Black,
@@ -68,23 +66,14 @@ pub fn play() {
 }
 
 pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
-    let scorer = Scorer::default();
     let mut board = Board::new();
 
     for _ in 0..moves {
-        let (mov, eval) = explore(
-            &scorer,
-            &board,
-            color,
-            color,
-            -f32::INFINITY,
-            f32::INFINITY,
-            depth,
-        );
+        let (mov, eval) = explore(&board, color, color, -f32::INFINITY, f32::INFINITY, depth);
         println!("{color:?} to play... {mov:?} ({eval})");
 
         mov.apply(&mut board);
-        scorer.debug_eval(&board, color);
+        Scorer::debug_eval(&board, color);
 
         print_board(&board, &[]);
 
@@ -93,7 +82,6 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
 }
 
 pub fn explore(
-    scorer: &Scorer,
     board: &Board,
     mover: Color,
     maxing_color: Color,
@@ -102,7 +90,7 @@ pub fn explore(
     depth: u8,
 ) -> (Move, f32) {
     if depth == 0 {
-        let eval = scorer.eval(board, maxing_color);
+        let eval = Scorer::eval(board, maxing_color);
         return (Move::None, eval);
     }
 
@@ -122,7 +110,7 @@ pub fn explore(
         .map(|mov| {
             let mut b = board.clone();
             mov.apply(&mut b);
-            let eval = scorer.eval(&b, maxing_color);
+            let eval = Scorer::eval(&b, maxing_color);
             (b, eval, mov)
         })
         .collect();
@@ -131,7 +119,6 @@ pub fn explore(
 
     for (new_board, _, mov) in movements {
         let (_, eval) = explore(
-            scorer,
             &new_board,
             mover.opposite(),
             maxing_color,
