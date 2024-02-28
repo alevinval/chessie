@@ -147,6 +147,38 @@ fn knight(g: &mut Generator) {
 }
 
 fn king(g: &mut Generator) {
+    let b = g.board();
+    let c = g.color();
+    let king = b.pieces(c).get(Piece::King(c, false));
+    let rook = b.pieces(c).get(Piece::Rook(c, false, false));
+    let king_pos = king.iter_pos().next().expect("should be there");
+    let bb = b.clone();
+
+    match king.piece() {
+        Piece::King(_, king_moved) => {
+            if !king_moved {
+                if let Piece::Rook(_, lrm, rrm) = rook.piece() {
+                    if !rrm {
+                        let mut subgen = Generator::new(&bb, king_pos);
+                        right(&mut subgen);
+                        if subgen.moves().len() == 2 {
+                            g.mov(Move::RightCastle(c));
+                        }
+                    }
+
+                    if !lrm {
+                        let mut subgen = Generator::new(&bb, king_pos);
+                        left(&mut subgen);
+                        if subgen.moves().len() == 3 {
+                            g.mov(Move::LeftCastle(c));
+                        }
+                    }
+                }
+            }
+        }
+        _ => unreachable!(),
+    }
+
     if g.row() < 7 {
         g.dir(Dir::Up(1), empty_or_take);
 

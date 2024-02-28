@@ -1,6 +1,6 @@
 use crate::{
     board::Board,
-    pieces::{BitBoard, Piece},
+    pieces::{BitBoard, Color, Piece},
     pos::Pos,
 };
 
@@ -8,6 +8,8 @@ use crate::{
 pub enum Move {
     None,
     Basic(Pos, Pos),
+    LeftCastle(Color),
+    RightCastle(Color),
 }
 
 impl Move {
@@ -17,6 +19,26 @@ impl Move {
                 self.clear_dst(board, to);
                 self.apply_move(board, from, to);
             }
+            Move::LeftCastle(c) => match c {
+                Color::Black => {
+                    self.apply_move(board, Pos::new(7, 4), Pos::new(7, 2));
+                    self.apply_move(board, Pos::new(7, 0), Pos::new(7, 3));
+                }
+                Color::White => {
+                    self.apply_move(board, Pos::new(0, 4), Pos::new(0, 2));
+                    self.apply_move(board, Pos::new(0, 0), Pos::new(0, 3));
+                }
+            },
+            Move::RightCastle(c) => match c {
+                Color::Black => {
+                    self.apply_move(board, Pos::new(7, 4), Pos::new(7, 6));
+                    self.apply_move(board, Pos::new(7, 7), Pos::new(7, 5));
+                }
+                Color::White => {
+                    self.apply_move(board, Pos::new(0, 4), Pos::new(0, 6));
+                    self.apply_move(board, Pos::new(0, 7), Pos::new(0, 5));
+                }
+            },
             Move::None => unreachable!("should never apply a non-move"),
         }
     }
@@ -46,6 +68,8 @@ impl Move {
                 Move::Basic(from, _) => {
                     Piece::Rook(c, lrm || from.col() == 0, rrm || from.col() == 7)
                 }
+                Move::LeftCastle(_) => Piece::Rook(c, true, rrm),
+                Move::RightCastle(_) => Piece::Rook(c, lrm, true),
                 _ => unreachable!(),
             },
             Piece::King(c, _) => Piece::King(c, true),

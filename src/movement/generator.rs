@@ -1,5 +1,6 @@
 use crate::{
     board::Board,
+    pieces::Color,
     pos::{Dir, Pos},
 };
 
@@ -11,17 +12,31 @@ use super::{
 #[derive(Debug)]
 pub struct Generator<'board> {
     board: &'board Board,
+    color: Color,
     from: Pos,
     moves: Vec<Move>,
 }
 
 impl<'board> Generator<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
+        let from = from.into();
         Generator {
             board,
-            from: from.into(),
+            from,
             moves: vec![],
+            color: board
+                .at(from)
+                .expect("should generate moves for a piece")
+                .color(),
         }
+    }
+
+    pub fn board(&self) -> &Board {
+        self.board
+    }
+
+    pub fn color(&self) -> Color {
+        self.color
     }
 
     pub fn row(&self) -> u8 {
@@ -30,6 +45,10 @@ impl<'board> Generator<'board> {
 
     pub fn col(&self) -> u8 {
         self.from.col()
+    }
+
+    pub fn mov(&mut self, m: Move) {
+        self.moves.push(m);
     }
 
     pub fn dir(&mut self, d: Dir, cnd: PlacementCnd) -> Placement {
