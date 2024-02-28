@@ -9,14 +9,6 @@ pub struct BitBoard {
 }
 
 impl BitBoard {
-    pub fn new(piece: Piece) -> Self {
-        Self::initial_position(piece)
-    }
-
-    pub fn load(piece: Piece, value: u64) -> Self {
-        Self { piece, value }
-    }
-
     pub fn piece(&self) -> Piece {
         self.piece
     }
@@ -61,17 +53,6 @@ impl BitBoard {
             })
         })
     }
-
-    fn initial_position(piece: Piece) -> BitBoard {
-        match piece {
-            Piece::Pawn(c) => BitBoard::load(piece, 0b11111111 << (8 * c.pawn_row())),
-            Piece::Rook(c, _, _) => BitBoard::load(piece, 0b10000001 << (8 * c.piece_row())),
-            Piece::Knight(c) => BitBoard::load(piece, 0b01000010 << (8 * c.piece_row())),
-            Piece::Bishop(c) => BitBoard::load(piece, 0b00100100 << (8 * c.piece_row())),
-            Piece::Queen(c) => BitBoard::load(piece, 0b00001000 << (8 * c.piece_row())),
-            Piece::King(c, _) => BitBoard::load(piece, 0b00010000 << (8 * c.piece_row())),
-        }
-    }
 }
 
 fn rshiftpos(value: u64, pos: Pos) -> u64 {
@@ -85,6 +66,26 @@ impl From<Pos> for u64 {
     }
 }
 
+impl From<Piece> for BitBoard {
+    fn from(piece: Piece) -> Self {
+        let color = piece.color();
+        let mut value = match piece {
+            Piece::Pawn(_) => 0b11111111,
+            Piece::Rook(_, _, _) => 0b10000001,
+            Piece::Knight(_) => 0b01000010,
+            Piece::Bishop(_) => 0b00100100,
+            Piece::Queen(_) => 0b00001000,
+            Piece::King(_, _) => 0b00010000,
+        };
+        value <<= 8 * if piece.is_pawn() {
+            color.pawn_row()
+        } else {
+            color.piece_row()
+        };
+        Self { piece, value }
+    }
+}
+
 #[cfg(test)]
 mod test {
 
@@ -95,23 +96,35 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard::load(Piece::Pawn(Color::White), 0);
+        let sut = BitBoard {
+            piece: Piece::Pawn(Color::White),
+            value: 0,
+        };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard::load(Piece::Pawn(Color::White), 1);
+        let sut = BitBoard {
+            piece: Piece::Pawn(Color::White),
+            value: 1,
+        };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard::load(Piece::Pawn(Color::White), 0);
+        let sut = BitBoard {
+            piece: Piece::Pawn(Color::White),
+            value: 0,
+        };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
-        let sut = BitBoard::load(Piece::Pawn(Color::White), TARGET.into());
+        let sut = BitBoard {
+            piece: Piece::Pawn(Color::White),
+            value: TARGET.into(),
+        };
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
 
     #[test]
     fn set_and_unset_piece() {
         let pos = Pos::from((3, 3));
-        let mut sut = BitBoard::new(Piece::Pawn(Color::White));
+        let mut sut: BitBoard = Piece::Pawn(Color::White).into();
         assert!(!sut.has_piece(pos));
 
         sut.set(pos);
@@ -123,7 +136,10 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard::load(Piece::Pawn(Color::White), u64::MAX);
+        let sut = BitBoard {
+            piece: Piece::Pawn(Color::White),
+            value: u64::MAX,
+        };
         let actual = sut.to_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");

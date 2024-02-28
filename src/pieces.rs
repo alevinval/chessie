@@ -1,4 +1,4 @@
-use std::slice::{Iter, IterMut};
+use crate::pos::Pos;
 
 pub use self::color::Color;
 pub use bitboard::BitBoard;
@@ -10,43 +10,71 @@ mod piece;
 
 #[derive(Debug, Clone)]
 pub struct Pieces {
-    pieces: [BitBoard; 6],
+    pub pawns: BitBoard,
+    pub knights: BitBoard,
+    pub bishops: BitBoard,
+    pub rooks: BitBoard,
+    pub queen: BitBoard,
+    pub king: BitBoard,
 }
 
 impl Pieces {
     pub fn new(color: Color) -> Self {
         Self {
-            pieces: [
-                BitBoard::new(Piece::Pawn(color)),
-                BitBoard::new(Piece::Knight(color)),
-                BitBoard::new(Piece::Bishop(color)),
-                BitBoard::new(Piece::Rook(color, false, false)),
-                BitBoard::new(Piece::Queen(color)),
-                BitBoard::new(Piece::King(color, false)),
-            ],
+            pawns: Piece::Pawn(color).into(),
+            knights: Piece::Knight(color).into(),
+            bishops: Piece::Bishop(color).into(),
+            rooks: Piece::Rook(color, false, false).into(),
+            queen: Piece::Queen(color).into(),
+            king: Piece::King(color, false).into(),
         }
     }
 
-    pub fn get(&self, piece: Piece) -> &BitBoard {
-        &self.pieces[Self::offset(piece)]
-    }
-
-    pub fn iter(&self) -> Iter<'_, BitBoard> {
-        self.pieces.iter()
-    }
-
-    pub fn iter_mut(&mut self) -> IterMut<'_, BitBoard> {
-        self.pieces.iter_mut()
-    }
-
-    fn offset(piece: Piece) -> usize {
-        match piece {
-            Piece::Pawn(_) => 0,
-            Piece::Knight(_) => 1,
-            Piece::Bishop(_) => 2,
-            Piece::Rook(_, _, _) => 3,
-            Piece::Queen(_) => 4,
-            Piece::King(_, _) => 5,
+    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<&BitBoard> {
+        let pos = pos.into();
+        if self.pawns.has_piece(pos) {
+            return Some(&self.pawns);
+        } else if self.knights.has_piece(pos) {
+            return Some(&self.knights);
+        } else if self.bishops.has_piece(pos) {
+            return Some(&self.bishops);
+        } else if self.rooks.has_piece(pos) {
+            return Some(&self.rooks);
+        } else if self.queen.has_piece(pos) {
+            return Some(&self.queen);
+        } else if self.king.has_piece(pos) {
+            return Some(&self.king);
         }
+        None
+    }
+
+    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
+        let pos = pos.into();
+        if self.pawns.has_piece(pos) {
+            return Some(&mut self.pawns);
+        } else if self.knights.has_piece(pos) {
+            return Some(&mut self.knights);
+        } else if self.bishops.has_piece(pos) {
+            return Some(&mut self.bishops);
+        } else if self.rooks.has_piece(pos) {
+            return Some(&mut self.rooks);
+        } else if self.queen.has_piece(pos) {
+            return Some(&mut self.queen);
+        } else if self.king.has_piece(pos) {
+            return Some(&mut self.king);
+        }
+        None
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &BitBoard> {
+        [
+            &self.pawns,
+            &self.knights,
+            &self.bishops,
+            &self.rooks,
+            &self.queen,
+            &self.king,
+        ]
+        .into_iter()
     }
 }

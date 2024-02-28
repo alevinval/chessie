@@ -1,4 +1,5 @@
-use std::{fs::File, io::Write};
+use std::fs::File;
+use std::io::Write;
 
 use crate::movement::{Move, MoveGen};
 use crate::pieces::{BitBoard, Color, Pieces};
@@ -26,33 +27,26 @@ impl Board {
     }
 
     pub fn at(&self, pos: Pos) -> Option<&BitBoard> {
-        self.white
-            .iter()
-            .chain(self.black.iter())
-            .find(|piece_set| piece_set.has_piece(pos))
+        self.white.at(pos).or(self.black.at(pos))
     }
 
     pub fn at_mut(&mut self, pos: Pos) -> Option<&mut BitBoard> {
-        self.white
-            .iter_mut()
-            .chain(self.black.iter_mut())
-            .find(|piece| piece.has_piece(pos))
+        self.white.at_mut(pos).or(self.black.at_mut(pos))
     }
 
     pub fn save(&self, fname: &str) {
         let mut w = File::create(fname).unwrap();
-        self.white.iter().for_each(|pset| {
-            w.write_all(&pset.to_le_bytes()).unwrap();
+        self.white.iter().for_each(|bb| {
+            w.write_all(&bb.to_le_bytes()).unwrap();
         });
-        self.black.iter().for_each(|pset| {
-            w.write_all(&pset.to_le_bytes()).unwrap();
+        self.black.iter().for_each(|bb| {
+            w.write_all(&bb.to_le_bytes()).unwrap();
         });
     }
 
     pub fn generate_moves(&self, pos: Pos) -> Vec<Move> {
-        self.at(pos).map_or(vec![], |piece_set| {
-            MoveGen::new(self, pos).gen(&piece_set.piece())
-        })
+        self.at(pos)
+            .map_or(vec![], |bb| MoveGen::new(self, pos).gen(bb.piece()))
     }
 }
 

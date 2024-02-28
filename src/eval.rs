@@ -35,14 +35,14 @@ impl Scorer {
 
         let white_space_score: f32 = board
             .pieces(Color::White)
-            .get(Piece::Pawn(Color::White))
+            .pawns
             .iter_pos()
             .map(|p| (p.row() as f32 - 1.0) * if p.is_central() { 1.2 } else { 1.0 })
             .sum();
 
         let black_space_score: f32 = board
             .pieces(Color::Black)
-            .get(Piece::Pawn(Color::Black))
+            .pawns
             .iter_pos()
             .map(|p| (p.row() as f32 - 6.0) * if p.is_central() { -1.2 } else { -1.0 })
             .sum();

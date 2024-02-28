@@ -28,7 +28,7 @@ impl<'board> MoveGen<'board> {
         }
     }
 
-    pub fn gen(mut self, piece: &Piece) -> Vec<Move> {
+    pub fn gen(mut self, piece: Piece) -> Vec<Move> {
         match piece {
             Piece::Pawn(color) => match color {
                 Color::Black => self.black_pawn(),
@@ -149,8 +149,10 @@ fn knight(g: &mut Generator) {
 fn king(g: &mut Generator) {
     let b = g.board();
     let c = g.color();
-    let king = b.pieces(c).get(Piece::King(c, false));
-    let rook = b.pieces(c).get(Piece::Rook(c, false, false));
+    let p = b.pieces(c);
+
+    let king = &p.king;
+    let rook = &p.rooks;
     let king_pos = king.iter_pos().next().expect("should be there");
     let bb = b.clone();
 
