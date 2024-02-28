@@ -1,6 +1,7 @@
+use std::iter::zip;
+
 use crate::{
     board::Board,
-    pieces::Color,
     pos::{Dir, Pos},
 };
 
@@ -12,31 +13,17 @@ use super::{
 #[derive(Debug)]
 pub struct Generator<'board> {
     board: &'board Board,
-    color: Color,
     from: Pos,
     moves: Vec<Move>,
 }
 
 impl<'board> Generator<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
-        let from = from.into();
         Generator {
             board,
-            from,
+            from: from.into(),
             moves: vec![],
-            color: board
-                .at(from)
-                .expect("should generate moves for a piece")
-                .color(),
         }
-    }
-
-    pub fn board(&self) -> &Board {
-        self.board
-    }
-
-    pub fn color(&self) -> Color {
-        self.color
     }
 
     pub fn row(&self) -> u8 {
@@ -51,14 +38,14 @@ impl<'board> Generator<'board> {
         self.moves.push(m);
     }
 
-    pub fn dir(&mut self, d: Dir, cnd: PlacementCnd) -> Placement {
+    pub fn dir(&mut self, d: Dir, stop_at: PlacementCnd) -> Placement {
         let to = self.from.to(d);
-        self.pos(to, cnd)
+        self.pos(to, stop_at)
     }
 
-    pub fn pos<P: Into<Pos>>(&mut self, to: P, cnd: PlacementCnd) -> Placement {
+    pub fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: PlacementCnd) -> Placement {
         let to = to.into();
-        let placement = cnd(self.board, self.from, to);
+        let placement = stop_at(self.board, self.from, to);
         if let Some(m) = placement.movement() {
             self.moves.push(m);
         }
@@ -67,6 +54,69 @@ impl<'board> Generator<'board> {
 
     pub fn moves(self) -> Vec<Move> {
         self.moves
+    }
+
+    pub fn left(&mut self, stop_at: PlacementCnd) {
+        for c in (0..self.col()).rev() {
+            if self.pos((self.row(), c), stop_at).stop() {
+                break;
+            }
+        }
+    }
+
+    pub fn right(&mut self, stop_at: PlacementCnd) {
+        for c in self.col() + 1..8 {
+            if self.pos((self.row(), c), stop_at).stop() {
+                break;
+            }
+        }
+    }
+
+    pub fn cross(&mut self, stop_at: PlacementCnd) {
+        let (row, col) = (self.row(), self.col());
+
+        for r in (0..row).rev() {
+            if self.pos((r, col), stop_at).stop() {
+                break;
+            }
+        }
+
+        for r in row + 1..8 {
+            if self.pos((r, col), stop_at).stop() {
+                break;
+            }
+        }
+
+        self.left(stop_at);
+        self.right(stop_at);
+    }
+
+    pub fn diagonals(&mut self, stop_at: PlacementCnd) {
+        let (row, col) = (self.row(), self.col());
+
+        for pos in zip(row + 1..8, col + 1..8) {
+            if self.pos(pos, stop_at).stop() {
+                break;
+            }
+        }
+
+        for pos in zip((0..row).rev(), col + 1..8) {
+            if self.pos(pos, stop_at).stop() {
+                break;
+            }
+        }
+
+        for pos in zip(row + 1..8, (0..col).rev()) {
+            if self.pos(pos, stop_at).stop() {
+                break;
+            }
+        }
+
+        for pos in zip((0..row).rev(), (0..col).rev()) {
+            if self.pos(pos, stop_at).stop() {
+                break;
+            }
+        }
     }
 }
 

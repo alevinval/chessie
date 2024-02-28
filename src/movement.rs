@@ -1,12 +1,10 @@
-use std::iter::zip;
-
 mod generator;
 mod movement;
 mod placement;
 
 use crate::{
     board::Board,
-    pieces::{Color, Piece},
+    pieces::{BitBoard, Color, Piece},
     pos::Dir,
     Pos,
 };
@@ -18,58 +16,68 @@ use self::{
 };
 
 pub struct MoveGen<'board> {
-    gen: Generator<'board>,
+    board: &'board Board,
+    bitboard: &'board BitBoard,
+    from: Pos,
 }
 
 impl<'board> MoveGen<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
+    pub fn new<P: Into<Pos>>(board: &'board Board, bitboard: &'board BitBoard, from: P) -> Self {
         Self {
-            gen: Generator::new(board, from),
+            board,
+            bitboard,
+            from: from.into(),
         }
     }
 
-    pub fn gen(mut self, piece: Piece) -> Vec<Move> {
-        match piece {
+    pub fn gen(self) -> Vec<Move> {
+        let mut gen = Generator::new(self.board, self.from);
+        match self.bitboard.piece() {
             Piece::Pawn(color) => match color {
-                Color::Black => self.black_pawn(),
-                Color::White => self.white_pawn(),
+                Color::Black => black_pawn(&mut gen),
+                Color::White => white_pawn(&mut gen),
             },
-            Piece::Rook(_, _, _) => self.rook(),
-            Piece::Bishop(_) => self.bishop(),
-            Piece::Queen(_) => self.queen(),
-            Piece::Knight(_) => self.knight(),
-            Piece::King(_, _) => self.king(),
+            Piece::Rook(_, _, _) => gen.cross(empty_or_take),
+            Piece::Bishop(_) => gen.diagonals(empty_or_take),
+            Piece::Queen(_) => {
+                gen.diagonals(empty_or_take);
+                gen.cross(empty_or_take);
+            }
+            Piece::Knight(_) => knight(&mut gen),
+            Piece::King(_, _) => {
+                king(&mut gen);
+                self.king_castle(&mut gen);
+            }
         };
-        self.gen.moves()
+        gen.moves()
     }
 
-    fn bishop(&mut self) {
-        diagonals(&mut self.gen);
-    }
+    fn king_castle(&self, gen: &mut Generator) {
+        let color = self.bitboard.color();
+        let pieces = self.board.pieces(color);
+        if let Piece::King(_, has_moved) = pieces.king.piece() {
+            if has_moved {
+                return;
+            }
+        }
 
-    fn rook(&mut self) {
-        cross(&mut self.gen);
-    }
-
-    fn queen(&mut self) {
-        diagonals(&mut self.gen);
-        cross(&mut self.gen);
-    }
-
-    fn black_pawn(&mut self) {
-        black_pawn(&mut self.gen);
-    }
-
-    fn white_pawn(&mut self) {
-        white_pawn(&mut self.gen);
-    }
-
-    fn knight(&mut self) {
-        knight(&mut self.gen);
-    }
-
-    fn king(&mut self) {
-        king(&mut self.gen);
+        if let Piece::Rook(_, lrm, rrm) = pieces.rooks.piece() {
+            let pos = pieces.king.iter_pos().next().expect("should be there");
+            if !rrm {
+                let mut subgen = Generator::new(self.board, pos);
+                subgen.right(is_empty);
+                if subgen.moves().len() == 2 {
+                    gen.mov(Move::RightCastle(color));
+                }
+            }
+            if !lrm {
+                let mut subgen = Generator::new(self.board, pos);
+                subgen.left(is_empty);
+                if subgen.moves().len() == 3 {
+                    gen.mov(Move::LeftCastle(color));
+                }
+            }
+        }
     }
 }
 
@@ -147,40 +155,6 @@ fn knight(g: &mut Generator) {
 }
 
 fn king(g: &mut Generator) {
-    let b = g.board();
-    let c = g.color();
-    let p = b.pieces(c);
-
-    let king = &p.king;
-    let rook = &p.rooks;
-    let king_pos = king.iter_pos().next().expect("should be there");
-    let bb = b.clone();
-
-    match king.piece() {
-        Piece::King(_, king_moved) => {
-            if !king_moved {
-                if let Piece::Rook(_, lrm, rrm) = rook.piece() {
-                    if !rrm {
-                        let mut subgen = Generator::new(&bb, king_pos);
-                        right(&mut subgen);
-                        if subgen.moves().len() == 2 {
-                            g.mov(Move::RightCastle(c));
-                        }
-                    }
-
-                    if !lrm {
-                        let mut subgen = Generator::new(&bb, king_pos);
-                        left(&mut subgen);
-                        if subgen.moves().len() == 3 {
-                            g.mov(Move::LeftCastle(c));
-                        }
-                    }
-                }
-            }
-        }
-        _ => unreachable!(),
-    }
-
     if g.row() < 7 {
         g.dir(Dir::Up(1), empty_or_take);
 
@@ -211,68 +185,5 @@ fn king(g: &mut Generator) {
 
     if g.col() > 0 {
         g.dir(Dir::Left(1), empty_or_take);
-    }
-}
-
-fn cross(g: &mut Generator) {
-    let (row, col) = (g.row(), g.col());
-
-    for r in (0..row).rev() {
-        if g.pos((r, col), empty_or_take).stop() {
-            break;
-        }
-    }
-
-    for r in row + 1..8 {
-        if g.pos((r, col), empty_or_take).stop() {
-            break;
-        }
-    }
-
-    left(g);
-    right(g);
-}
-
-fn left(g: &mut Generator) {
-    for c in (0..g.col()).rev() {
-        if g.pos((g.row(), c), empty_or_take).stop() {
-            break;
-        }
-    }
-}
-
-fn right(g: &mut Generator) {
-    for c in g.col() + 1..8 {
-        if g.pos((g.row(), c), empty_or_take).stop() {
-            break;
-        }
-    }
-}
-
-fn diagonals(g: &mut Generator) {
-    let (row, col) = (g.row(), g.col());
-
-    for pos in zip(row + 1..8, col + 1..8) {
-        if g.pos(pos, empty_or_take).stop() {
-            break;
-        }
-    }
-
-    for pos in zip((0..row).rev(), col + 1..8) {
-        if g.pos(pos, empty_or_take).stop() {
-            break;
-        }
-    }
-
-    for pos in zip(row + 1..8, (0..col).rev()) {
-        if g.pos(pos, empty_or_take).stop() {
-            break;
-        }
-    }
-
-    for pos in zip((0..row).rev(), (0..col).rev()) {
-        if g.pos(pos, empty_or_take).stop() {
-            break;
-        }
     }
 }
