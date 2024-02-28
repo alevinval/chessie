@@ -33,16 +33,16 @@ impl BitBoard {
         rshiftpos(self.value, pos.into()) == 1
     }
 
-    pub fn apply_move<P: Into<u64>>(&mut self, from: P, to: P) {
-        self.value ^= from.into() | to.into();
+    pub fn set<P: Into<u64>>(&mut self, pos: P) {
+        self.value |= pos.into();
     }
 
-    pub fn set<P: Into<u64>>(&mut self, other: P) {
-        self.value |= other.into();
+    pub fn unset<P: Into<u64>>(&mut self, pos: P) {
+        self.value &= !pos.into();
     }
 
-    pub fn unset<P: Into<u64>>(&mut self, other: P) {
-        self.value &= !other.into();
+    pub fn update_piece(&mut self, piece: Piece) {
+        self.piece = piece;
     }
 
     pub fn to_le_bytes(&self) -> [u8; 8] {
@@ -106,6 +106,19 @@ mod test {
 
         let sut = BitBoard::load(Piece::Pawn(Color::White), TARGET.into());
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
+    }
+
+    #[test]
+    fn set_and_unset_piece() {
+        let pos = Pos::from((3, 3));
+        let mut sut = BitBoard::new(Piece::Pawn(Color::White));
+        assert!(!sut.has_piece(pos));
+
+        sut.set(pos);
+        assert!(sut.has_piece(pos));
+
+        sut.unset(pos);
+        assert!(!sut.has_piece(pos));
     }
 
     #[test]
