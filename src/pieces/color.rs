@@ -50,4 +50,10 @@ mod test {
     fn pawn_row_for_black() {
         assert_eq!(6, Color::Black.pawn_row());
     }
+
+    #[test]
+    fn opposite() {
+        assert_eq!(Color::Black, Color::White.opposite());
+        assert_eq!(Color::White, Color::Black.opposite());
+    }
 }
