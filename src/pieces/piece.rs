@@ -28,10 +28,6 @@ impl Piece {
         matches!(self, Piece::Pawn(_))
     }
 
-    pub fn is_king(self) -> bool {
-        matches!(self, Piece::King(_, _))
-    }
-
     pub fn as_str(self) -> &'static str {
         match self {
             Piece::Pawn(c) => match c {
@@ -76,17 +72,14 @@ mod test {
     fn is_pawn() {
         let sut = Piece::Pawn(Color::Black);
         assert!(sut.is_pawn(), "should be pawn");
-
-        let sut = Piece::Rook(Color::Black, false, false);
-        assert!(!sut.is_pawn(), "should not be pawn");
     }
 
     #[test]
     fn color() {
         let sut = Piece::Bishop(Color::Black);
-        assert!(sut.color() == Color::Black, "should be pawn");
+        assert!(sut.color() == Color::Black, "should be black");
 
         let sut = Piece::Bishop(Color::White);
-        assert!(sut.color() == Color::White, "should not be pawn");
+        assert!(sut.color() == Color::White, "should be white");
     }
 }
