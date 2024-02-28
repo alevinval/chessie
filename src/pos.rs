@@ -11,7 +11,6 @@ pub enum Dir {
 pub struct Pos(u8, u8);
 
 impl Pos {
-    #[cfg(test)]
     pub const fn new(row: u8, col: u8) -> Self {
         Self(row, col)
     }
@@ -21,8 +20,8 @@ impl Pos {
         let pos = match d {
             Dir::Up(n) => (row + n, col),
             Dir::Down(n) => (row - n, col),
-            Dir::Left(n) => (row, col + n),
-            Dir::Right(n) => (row, col - n),
+            Dir::Left(n) => (row, col - n),
+            Dir::Right(n) => (row, col + n),
             Dir::Custom(nr, nc) => (((row as i8) + nr) as u8, ((col as i8) + nc) as u8),
         };
 
@@ -70,8 +69,8 @@ mod test {
             Pos(3, 4) == sut.to(Dir::Down(1)),
             "should have moved bottom"
         );
-        assert!(Pos(4, 3) == sut.to(Dir::Right(1)), "should have moved left");
-        assert!(Pos(4, 5) == sut.to(Dir::Left(1)), "should have moved right");
+        assert!(Pos(4, 5) == sut.to(Dir::Right(1)), "should have moved left");
+        assert!(Pos(4, 3) == sut.to(Dir::Left(1)), "should have moved right");
     }
 
     #[test]

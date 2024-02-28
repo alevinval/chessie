@@ -172,11 +172,11 @@ fn king(g: &mut Generator) {
     }
 
     if g.col() < 7 {
-        g.dir(Dir::Left(1), empty_or_take);
+        g.dir(Dir::Right(1), empty_or_take);
     }
 
     if g.col() > 0 {
-        g.dir(Dir::Right(1), empty_or_take);
+        g.dir(Dir::Left(1), empty_or_take);
     }
 }
 
@@ -195,14 +195,21 @@ fn cross(g: &mut Generator) {
         }
     }
 
-    for c in (0..col).rev() {
-        if g.pos((row, c), empty_or_take).stop() {
+    left(g);
+    right(g);
+}
+
+fn left(g: &mut Generator) {
+    for c in (0..g.col()).rev() {
+        if g.pos((g.row(), c), empty_or_take).stop() {
             break;
         }
     }
+}
 
-    for c in col + 1..8 {
-        if g.pos((row, c), empty_or_take).stop() {
+fn right(g: &mut Generator) {
+    for c in g.col() + 1..8 {
+        if g.pos((g.row(), c), empty_or_take).stop() {
             break;
         }
     }

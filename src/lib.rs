@@ -16,16 +16,16 @@ mod pos;
 fn print_board(board: &Board, highlights: &[BitBoard]) {
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
-        for col in (0..8).rev() {
+        for col in 0..8 {
             let pos: Pos = (row, col).into();
             let mark = highlights.iter().find(|h| h.has_piece(pos)).map(|_| "@");
             let piece = board.at(pos).map_or(" ", |set| set.piece().as_str());
             print!("| {} ", mark.unwrap_or(piece));
         }
-        println!("| {}", row + 1);
+        println!("| {}", row);
     }
     println!("+---+---+---+---+---+---+---+---+");
-    println!("  8   7   6   5   4   3   2   1  ");
+    println!("  0   1   2   3   4   5   6   7  ");
 }
 
 fn read_pos() -> Pos {
@@ -35,7 +35,7 @@ fn read_pos() -> Pos {
     line.clear();
     io::stdin().read_line(&mut line).unwrap();
     let row: u8 = line.trim().parse().unwrap();
-    (row - 1, col - 1).into()
+    (row, col).into()
 }
 
 pub fn play() {
@@ -170,6 +170,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(Color::White, u8::MAX, 4);
+    auto_play(Color::White, u8::MAX, 3);
     // play();
 }

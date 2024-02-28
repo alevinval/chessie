@@ -68,8 +68,8 @@ impl BitBoard {
             Piece::Rook(c, _, _) => BitBoard::load(piece, 0b10000001 << (8 * c.piece_row())),
             Piece::Knight(c) => BitBoard::load(piece, 0b01000010 << (8 * c.piece_row())),
             Piece::Bishop(c) => BitBoard::load(piece, 0b00100100 << (8 * c.piece_row())),
-            Piece::Queen(c) => BitBoard::load(piece, 0b00010000 << (8 * c.piece_row())),
-            Piece::King(c, _) => BitBoard::load(piece, 0b00001000 << (8 * c.piece_row())),
+            Piece::Queen(c) => BitBoard::load(piece, 0b00001000 << (8 * c.piece_row())),
+            Piece::King(c, _) => BitBoard::load(piece, 0b00010000 << (8 * c.piece_row())),
         }
     }
 }
@@ -80,8 +80,8 @@ fn rshiftpos(value: u64, pos: Pos) -> u64 {
 }
 
 impl From<Pos> for u64 {
-    fn from(value: Pos) -> Self {
-        1 << (value.row() * 8 + value.col())
+    fn from(pos: Pos) -> Self {
+        1 << (pos.row() * 8 + pos.col())
     }
 }
 
