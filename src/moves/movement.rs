@@ -53,8 +53,7 @@ impl Move {
         let from = from.into();
         match board.at_mut(from) {
             Some(bb) => {
-                bb.unset(from);
-                bb.set(to.into());
+                bb.slide(from, to.into());
                 self.flag_piece_movement(bb);
             }
             None => {
