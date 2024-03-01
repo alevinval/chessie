@@ -19,6 +19,7 @@ use self::{
 pub struct MoveGen<'board> {
     board: &'board Board,
     bitboard: &'board BitBoard,
+    mover: Color,
     from: Pos,
 }
 
@@ -33,12 +34,13 @@ impl<'board> MoveGen<'board> {
         Self {
             board,
             bitboard,
+            mover,
             from,
         }
     }
 
     pub fn generate(self) -> Vec<Move> {
-        let mut gen = Generator::new(self.board, self.from);
+        let mut gen = Generator::new(self.board, self.from, self.mover);
         match self.bitboard.piece() {
             Piece::Pawn(color) => match color {
                 Color::Black => black_pawn(&mut gen),
@@ -71,14 +73,14 @@ impl<'board> MoveGen<'board> {
         if let Piece::Rook(_, lrm, rrm) = pieces.rooks.piece() {
             let pos = pieces.king.iter_pos().next().expect("should be there");
             if !rrm {
-                let mut subgen = Generator::new(self.board, pos);
+                let mut subgen = Generator::new(self.board, pos, self.mover);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
                     gen.mov(Move::RightCastle(color));
                 }
             }
             if !lrm {
-                let mut subgen = Generator::new(self.board, pos);
+                let mut subgen = Generator::new(self.board, pos, self.mover);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
                     gen.mov(Move::LeftCastle(color));
@@ -89,7 +91,7 @@ impl<'board> MoveGen<'board> {
 }
 
 fn black_pawn(g: &mut Generator) {
-    if g.row() > 0 {
+    if g.row() > 1 {
         if g.dir(Dir::Down(1), is_empty).placed() && g.row() == 6 {
             g.dir(Dir::Down(2), is_empty);
         }
@@ -101,11 +103,21 @@ fn black_pawn(g: &mut Generator) {
         if g.col() > 0 {
             g.dir(Dir::Custom(-1, -1), takes);
         }
+    } else {
+        if g.check_dir(Dir::Down(1), is_empty).placed() {
+            g.pawn_promo(Dir::Down(1));
+        }
+        if g.check_dir(Dir::Custom(-1, 1), takes).placed() {
+            g.pawn_promo(Dir::Custom(-1, 1));
+        }
+        if g.check_dir(Dir::Custom(-1, -1), takes).placed() {
+            g.pawn_promo(Dir::Custom(-1, -1));
+        }
     }
 }
 
 fn white_pawn(g: &mut Generator) {
-    if g.row() < 7 {
+    if g.row() < 6 {
         if g.dir(Dir::Up(1), is_empty).placed() && g.row() == 1 {
             g.dir(Dir::Up(2), is_empty);
         }
@@ -114,6 +126,16 @@ fn white_pawn(g: &mut Generator) {
         }
         if g.col() > 0 {
             g.dir(Dir::Custom(1, -1), takes);
+        }
+    } else {
+        if g.check_dir(Dir::Up(1), is_empty).placed() {
+            g.pawn_promo(Dir::Up(1));
+        }
+        if g.check_dir(Dir::Custom(1, 1), takes).placed() {
+            g.pawn_promo(Dir::Custom(1, 1));
+        }
+        if g.check_dir(Dir::Custom(1, -1), takes).placed() {
+            g.pawn_promo(Dir::Custom(1, -1));
         }
     }
 }

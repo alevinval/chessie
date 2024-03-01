@@ -15,6 +15,13 @@ impl Board {
         }
     }
 
+    pub fn pieces_mut(&mut self, color: Color) -> &mut Pieces {
+        match color {
+            Color::Black => &mut self.black,
+            Color::White => &mut self.white,
+        }
+    }
+
     pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<&BitBoard> {
         let pos = pos.into();
         self.white.at(pos).or_else(|| self.black.at(pos))

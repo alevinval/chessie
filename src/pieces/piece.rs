@@ -24,6 +24,10 @@ impl Piece {
         }
     }
 
+    pub fn is_king(self) -> bool {
+        matches!(self, Piece::King(_, _))
+    }
+
     pub fn is_pawn(self) -> bool {
         matches!(self, Piece::Pawn(_))
     }
