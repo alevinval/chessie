@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub use self::movement::Move;
+
 use self::{
     generator::Generator,
     placement::{empty_or_take, is_empty, takes},

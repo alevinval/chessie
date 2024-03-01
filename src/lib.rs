@@ -2,14 +2,14 @@ use std::io;
 
 use board::Board;
 use eval::Scorer;
-use movement::Move;
+use moves::Move;
 use pieces::{BitBoard, Color};
 
 use crate::pos::Pos;
 
 mod board;
 mod eval;
-pub mod movement;
+mod moves;
 mod pieces;
 mod pos;
 
@@ -90,8 +90,7 @@ pub fn explore(
     depth: u8,
 ) -> (Move, f32) {
     if depth == 0 {
-        let eval = Scorer::eval(board, maxing_color);
-        return (Move::None, eval);
+        return (Move::None, Scorer::eval(board, maxing_color));
     }
 
     let mut value: f32 = if mover == maxing_color {

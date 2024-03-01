@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use crate::movement::{Move, MoveGen};
+use crate::moves::{Move, MoveGen};
 use crate::pieces::{BitBoard, Color, Pieces};
 use crate::pos::Pos;
 
