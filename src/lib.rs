@@ -106,7 +106,7 @@ pub fn explore(
         .pieces(mover)
         .iter()
         .flat_map(BitBoard::iter_pos)
-        .flat_map(|p| board.generate_moves(p))
+        .flat_map(|p| board.generate_moves(mover, p))
         .map(|mov| {
             let mut b = board.clone();
             mov.apply(&mut b);

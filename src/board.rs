@@ -44,8 +44,9 @@ impl Board {
         });
     }
 
-    pub fn generate_moves(&self, pos: Pos) -> Vec<Move> {
-        self.at(pos)
+    pub fn generate_moves(&self, mover: Color, pos: Pos) -> Vec<Move> {
+        self.pieces(mover)
+            .at(pos)
             .map_or(vec![], |bitboard| MoveGen::new(self, bitboard, pos).gen())
     }
 }
