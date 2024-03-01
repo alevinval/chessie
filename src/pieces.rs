@@ -8,7 +8,7 @@ mod bitboard;
 mod color;
 mod piece;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Pieces {
     pub pawns: BitBoard,
     pub knights: BitBoard,

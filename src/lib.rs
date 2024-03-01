@@ -5,7 +5,7 @@ use eval::Scorer;
 use moves::Move;
 use pieces::{BitBoard, Color};
 
-use crate::pos::Pos;
+use crate::{moves::MoveGen, pos::Pos};
 
 mod board;
 mod eval;
@@ -66,7 +66,7 @@ pub fn play() {
 }
 
 pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
-    let mut board = Board::new();
+    let mut board = Board::default();
 
     for _ in 0..moves {
         let (mov, eval) = explore(&board, color, color, -f32::INFINITY, f32::INFINITY, depth);
@@ -105,7 +105,7 @@ pub fn explore(
         .pieces(mover)
         .iter()
         .flat_map(BitBoard::iter_pos)
-        .flat_map(|p| board.generate_moves(mover, p))
+        .flat_map(|p| MoveGen::new(board, mover, p).generate())
         .map(|mov| {
             let mut b = board.clone();
             mov.apply(&mut b);

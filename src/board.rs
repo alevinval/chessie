@@ -1,7 +1,3 @@
-use std::fs::File;
-use std::io::Write;
-
-use crate::moves::{Move, MoveGen};
 use crate::pieces::{BitBoard, Color, Pieces};
 use crate::pos::Pos;
 
@@ -12,13 +8,6 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new() -> Self {
-        Self {
-            white: Pieces::new(Color::White),
-            black: Pieces::new(Color::Black),
-        }
-    }
-
     pub fn pieces(&self, color: Color) -> &Pieces {
         match color {
             Color::Black => &self.black,
@@ -26,33 +15,83 @@ impl Board {
         }
     }
 
-    pub fn at(&self, pos: Pos) -> Option<&BitBoard> {
-        self.white.at(pos).or(self.black.at(pos))
+    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<&BitBoard> {
+        let pos = pos.into();
+        self.white.at(pos).or_else(|| self.black.at(pos))
     }
 
-    pub fn at_mut(&mut self, pos: Pos) -> Option<&mut BitBoard> {
-        self.white.at_mut(pos).or(self.black.at_mut(pos))
-    }
-
-    pub fn save(&self, fname: &str) {
-        let mut w = File::create(fname).unwrap();
-        self.white.iter().for_each(|bb| {
-            w.write_all(&bb.to_le_bytes()).unwrap();
-        });
-        self.black.iter().for_each(|bb| {
-            w.write_all(&bb.to_le_bytes()).unwrap();
-        });
-    }
-
-    pub fn generate_moves(&self, mover: Color, pos: Pos) -> Vec<Move> {
-        self.pieces(mover)
-            .at(pos)
-            .map_or(vec![], |bitboard| MoveGen::new(self, bitboard, pos).gen())
+    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
+        let pos = pos.into();
+        self.white.at_mut(pos).or_else(|| self.black.at_mut(pos))
     }
 }
 
 impl Default for Board {
     fn default() -> Self {
-        Self::new()
+        Self {
+            white: Pieces::new(Color::White),
+            black: Pieces::new(Color::Black),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use crate::pieces::Piece;
+
+    use super::*;
+
+    #[test]
+    fn pieces() {
+        let sut = Board::default();
+        assert_eq!(&sut.white, sut.pieces(Color::White));
+        assert_eq!(&sut.black, sut.pieces(Color::Black));
+    }
+
+    #[test]
+    fn at_white_king() {
+        let sut = Board::default();
+        let king = sut.at((0, 4));
+
+        assert!(king.is_some());
+
+        if let Some(king) = king {
+            assert_eq!(Color::White, king.color());
+            assert_eq!(Piece::King(Color::White, false), king.piece());
+        }
+    }
+
+    #[test]
+    fn at_black_king() {
+        let sut = Board::default();
+        let king = sut.at((7, 4));
+
+        assert!(king.is_some());
+
+        if let Some(king) = king {
+            assert_eq!(Color::Black, king.color());
+            assert_eq!(Piece::King(Color::Black, false), king.piece());
+        }
+    }
+
+    #[test]
+    fn mut_at_white() {
+        let pos = (0, 0);
+
+        assert_eq!(
+            Board::default().at(pos).unwrap(),
+            Board::default().at_mut(pos).unwrap()
+        );
+    }
+
+    #[test]
+    fn mut_at_black() {
+        let pos = (7, 7);
+
+        assert_eq!(
+            Board::default().at(pos).unwrap(),
+            Board::default().at_mut(pos).unwrap()
+        );
     }
 }

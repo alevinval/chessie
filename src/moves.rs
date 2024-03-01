@@ -23,15 +23,21 @@ pub struct MoveGen<'board> {
 }
 
 impl<'board> MoveGen<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, bitboard: &'board BitBoard, from: P) -> Self {
+    pub fn new<P: Into<Pos>>(board: &'board Board, mover: Color, from: P) -> Self {
+        let from = from.into();
+        let bitboard = board
+            .pieces(mover)
+            .at(from)
+            .expect("cannot generate moves for empty position");
+
         Self {
             board,
             bitboard,
-            from: from.into(),
+            from,
         }
     }
 
-    pub fn gen(self) -> Vec<Move> {
+    pub fn generate(self) -> Vec<Move> {
         let mut gen = Generator::new(self.board, self.from);
         match self.bitboard.piece() {
             Piece::Pawn(color) => match color {
