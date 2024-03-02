@@ -69,6 +69,8 @@ impl From<(u8, u8)> for Pos {
 
 #[cfg(test)]
 mod test {
+    use std::mem;
+
     use super::*;
 
     #[test]
@@ -117,5 +119,11 @@ mod test {
     #[should_panic(expected = "position (8,8) outside of bounds")]
     fn into_outside_bounds() {
         let _: Pos = (8, 8).into();
+    }
+
+    #[test]
+    fn size() {
+        assert_eq!(2, mem::size_of::<Pos>());
+        assert_eq!(8, mem::size_of::<&Pos>());
     }
 }

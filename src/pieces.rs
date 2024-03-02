@@ -77,3 +77,16 @@ impl Pieces {
         .into_iter()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::mem;
+
+    use super::*;
+
+    #[test]
+    fn size() {
+        assert_eq!(96, mem::size_of::<Pieces>());
+        assert_eq!(8, mem::size_of::<&Pieces>());
+    }
+}

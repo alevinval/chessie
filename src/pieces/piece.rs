@@ -71,6 +71,8 @@ impl Display for Piece {
 #[cfg(test)]
 mod test {
 
+    use std::mem;
+
     use crate::color::{B, W};
 
     use super::*;
@@ -117,5 +119,11 @@ mod test {
 
         assert_eq!("♔", Piece::King(W, false).as_str());
         assert_eq!("♚", Piece::King(B, false).as_str());
+    }
+
+    #[test]
+    fn size() {
+        assert_eq!(3, mem::size_of::<Piece>());
+        assert_eq!(8, mem::size_of::<&Piece>());
     }
 }

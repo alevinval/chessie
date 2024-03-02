@@ -38,6 +38,8 @@ pub const B: Color = Color::B;
 
 #[cfg(test)]
 mod test {
+    use std::mem;
+
     use super::*;
 
     #[test]
@@ -64,5 +66,11 @@ mod test {
     fn opposite() {
         assert_eq!(B, W.opposite());
         assert_eq!(W, B.opposite());
+    }
+
+    #[test]
+    fn size() {
+        assert_eq!(1, mem::size_of::<Color>());
+        assert_eq!(8, mem::size_of::<&Color>());
     }
 }

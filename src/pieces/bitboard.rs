@@ -8,7 +8,7 @@ use super::{Color, Piece};
 pub struct BitBoard {
     piece: Piece,
     value: u64,
-    cnt: usize,
+    cnt: u8,
 }
 
 impl BitBoard {
@@ -28,7 +28,7 @@ impl BitBoard {
             color.piece_row()
         };
 
-        let cnt: usize = match piece {
+        let cnt = match piece {
             Piece::Pawn(_) => 8,
             Piece::Rook(_, _, _) | Piece::Knight(_) | Piece::Bishop(_) => 2,
             Piece::Queen(_) | Piece::King(_, _) => 1,
@@ -90,7 +90,7 @@ impl BitBoard {
                 }
             })
         })
-        .take(self.cnt)
+        .take(self.cnt as usize)
     }
 }
 
@@ -113,6 +113,8 @@ impl From<Piece> for BitBoard {
 
 #[cfg(test)]
 mod test {
+
+    use std::mem;
 
     use crate::color::W;
 
@@ -186,5 +188,11 @@ mod test {
         let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");
+    }
+
+    #[test]
+    fn size() {
+        assert_eq!(16, mem::size_of::<BitBoard>());
+        assert_eq!(8, mem::size_of::<&BitBoard>());
     }
 }
