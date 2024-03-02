@@ -13,7 +13,7 @@ pub enum Piece {
 }
 
 impl Piece {
-    pub fn color(self) -> Color {
+    pub const fn color(self) -> Color {
         match self {
             Piece::Pawn(c)
             | Piece::Rook(c, _, _)
@@ -24,11 +24,11 @@ impl Piece {
         }
     }
 
-    pub fn is_king(self) -> bool {
+    pub const fn is_king(self) -> bool {
         matches!(self, Piece::King(_, _))
     }
 
-    pub fn is_pawn(self) -> bool {
+    pub const fn is_pawn(self) -> bool {
         matches!(self, Piece::Pawn(_))
     }
 

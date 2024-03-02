@@ -4,7 +4,7 @@ use crate::pos::Pos;
 
 use super::{Color, Piece};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct BitBoard {
     piece: Piece,
     value: u64,
@@ -12,6 +12,31 @@ pub struct BitBoard {
 }
 
 impl BitBoard {
+    pub const fn new(piece: Piece) -> Self {
+        let color = piece.color();
+        let mut value = match piece {
+            Piece::Pawn(_) => 0b1111_1111,
+            Piece::Rook(_, _, _) => 0b1000_0001,
+            Piece::Knight(_) => 0b0100_0010,
+            Piece::Bishop(_) => 0b0010_0100,
+            Piece::Queen(_) => 0b0000_1000,
+            Piece::King(_, _) => 0b000_10000,
+        };
+        value <<= 8 * if piece.is_pawn() {
+            color.pawn_row()
+        } else {
+            color.piece_row()
+        };
+
+        let cnt: usize = match piece {
+            Piece::Pawn(_) => 8,
+            Piece::Rook(_, _, _) | Piece::Knight(_) | Piece::Bishop(_) => 2,
+            Piece::Queen(_) | Piece::King(_, _) => 1,
+        };
+
+        Self { piece, value, cnt }
+    }
+
     pub fn piece(&self) -> Piece {
         self.piece
     }
@@ -46,7 +71,7 @@ impl BitBoard {
         self.piece = piece;
     }
 
-    pub fn to_le_bytes(&self) -> [u8; 8] {
+    pub fn get_le_bytes(&self) -> [u8; 8] {
         u64::to_le_bytes(self.value)
     }
 
@@ -82,28 +107,7 @@ impl From<Pos> for u64 {
 
 impl From<Piece> for BitBoard {
     fn from(piece: Piece) -> Self {
-        let color = piece.color();
-        let mut value = match piece {
-            Piece::Pawn(_) => 0b1111_1111,
-            Piece::Rook(_, _, _) => 0b1000_0001,
-            Piece::Knight(_) => 0b0100_0010,
-            Piece::Bishop(_) => 0b0010_0100,
-            Piece::Queen(_) => 0b0000_1000,
-            Piece::King(_, _) => 0b000_10000,
-        };
-        value <<= 8 * if piece.is_pawn() {
-            color.pawn_row()
-        } else {
-            color.piece_row()
-        };
-
-        let cnt: usize = match piece {
-            Piece::Pawn(_) => 8,
-            Piece::Rook(_, _, _) | Piece::Knight(_) | Piece::Bishop(_) => 2,
-            Piece::Queen(_) | Piece::King(_, _) => 1,
-        };
-
-        Self { piece, value, cnt }
+        Self::new(piece)
     }
 }
 
@@ -177,7 +181,7 @@ mod test {
             value: u64::MAX,
             cnt: 0,
         };
-        let actual = sut.to_le_bytes();
+        let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");
     }

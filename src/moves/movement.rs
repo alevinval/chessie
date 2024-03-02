@@ -57,14 +57,7 @@ impl Move {
 
     fn promo<P: Into<Pos>>(&self, board: &mut Board, pos: P, piece: Piece) {
         let pos = pos.into();
-        match board.at_mut(pos) {
-            Some(bb) => {
-                bb.unset(pos);
-            }
-            None => {
-                unreachable!("cannot promo square without piece {pos:?}");
-            }
-        };
+        Self::clear_dst(board, pos);
 
         let pieces = board.pieces_mut(piece.color());
         match piece {
