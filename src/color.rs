@@ -1,31 +1,37 @@
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Color {
-    Black,
-    White,
+    B,
+    W,
 }
 
 impl Color {
     pub const fn piece_row(self) -> usize {
         match self {
-            Color::Black => 7,
-            Color::White => 0,
+            Color::B => 7,
+            Color::W => 0,
         }
     }
 
     pub const fn pawn_row(self) -> usize {
         match self {
-            Color::Black => 6,
-            Color::White => 1,
+            Color::B => 6,
+            Color::W => 1,
         }
     }
 
     pub const fn opposite(self) -> Self {
         match self {
-            Color::Black => Color::White,
-            Color::White => Color::Black,
+            Color::B => Color::W,
+            Color::W => Color::B,
         }
     }
 }
+
+#[cfg(test)]
+pub const W: Color = Color::W;
+
+#[cfg(test)]
+pub const B: Color = Color::B;
 
 #[cfg(test)]
 mod test {
@@ -33,27 +39,27 @@ mod test {
 
     #[test]
     fn piece_row_for_white() {
-        assert_eq!(0, Color::White.piece_row());
+        assert_eq!(0, W.piece_row());
     }
 
     #[test]
     fn piece_row_for_black() {
-        assert_eq!(7, Color::Black.piece_row());
+        assert_eq!(7, B.piece_row());
     }
 
     #[test]
     fn pawn_row_for_white() {
-        assert_eq!(1, Color::White.pawn_row());
+        assert_eq!(1, W.pawn_row());
     }
 
     #[test]
     fn pawn_row_for_black() {
-        assert_eq!(6, Color::Black.pawn_row());
+        assert_eq!(6, B.pawn_row());
     }
 
     #[test]
     fn opposite() {
-        assert_eq!(Color::Black, Color::White.opposite());
-        assert_eq!(Color::White, Color::Black.opposite());
+        assert_eq!(B, W.opposite());
+        assert_eq!(W, B.opposite());
     }
 }

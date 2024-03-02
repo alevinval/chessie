@@ -1,7 +1,8 @@
 use crate::{
     board::Board,
-    pieces::{BitBoard, Color, Piece},
+    pieces::{BitBoard, Piece},
     pos::Pos,
+    Color,
 };
 
 #[derive(Debug, Eq, PartialEq)]
@@ -26,21 +27,21 @@ impl Move {
                 self.promo(board, to, piece);
             }
             Move::LeftCastle { mover } => match mover {
-                Color::Black => {
+                Color::B => {
                     self.apply_move(board, (7, 4), (7, 2));
                     self.apply_move(board, (7, 0), (7, 3));
                 }
-                Color::White => {
+                Color::W => {
                     self.apply_move(board, (0, 4), (0, 2));
                     self.apply_move(board, (0, 0), (0, 3));
                 }
             },
             Move::RightCastle { mover } => match mover {
-                Color::Black => {
+                Color::B => {
                     self.apply_move(board, (7, 4), (7, 6));
                     self.apply_move(board, (7, 7), (7, 5));
                 }
-                Color::White => {
+                Color::W => {
                     self.apply_move(board, (0, 4), (0, 6));
                     self.apply_move(board, (0, 7), (0, 5));
                 }

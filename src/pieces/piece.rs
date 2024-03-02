@@ -35,28 +35,28 @@ impl Piece {
     pub fn as_str(self) -> &'static str {
         match self {
             Piece::Pawn(c) => match c {
-                Color::Black => "♟",
-                Color::White => "♙",
+                Color::B => "♟",
+                Color::W => "♙",
             },
             Piece::Rook(c, _, _) => match c {
-                Color::Black => "♜",
-                Color::White => "♖",
+                Color::B => "♜",
+                Color::W => "♖",
             },
             Piece::Knight(c) => match c {
-                Color::Black => "♞",
-                Color::White => "♘",
+                Color::B => "♞",
+                Color::W => "♘",
             },
             Piece::Bishop(c) => match c {
-                Color::Black => "♝",
-                Color::White => "♗",
+                Color::B => "♝",
+                Color::W => "♗",
             },
             Piece::Queen(c) => match c {
-                Color::Black => "♛",
-                Color::White => "♕",
+                Color::B => "♛",
+                Color::W => "♕",
             },
             Piece::King(c, _) => match c {
-                Color::Black => "♚",
-                Color::White => "♔",
+                Color::B => "♚",
+                Color::W => "♔",
             },
         }
     }
@@ -70,20 +70,52 @@ impl Display for Piece {
 
 #[cfg(test)]
 mod test {
+
+    use crate::color::{B, W};
+
     use super::*;
 
     #[test]
     fn is_pawn() {
-        let sut = Piece::Pawn(Color::Black);
-        assert!(sut.is_pawn(), "should be pawn");
+        let sut = Piece::Pawn(B);
+        assert!(sut.is_pawn());
+        assert!(!sut.is_king());
+    }
+
+    #[test]
+    fn is_king() {
+        let sut = Piece::King(B, false);
+        assert!(sut.is_king());
+        assert!(!sut.is_pawn());
     }
 
     #[test]
     fn color() {
-        let sut = Piece::Bishop(Color::Black);
-        assert!(sut.color() == Color::Black, "should be black");
+        let sut = Piece::Bishop(B);
+        assert!(sut.color() == B);
 
-        let sut = Piece::Bishop(Color::White);
-        assert!(sut.color() == Color::White, "should be white");
+        let sut = Piece::Bishop(W);
+        assert!(sut.color() == W);
+    }
+
+    #[test]
+    fn as_str() {
+        assert_eq!("♙", Piece::Pawn(W).as_str());
+        assert_eq!("♟", Piece::Pawn(B).as_str());
+
+        assert_eq!("♗", Piece::Bishop(W).as_str());
+        assert_eq!("♝", Piece::Bishop(B).as_str());
+
+        assert_eq!("♘", Piece::Knight(W).as_str());
+        assert_eq!("♞", Piece::Knight(B).as_str());
+
+        assert_eq!("♖", Piece::Rook(W, false, false).as_str());
+        assert_eq!("♜", Piece::Rook(B, false, false).as_str());
+
+        assert_eq!("♕", Piece::Queen(W).as_str());
+        assert_eq!("♛", Piece::Queen(B).as_str());
+
+        assert_eq!("♔", Piece::King(W, false).as_str());
+        assert_eq!("♚", Piece::King(B, false).as_str());
     }
 }

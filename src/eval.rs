@@ -1,6 +1,7 @@
 use crate::{
     board::Board,
-    pieces::{BitBoard, Color, Piece},
+    pieces::{BitBoard, Piece},
+    Color,
 };
 
 #[derive(Default)]
@@ -16,11 +17,11 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, color: Color, debug: bool) -> f32 {
-        let white = Scorer::score(board, Color::White, debug);
-        let black = Scorer::score(board, Color::Black, debug);
+        let white = Scorer::score(board, Color::W, debug);
+        let black = Scorer::score(board, Color::B, debug);
         match color {
-            Color::Black => black - white,
-            Color::White => white - black,
+            Color::B => black - white,
+            Color::W => white - black,
         }
     }
 

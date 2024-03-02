@@ -77,8 +77,8 @@ impl BitBoard {
 
     pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
         let rows = match self.piece.color() {
-            Color::Black => Either::Left((0..8).rev()),
-            Color::White => Either::Right(0..8),
+            Color::B => Either::Left((0..8).rev()),
+            Color::W => Either::Right(0..8),
         };
         rows.flat_map(move |row| {
             let ro = row * 8;
@@ -114,6 +114,8 @@ impl From<Piece> for BitBoard {
 #[cfg(test)]
 mod test {
 
+    use crate::color::W;
+
     use super::*;
 
     static ORIGIN: Pos = Pos::new(0, 0);
@@ -122,28 +124,28 @@ mod test {
     #[test]
     fn has_piece() {
         let sut = BitBoard {
-            piece: Piece::Pawn(Color::White),
+            piece: Piece::Pawn(W),
             value: 0,
             cnt: 0,
         };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn(Color::White),
+            piece: Piece::Pawn(W),
             value: 1,
             cnt: 0,
         };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn(Color::White),
+            piece: Piece::Pawn(W),
             value: 0,
             cnt: 0,
         };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn(Color::White),
+            piece: Piece::Pawn(W),
             value: TARGET.into(),
             cnt: 0,
         };
@@ -155,7 +157,7 @@ mod test {
         let from: Pos = (1, 1).into();
         let to: Pos = (2, 2).into();
 
-        let mut sut: BitBoard = Piece::Pawn(Color::White).into();
+        let mut sut: BitBoard = Piece::Pawn(W).into();
         assert!(!sut.has_piece(to));
 
         sut.slide(from, to);
@@ -167,7 +169,7 @@ mod test {
     #[test]
     fn unset() {
         let pos: Pos = (1, 1).into();
-        let mut sut: BitBoard = Piece::Pawn(Color::White).into();
+        let mut sut: BitBoard = Piece::Pawn(W).into();
         assert!(sut.has_piece(pos));
 
         sut.unset(pos);
@@ -177,7 +179,7 @@ mod test {
     #[test]
     fn to_le_bytes() {
         let sut = BitBoard {
-            piece: Piece::Pawn(Color::White),
+            piece: Piece::Pawn(W),
             value: u64::MAX,
             cnt: 0,
         };

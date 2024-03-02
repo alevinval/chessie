@@ -1,11 +1,10 @@
 use crate::pos::Pos;
+use crate::Color;
 
-pub use self::color::Color;
 pub use bitboard::BitBoard;
 pub use piece::Piece;
 
 mod bitboard;
-mod color;
 mod piece;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

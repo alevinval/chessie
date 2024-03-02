@@ -1,13 +1,16 @@
 use std::io;
 
 use board::Board;
+pub use color::Color;
 use eval::Scorer;
 use moves::Move;
-use pieces::{BitBoard, Color};
+use pieces::BitBoard;
+pub use pos::Pos;
 
-use crate::{moves::MoveGen, pos::Pos};
+use crate::moves::MoveGen;
 
 mod board;
+mod color;
 mod eval;
 mod moves;
 mod pieces;
@@ -52,14 +55,7 @@ pub fn play() {
 
         print_board(&board, &[]);
 
-        let (mov, _) = explore(
-            &board,
-            Color::Black,
-            Color::Black,
-            -f32::INFINITY,
-            f32::INFINITY,
-            4,
-        );
+        let (mov, _) = explore(&board, Color::B, Color::B, -f32::INFINITY, f32::INFINITY, 4);
         mov.apply(&mut board);
         print_board(&board, &[]);
     }
@@ -156,6 +152,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(Color::White, u8::MAX, 3);
+    auto_play(Color::W, u8::MAX, 3);
     // play();
 }

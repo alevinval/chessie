@@ -4,9 +4,9 @@ mod placement;
 
 use crate::{
     board::Board,
-    pieces::{BitBoard, Color, Piece},
+    pieces::{BitBoard, Piece},
     pos::Dir,
-    Pos,
+    Color, Pos,
 };
 
 pub use self::movement::Move;
@@ -43,8 +43,8 @@ impl<'board> MoveGen<'board> {
         let mut gen = Generator::new(self.board, self.from, self.mover);
         match self.bitboard.piece() {
             Piece::Pawn(color) => match color {
-                Color::Black => black_pawn(&mut gen),
-                Color::White => white_pawn(&mut gen),
+                Color::B => black_pawn(&mut gen),
+                Color::W => white_pawn(&mut gen),
             },
             Piece::Rook(_, _, _) => gen.cross(empty_or_take),
             Piece::Bishop(_) => gen.diagonals(empty_or_take),

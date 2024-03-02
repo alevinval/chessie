@@ -1,5 +1,6 @@
-use crate::pieces::{BitBoard, Color, Pieces};
+use crate::pieces::{BitBoard, Pieces};
 use crate::pos::Pos;
+use crate::Color;
 
 #[derive(Debug, Clone)]
 pub struct Board {
@@ -10,15 +11,15 @@ pub struct Board {
 impl Board {
     pub fn pieces(&self, color: Color) -> &Pieces {
         match color {
-            Color::Black => &self.black,
-            Color::White => &self.white,
+            Color::B => &self.black,
+            Color::W => &self.white,
         }
     }
 
     pub fn pieces_mut(&mut self, color: Color) -> &mut Pieces {
         match color {
-            Color::Black => &mut self.black,
-            Color::White => &mut self.white,
+            Color::B => &mut self.black,
+            Color::W => &mut self.white,
         }
     }
 
@@ -36,8 +37,8 @@ impl Board {
 impl Default for Board {
     fn default() -> Self {
         Self {
-            white: Pieces::new(Color::White),
-            black: Pieces::new(Color::Black),
+            white: Pieces::new(Color::W),
+            black: Pieces::new(Color::B),
         }
     }
 }
@@ -52,8 +53,8 @@ mod test {
     #[test]
     fn pieces() {
         let sut = Board::default();
-        assert_eq!(&sut.white, sut.pieces(Color::White));
-        assert_eq!(&sut.black, sut.pieces(Color::Black));
+        assert_eq!(&sut.white, sut.pieces(Color::W));
+        assert_eq!(&sut.black, sut.pieces(Color::B));
     }
 
     #[test]
@@ -64,8 +65,8 @@ mod test {
         assert!(king.is_some());
 
         if let Some(king) = king {
-            assert_eq!(Color::White, king.color());
-            assert_eq!(Piece::King(Color::White, false), king.piece());
+            assert_eq!(Color::W, king.color());
+            assert_eq!(Piece::King(Color::W, false), king.piece());
         }
     }
 
@@ -77,8 +78,8 @@ mod test {
         assert!(king.is_some());
 
         if let Some(king) = king {
-            assert_eq!(Color::Black, king.color());
-            assert_eq!(Piece::King(Color::Black, false), king.piece());
+            assert_eq!(Color::B, king.color());
+            assert_eq!(Piece::King(Color::B, false), king.piece());
         }
     }
 
