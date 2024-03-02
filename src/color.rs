@@ -5,6 +5,7 @@ pub enum Color {
 }
 
 impl Color {
+    #[must_use]
     pub const fn piece_row(self) -> usize {
         match self {
             Color::B => 7,
@@ -12,6 +13,7 @@ impl Color {
         }
     }
 
+    #[must_use]
     pub const fn pawn_row(self) -> usize {
         match self {
             Color::B => 6,
@@ -19,6 +21,7 @@ impl Color {
         }
     }
 
+    #[must_use]
     pub const fn opposite(self) -> Self {
         match self {
             Color::B => Color::W,

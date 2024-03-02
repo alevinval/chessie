@@ -18,6 +18,7 @@ impl Pos {
         Self(row, col)
     }
 
+    #[must_use]
     pub fn to(self, d: Dir) -> Self {
         let (row, col) = (self.0, self.1);
         match d {
@@ -30,14 +31,17 @@ impl Pos {
         .into()
     }
 
+    #[must_use]
     pub fn row(self) -> u8 {
         self.0
     }
 
+    #[must_use]
     pub fn col(self) -> u8 {
         self.1
     }
 
+    #[must_use]
     pub fn is_central(self) -> bool {
         self.0 >= 3 && self.1 >= 3 && self.0 <= 4 && self.1 <= 4
     }
@@ -100,13 +104,13 @@ mod test {
     #[test]
     #[should_panic(expected = "attempt to subtract with overflow")]
     fn to_outside_bounds_lower() {
-        Pos(0, 0).to(Dir::Down(1));
+        let _ = Pos(0, 0).to(Dir::Down(1));
     }
 
     #[test]
     #[should_panic(expected = "position (9,7) outside of bounds")]
     fn to_outside_bounds_upper() {
-        Pos(7, 7).to(Dir::Up(2));
+        let _ = Pos(7, 7).to(Dir::Up(2));
     }
 
     #[test]
