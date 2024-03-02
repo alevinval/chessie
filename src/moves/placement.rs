@@ -25,7 +25,7 @@ impl Placement {
         match *self {
             Placement::Invalid => None,
             Placement::Empty { from, to } | Placement::Takes { from, to } => {
-                Some(Move::Basic { from, to })
+                Some(Move::Slide { from, to })
             }
         }
     }

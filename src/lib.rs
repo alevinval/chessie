@@ -49,8 +49,7 @@ pub fn play() {
 
         let to = read_pos();
 
-        board = Move::Basic { from, to }.apply(&board);
-
+        board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
         let (movement, _) = explore(&board, Color::B, -f32::INFINITY, f32::INFINITY, 4);
@@ -65,6 +64,10 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
     for _ in 0..moves {
         let (movement, eval) = explore(&board, color, -f32::INFINITY, f32::INFINITY, depth);
         println!("{color:?} to play... {movement:?} ({eval})");
+        if matches!(movement, Move::None) {
+            println!("Winner is {:?}", color.opposite());
+            return;
+        }
 
         board = movement.apply(&board);
         Scorer::debug_eval(&board, color);
@@ -93,48 +96,41 @@ pub fn explore(
         f32::INFINITY
     };
 
-    let mut best = Move::None;
-
     let movements = board.movements();
     let mut evaluated_movements: Vec<_> = movements
-        .into_iter()
+        .iter()
         .map(|movement| {
             let next = movement.apply(board);
             let eval = Scorer::eval(&next, maxer);
             (next, eval, movement)
         })
         .collect();
-
     evaluated_movements.sort_by(|a, b| b.1.total_cmp(&a.1));
 
+    let mut best = *movements.first().unwrap_or(&Move::None);
     for (new_board, _, movement) in evaluated_movements {
         let (_, eval) = explore(&new_board, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
             if eval > value {
                 value = eval;
-                best = movement;
+                best = *movement;
             }
             alpha = alpha.max(value);
             if value >= beta {
-                return (best, value);
+                break;
             }
         } else {
             if eval < value {
                 value = eval;
-                best = movement;
+                best = *movement;
             }
             beta = beta.min(value);
             if value <= alpha {
-                return (best, value);
+                break;
             }
         }
     }
-
-    debug_assert!(
-        best != Move::None,
-        "should always find a legal move for the moment"
-    );
 
     (best, value)
 }

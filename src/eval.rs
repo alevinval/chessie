@@ -34,9 +34,18 @@ impl Scorer {
 
         let mut space_score: f32 = board
             .pieces_for(color)
-            .pawns
-            .iter_pos()
-            .map(|p| if p.is_central() { 1.2 } else { 1.0 })
+            .iter()
+            .flat_map(|bb| {
+                bb.iter_pos().map(|p| {
+                    if p.is_central() && bb.piece().is_pawn() {
+                        1.01
+                    } else if !bb.piece().is_pawn() && p.row() == color.piece_row() as u8 {
+                        0.95
+                    } else {
+                        1.0
+                    }
+                })
+            })
             .sum();
         space_score /= 100.0;
 

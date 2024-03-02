@@ -6,7 +6,7 @@ use crate::{
     board::Board,
     pieces::{BitBoard, Piece},
     pos::Dir,
-    Color, Pos,
+    print_board, Color, Pos,
 };
 
 pub use self::movement::Move;
@@ -25,10 +25,10 @@ pub struct MoveGen<'board> {
 impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
-        let bitboard = board
-            .pieces()
-            .at(from)
-            .expect("cannot generate moves for empty position");
+        let bitboard = board.pieces().at(from).unwrap_or_else(|| {
+            print_board(board, &[]);
+            unreachable!("cannot generate moves for empty position {from:?}")
+        });
 
         Self {
             board,
@@ -37,8 +37,8 @@ impl<'board> MoveGen<'board> {
         }
     }
 
-    pub fn generate(self) -> Vec<Move> {
-        let mut gen = Generator::new(self.board, self.from);
+    pub fn generate(self, check_legal: bool) -> Vec<Move> {
+        let mut gen = Generator::new(self.board, self.from, check_legal);
         match self.bitboard.piece() {
             Piece::Pawn(color) => match color {
                 Color::B => black_pawn(&mut gen),
@@ -70,7 +70,7 @@ impl<'board> MoveGen<'board> {
         if let Piece::Rook(_, lrm, rrm) = pieces.rooks.piece() {
             let pos = pieces.king.iter_pos().next().expect("should be there");
             if !rrm {
-                let mut subgen = Generator::new(self.board, pos);
+                let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
                     gen.mov(Move::RightCastle {
@@ -79,7 +79,7 @@ impl<'board> MoveGen<'board> {
                 }
             }
             if !lrm {
-                let mut subgen = Generator::new(self.board, pos);
+                let mut subgen = Generator::new(self.board, pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
                     gen.mov(Move::LeftCastle {

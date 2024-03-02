@@ -3,7 +3,7 @@ use crate::pieces::{BitBoard, Pieces};
 use crate::pos::Pos;
 use crate::Color;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Board {
     mover: Color,
     white: Pieces,
@@ -44,11 +44,11 @@ impl Board {
     }
 
     #[must_use]
-    pub fn opposite(&self) -> Self {
+    pub fn next_turn(&self) -> Self {
         Self {
             mover: self.mover.opposite(),
-            white: self.white.clone(),
-            black: self.black.clone(),
+            white: self.white,
+            black: self.black,
         }
     }
 
@@ -57,7 +57,16 @@ impl Board {
         self.pieces()
             .iter()
             .flat_map(BitBoard::iter_pos)
-            .flat_map(|p| MoveGen::new(self, p).generate())
+            .flat_map(|p| MoveGen::new(self, p).generate(true))
+            .collect()
+    }
+
+    #[must_use]
+    pub fn pseudo_movements(&self) -> Vec<Move> {
+        self.pieces()
+            .iter()
+            .flat_map(BitBoard::iter_pos)
+            .flat_map(|p| MoveGen::new(self, p).generate(false))
             .collect()
     }
 }

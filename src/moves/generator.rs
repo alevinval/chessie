@@ -15,14 +15,16 @@ pub struct Generator<'board> {
     board: &'board Board,
     from: Pos,
     moves: Vec<Move>,
+    check_legal: bool,
 }
 
 impl<'board> Generator<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
+    pub fn new<P: Into<Pos>>(board: &'board Board, from: P, check_legal: bool) -> Self {
         Generator {
             board,
             from: from.into(),
             moves: vec![],
+            check_legal,
         }
     }
 
@@ -51,8 +53,11 @@ impl<'board> Generator<'board> {
     pub fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Placement {
         let to = to.into();
         let placement = stop_at(self.board, self.from, to);
+
         if let Some(m) = placement.movement() {
-            self.moves.push(m);
+            if self.is_legal(m) {
+                self.moves.push(m);
+            }
         }
         placement
     }
@@ -140,6 +145,36 @@ impl<'board> Generator<'board> {
             }
         }
     }
+
+    fn is_legal(&self, movement: Move) -> bool {
+        let next = movement.apply(self.board);
+        if next.pieces_for(self.board.mover()).king.is_empty() {
+            return false;
+        };
+
+        if self.check_legal {
+            let king_pos = next
+                .pieces_for(self.board.mover())
+                .king
+                .iter_pos()
+                .next()
+                .expect("should have a king");
+
+            next.pseudo_movements().iter().all(|m| match m {
+                Move::Slide { from: _, to } => *to != king_pos,
+                Move::PawnPromo {
+                    from: _,
+                    to: _,
+                    piece: _,
+                }
+                | Move::LeftCastle { mover: _ }
+                | Move::RightCastle { mover: _ }
+                | Move::None => true,
+            })
+        } else {
+            true
+        }
+    }
 }
 
 #[cfg(test)]
@@ -180,7 +215,7 @@ mod test {
     #[test]
     fn generator_row_and_col() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3));
+        let sut = Generator::new(&board, (1, 3), false);
 
         assert_eq!(1, sut.row());
         assert_eq!(3, sut.col());
@@ -189,7 +224,7 @@ mod test {
     #[test]
     fn generator_default_bitboard() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3));
+        let sut = Generator::new(&board, (1, 3), false);
 
         assert!(sut.moves().is_empty());
     }
@@ -197,7 +232,7 @@ mod test {
     #[test]
     fn generator_from_direction_empty_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3));
+        let mut sut = Generator::new(&board, (1, 3), false);
 
         assert_eq!(
             Placement::Empty {
@@ -207,7 +242,7 @@ mod test {
             sut.dir(Dir::Up(1), empty_placement)
         );
 
-        let expected: Vec<Move> = vec![Move::Basic {
+        let expected: Vec<Move> = vec![Move::Slide {
             from: (1, 3).into(),
             to: (2, 3).into(),
         }];
@@ -217,7 +252,7 @@ mod test {
     #[test]
     fn generator_from_direction_takes_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3));
+        let mut sut = Generator::new(&board, (1, 3), false);
 
         assert_eq!(
             Placement::Takes {
@@ -227,7 +262,7 @@ mod test {
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = vec![Move::Basic {
+        let expected = vec![Move::Slide {
             from: (1, 3).into(),
             to: (2, 3).into(),
         }];
@@ -237,7 +272,7 @@ mod test {
     #[test]
     fn generator_from_direction_invalid_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3));
+        let mut sut = Generator::new(&board, (1, 3), false);
 
         assert_eq!(Placement::Invalid, sut.dir(Dir::Up(1), invalid_placement));
 

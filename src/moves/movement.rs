@@ -8,7 +8,7 @@ use crate::{
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
     None,
-    Basic { from: Pos, to: Pos },
+    Slide { from: Pos, to: Pos },
     PawnPromo { from: Pos, to: Pos, piece: Piece },
     LeftCastle { mover: Color },
     RightCastle { mover: Color },
@@ -16,14 +16,14 @@ pub enum Move {
 
 impl Move {
     pub fn apply(self, board: &Board) -> Board {
-        let mut next = board.opposite();
+        let mut next = board.next_turn();
         self.inner_apply(&mut next);
         next
     }
 
     fn inner_apply(self, board: &mut Board) {
         match self {
-            Move::Basic { from, to } => {
+            Move::Slide { from, to } => {
                 Self::clear_dst(board, to);
                 self.apply_move(board, from, to);
             }
@@ -94,7 +94,7 @@ impl Move {
     fn flag_piece_movement(self, bb: &mut BitBoard) {
         bb.update_piece(match bb.piece() {
             Piece::Rook(c, left, right) => match self {
-                Move::Basic { from, to: _ } => {
+                Move::Slide { from, to: _ } => {
                     Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
                 }
                 Move::LeftCastle { mover } => Piece::Rook(mover, true, right),

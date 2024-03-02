@@ -7,7 +7,7 @@ pub use piece::Piece;
 mod bitboard;
 mod piece;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Pieces {
     pub pawns: BitBoard,
     pub knights: BitBoard,
