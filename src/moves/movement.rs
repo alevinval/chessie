@@ -7,25 +7,25 @@ use crate::{
 #[derive(Debug, Eq, PartialEq)]
 pub enum Move {
     None,
-    Basic(Pos, Pos),
-    PawnPromo(Pos, Pos, Piece),
-    LeftCastle(Color),
-    RightCastle(Color),
+    Basic { from: Pos, to: Pos },
+    PawnPromo { from: Pos, to: Pos, piece: Piece },
+    LeftCastle { mover: Color },
+    RightCastle { mover: Color },
 }
 
 impl Move {
     pub fn apply(&self, board: &mut Board) {
         match *self {
-            Move::Basic(from, to) => {
+            Move::Basic { from, to } => {
                 Self::clear_dst(board, to);
                 self.apply_move(board, from, to);
             }
-            Move::PawnPromo(from, to, piece) => {
+            Move::PawnPromo { from, to, piece } => {
                 Self::clear_dst(board, to);
                 self.apply_move(board, from, to);
                 self.promo(board, to, piece);
             }
-            Move::LeftCastle(c) => match c {
+            Move::LeftCastle { mover } => match mover {
                 Color::Black => {
                     self.apply_move(board, (7, 4), (7, 2));
                     self.apply_move(board, (7, 0), (7, 3));
@@ -35,7 +35,7 @@ impl Move {
                     self.apply_move(board, (0, 0), (0, 3));
                 }
             },
-            Move::RightCastle(c) => match c {
+            Move::RightCastle { mover } => match mover {
                 Color::Black => {
                     self.apply_move(board, (7, 4), (7, 6));
                     self.apply_move(board, (7, 7), (7, 5));
@@ -87,12 +87,17 @@ impl Move {
     fn flag_piece_movement(&self, bb: &mut BitBoard) {
         bb.update_piece(match bb.piece() {
             Piece::Rook(c, left, right) => match self {
-                Move::Basic(from, _) => {
+                Move::Basic { from, to: _ } => {
                     Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
                 }
-                Move::LeftCastle(_) => Piece::Rook(c, true, right),
-                Move::RightCastle(_) => Piece::Rook(c, left, true),
-                Move::None | Move::PawnPromo(_, _, _) => unreachable!(),
+                Move::LeftCastle { mover } => Piece::Rook(*mover, true, right),
+                Move::RightCastle { mover } => Piece::Rook(*mover, left, true),
+                Move::None
+                | Move::PawnPromo {
+                    from: _,
+                    to: _,
+                    piece: _,
+                } => unreachable!(),
             },
             Piece::King(c, _) => Piece::King(c, true),
             piece => piece,

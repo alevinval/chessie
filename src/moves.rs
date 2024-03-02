@@ -76,14 +76,14 @@ impl<'board> MoveGen<'board> {
                 let mut subgen = Generator::new(self.board, pos, self.mover);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    gen.mov(Move::RightCastle(color));
+                    gen.mov(Move::RightCastle { mover: color });
                 }
             }
             if !lrm {
                 let mut subgen = Generator::new(self.board, pos, self.mover);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    gen.mov(Move::LeftCastle(color));
+                    gen.mov(Move::LeftCastle { mover: color });
                 }
             }
         }

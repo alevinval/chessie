@@ -48,7 +48,7 @@ pub fn play() {
 
         let to = read_pos();
 
-        Move::Basic(from, to).apply(&mut board);
+        Move::Basic { from, to }.apply(&mut board);
 
         print_board(&board, &[]);
 

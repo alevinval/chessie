@@ -72,7 +72,11 @@ impl<'board> Generator<'board> {
             .iter()
             .filter(|bitboard| !bitboard.piece().is_king())
             .for_each(|bitboard| {
-                let promo = Move::PawnPromo(self.from, to, bitboard.piece());
+                let promo = Move::PawnPromo {
+                    from: self.from,
+                    to,
+                    piece: bitboard.piece(),
+                };
                 self.moves.push(promo);
             });
     }
@@ -149,7 +153,7 @@ mod test {
     static TO: Pos = Pos::new(2, 2);
 
     fn empty_placement(_b: &Board, from: Pos, to: Pos) -> Placement {
-        Placement::Empty(from, to)
+        Placement::Empty { from, to }
     }
 
     fn invalid_placement(_b: &Board, _from: Pos, _to: Pos) -> Placement {
@@ -157,21 +161,21 @@ mod test {
     }
 
     fn takes_placement(_b: &Board, from: Pos, to: Pos) -> Placement {
-        Placement::Takes(from, to)
+        Placement::Takes { from, to }
     }
 
     #[test]
     fn placement_stop_when_applicable() {
         assert!(Placement::Invalid.stop());
-        assert!(Placement::Takes(FROM, TO).stop());
+        assert!(Placement::Takes { from: FROM, to: TO }.stop());
 
-        assert!(!Placement::Empty(FROM, TO).stop());
+        assert!(!Placement::Empty { from: FROM, to: TO }.stop());
     }
 
     #[test]
     fn placement_is_placed_when_applicable() {
-        assert!(Placement::Empty(FROM, TO).placed());
-        assert!(Placement::Takes(FROM, TO).placed());
+        assert!(Placement::Empty { from: FROM, to: TO }.placed());
+        assert!(Placement::Takes { from: FROM, to: TO }.placed());
 
         assert!(!Placement::Invalid.placed());
     }
@@ -199,11 +203,17 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3), Color::White);
 
         assert_eq!(
-            Placement::Empty((1, 3).into(), (2, 3).into()),
+            Placement::Empty {
+                from: (1, 3).into(),
+                to: (2, 3).into()
+            },
             sut.dir(Dir::Up(1), empty_placement)
         );
 
-        let expected: Vec<Move> = vec![Move::Basic((1, 3).into(), (2, 3).into())];
+        let expected: Vec<Move> = vec![Move::Basic {
+            from: (1, 3).into(),
+            to: (2, 3).into(),
+        }];
         assert_eq!(expected, sut.moves());
     }
 
@@ -213,11 +223,17 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3), Color::White);
 
         assert_eq!(
-            Placement::Takes((1, 3).into(), (2, 3).into()),
+            Placement::Takes {
+                from: (1, 3).into(),
+                to: (2, 3).into()
+            },
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = vec![Move::Basic((1, 3).into(), (2, 3).into())];
+        let expected = vec![Move::Basic {
+            from: (1, 3).into(),
+            to: (2, 3).into(),
+        }];
         assert_eq!(expected, sut.moves());
     }
 
