@@ -3,7 +3,6 @@ use std::iter::zip;
 use crate::{
     board::Board,
     pos::{Dir, Pos},
-    Color,
 };
 
 use super::{
@@ -15,16 +14,14 @@ use super::{
 pub struct Generator<'board> {
     board: &'board Board,
     from: Pos,
-    mover: Color,
     moves: Vec<Move>,
 }
 
 impl<'board> Generator<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P, mover: Color) -> Self {
+    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         Generator {
             board,
             from: from.into(),
-            mover,
             moves: vec![],
         }
     }
@@ -68,7 +65,7 @@ impl<'board> Generator<'board> {
         let to = self.from.to(d);
 
         self.board
-            .pieces(self.mover)
+            .pieces()
             .iter()
             .filter(|bitboard| !bitboard.piece().is_king())
             .for_each(|bitboard| {
@@ -183,7 +180,7 @@ mod test {
     #[test]
     fn generator_row_and_col() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3), Color::W);
+        let sut = Generator::new(&board, (1, 3));
 
         assert_eq!(1, sut.row());
         assert_eq!(3, sut.col());
@@ -192,7 +189,7 @@ mod test {
     #[test]
     fn generator_default_bitboard() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3), Color::W);
+        let sut = Generator::new(&board, (1, 3));
 
         assert!(sut.moves().is_empty());
     }
@@ -200,7 +197,7 @@ mod test {
     #[test]
     fn generator_from_direction_empty_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), Color::W);
+        let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(
             Placement::Empty {
@@ -220,7 +217,7 @@ mod test {
     #[test]
     fn generator_from_direction_takes_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), Color::W);
+        let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(
             Placement::Takes {
@@ -240,7 +237,7 @@ mod test {
     #[test]
     fn generator_from_direction_invalid_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), Color::W);
+        let mut sut = Generator::new(&board, (1, 3));
 
         assert_eq!(Placement::Invalid, sut.dir(Dir::Up(1), invalid_placement));
 

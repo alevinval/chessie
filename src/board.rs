@@ -1,23 +1,33 @@
+use crate::moves::{Move, MoveGen};
 use crate::pieces::{BitBoard, Pieces};
 use crate::pos::Pos;
 use crate::Color;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Board {
+    mover: Color,
     white: Pieces,
     black: Pieces,
 }
 
 impl Board {
-    pub fn pieces(&self, color: Color) -> &Pieces {
+    pub fn mover(&self) -> Color {
+        self.mover
+    }
+
+    pub fn pieces(&self) -> &Pieces {
+        self.pieces_for(self.mover)
+    }
+
+    pub fn pieces_for(&self, color: Color) -> &Pieces {
         match color {
             Color::B => &self.black,
             Color::W => &self.white,
         }
     }
 
-    pub fn pieces_mut(&mut self, color: Color) -> &mut Pieces {
-        match color {
+    pub fn pieces_mut(&mut self) -> &mut Pieces {
+        match self.mover {
             Color::B => &mut self.black,
             Color::W => &mut self.white,
         }
@@ -32,11 +42,30 @@ impl Board {
         let pos = pos.into();
         self.white.at_mut(pos).or_else(|| self.black.at_mut(pos))
     }
+
+    #[must_use]
+    pub fn opposite(&self) -> Self {
+        Self {
+            mover: self.mover.opposite(),
+            white: self.white.clone(),
+            black: self.black.clone(),
+        }
+    }
+
+    #[must_use]
+    pub fn movements(&self) -> Vec<Move> {
+        self.pieces()
+            .iter()
+            .flat_map(BitBoard::iter_pos)
+            .flat_map(|p| MoveGen::new(self, p).generate())
+            .collect()
+    }
 }
 
 impl Default for Board {
     fn default() -> Self {
         Self {
+            mover: Color::W,
             white: Pieces::new(Color::W),
             black: Pieces::new(Color::B),
         }
@@ -46,15 +75,28 @@ impl Default for Board {
 #[cfg(test)]
 mod test {
 
+    use std::mem;
+
     use crate::pieces::Piece;
 
     use super::*;
 
     #[test]
+    fn mover() {
+        let sut = Board::default();
+        assert_eq!(Color::W, sut.mover());
+    }
+
+    #[test]
     fn pieces() {
         let sut = Board::default();
-        assert_eq!(&sut.white, sut.pieces(Color::W));
-        assert_eq!(&sut.black, sut.pieces(Color::B));
+        assert_eq!(&sut.white, sut.pieces());
+    }
+
+    #[test]
+    fn pieces_for() {
+        let sut = Board::default();
+        assert_eq!(&sut.black, sut.pieces_for(Color::B));
     }
 
     #[test]
@@ -101,5 +143,11 @@ mod test {
             Board::default().at(pos).unwrap(),
             Board::default().at_mut(pos).unwrap()
         );
+    }
+
+    #[test]
+    fn size() {
+        assert_eq!(200, mem::size_of::<Board>());
+        assert_eq!(8, mem::size_of::<&Board>());
     }
 }

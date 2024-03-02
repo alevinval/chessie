@@ -7,8 +7,6 @@ use moves::Move;
 use pieces::BitBoard;
 pub use pos::Pos;
 
-use crate::moves::MoveGen;
-
 mod board;
 mod color;
 mod eval;
@@ -51,12 +49,12 @@ pub fn play() {
 
         let to = read_pos();
 
-        Move::Basic { from, to }.apply(&mut board);
+        board = Move::Basic { from, to }.apply(&board);
 
         print_board(&board, &[]);
 
-        let (mov, _) = explore(&board, Color::B, Color::B, -f32::INFINITY, f32::INFINITY, 4);
-        mov.apply(&mut board);
+        let (movement, _) = explore(&board, Color::B, -f32::INFINITY, f32::INFINITY, 4);
+        board = movement.apply(&board);
         print_board(&board, &[]);
     }
 }
@@ -65,10 +63,10 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
     let mut board = Board::default();
 
     for _ in 0..moves {
-        let (mov, eval) = explore(&board, color, color, -f32::INFINITY, f32::INFINITY, depth);
-        println!("{color:?} to play... {mov:?} ({eval})");
+        let (movement, eval) = explore(&board, color, -f32::INFINITY, f32::INFINITY, depth);
+        println!("{color:?} to play... {movement:?} ({eval})");
 
-        mov.apply(&mut board);
+        board = movement.apply(&board);
         Scorer::debug_eval(&board, color);
 
         print_board(&board, &[]);
@@ -77,19 +75,19 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
     }
 }
 
+#[must_use]
 pub fn explore(
     board: &Board,
-    mover: Color,
-    maxing_color: Color,
+    maxer: Color,
     mut alpha: f32,
     mut beta: f32,
     depth: u8,
 ) -> (Move, f32) {
     if depth == 0 {
-        return (Move::None, Scorer::eval(board, maxing_color));
+        return (Move::None, Scorer::eval(board, maxer));
     }
 
-    let mut value: f32 = if mover == maxing_color {
+    let mut value: f32 = if board.mover() == maxer {
         -f32::INFINITY
     } else {
         f32::INFINITY
@@ -97,35 +95,25 @@ pub fn explore(
 
     let mut best = Move::None;
 
-    let mut movements: Vec<_> = board
-        .pieces(mover)
-        .iter()
-        .flat_map(BitBoard::iter_pos)
-        .flat_map(|p| MoveGen::new(board, mover, p).generate())
-        .map(|mov| {
-            let mut b = board.clone();
-            mov.apply(&mut b);
-            let eval = Scorer::eval(&b, maxing_color);
-            (b, eval, mov)
+    let movements = board.movements();
+    let mut evaluated_movements: Vec<_> = movements
+        .into_iter()
+        .map(|movement| {
+            let next = movement.apply(board);
+            let eval = Scorer::eval(&next, maxer);
+            (next, eval, movement)
         })
         .collect();
 
-    movements.sort_by(|a, b| b.1.total_cmp(&a.1));
+    evaluated_movements.sort_by(|a, b| b.1.total_cmp(&a.1));
 
-    for (new_board, _, mov) in movements {
-        let (_, eval) = explore(
-            &new_board,
-            mover.opposite(),
-            maxing_color,
-            alpha,
-            beta,
-            depth - 1,
-        );
+    for (new_board, _, movement) in evaluated_movements {
+        let (_, eval) = explore(&new_board, maxer, alpha, beta, depth - 1);
 
-        if mover == maxing_color {
+        if board.mover() == maxer {
             if eval > value {
                 value = eval;
-                best = mov;
+                best = movement;
             }
             alpha = alpha.max(value);
             if value >= beta {
@@ -134,7 +122,7 @@ pub fn explore(
         } else {
             if eval < value {
                 value = eval;
-                best = mov;
+                best = movement;
             }
             beta = beta.min(value);
             if value <= alpha {
@@ -152,6 +140,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(Color::W, u8::MAX, 3);
+    auto_play(Color::W, u8::MAX, 5);
     // play();
 }

@@ -5,7 +5,7 @@ use crate::{
     Color,
 };
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
     None,
     Basic { from: Pos, to: Pos },
@@ -15,8 +15,14 @@ pub enum Move {
 }
 
 impl Move {
-    pub fn apply(&self, board: &mut Board) {
-        match *self {
+    pub fn apply(self, board: &Board) -> Board {
+        let mut next = board.opposite();
+        self.inner_apply(&mut next);
+        next
+    }
+
+    fn inner_apply(self, board: &mut Board) {
+        match self {
             Move::Basic { from, to } => {
                 Self::clear_dst(board, to);
                 self.apply_move(board, from, to);
@@ -24,7 +30,7 @@ impl Move {
             Move::PawnPromo { from, to, piece } => {
                 Self::clear_dst(board, to);
                 self.apply_move(board, from, to);
-                self.promo(board, to, piece);
+                Self::promo(board, to, piece);
             }
             Move::LeftCastle { mover } => match mover {
                 Color::B => {
@@ -56,11 +62,11 @@ impl Move {
         }
     }
 
-    fn promo<P: Into<Pos>>(&self, board: &mut Board, pos: P, piece: Piece) {
+    fn promo<P: Into<Pos>>(board: &mut Board, pos: P, piece: Piece) {
         let pos = pos.into();
         Self::clear_dst(board, pos);
 
-        let pieces = board.pieces_mut(piece.color());
+        let pieces = board.pieces_mut();
         match piece {
             Piece::Pawn(_) => &mut pieces.pawns,
             Piece::Rook(_, _, _) => &mut pieces.rooks,
@@ -69,10 +75,10 @@ impl Move {
             Piece::Queen(_) => &mut pieces.queen,
             Piece::King(_, _) => unreachable!("cannot promote pawn to king"),
         }
-        .set(pos)
+        .set(pos);
     }
 
-    fn apply_move<P: Into<Pos>>(&self, board: &mut Board, from: P, to: P) {
+    fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
         let from = from.into();
         match board.at_mut(from) {
             Some(bb) => {
@@ -85,14 +91,14 @@ impl Move {
         }
     }
 
-    fn flag_piece_movement(&self, bb: &mut BitBoard) {
+    fn flag_piece_movement(self, bb: &mut BitBoard) {
         bb.update_piece(match bb.piece() {
             Piece::Rook(c, left, right) => match self {
                 Move::Basic { from, to: _ } => {
                     Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
                 }
-                Move::LeftCastle { mover } => Piece::Rook(*mover, true, right),
-                Move::RightCastle { mover } => Piece::Rook(*mover, left, true),
+                Move::LeftCastle { mover } => Piece::Rook(mover, true, right),
+                Move::RightCastle { mover } => Piece::Rook(mover, left, true),
                 Move::None
                 | Move::PawnPromo {
                     from: _,
@@ -103,5 +109,18 @@ impl Move {
             Piece::King(c, _) => Piece::King(c, true),
             piece => piece,
         });
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::mem;
+
+    use super::*;
+
+    #[test]
+    fn size() {
+        assert_eq!(7, mem::size_of::<Move>());
+        assert_eq!(8, mem::size_of::<&Move>());
     }
 }

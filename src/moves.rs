@@ -19,28 +19,26 @@ use self::{
 pub struct MoveGen<'board> {
     board: &'board Board,
     bitboard: &'board BitBoard,
-    mover: Color,
     from: Pos,
 }
 
 impl<'board> MoveGen<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, mover: Color, from: P) -> Self {
+    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
         let bitboard = board
-            .pieces(mover)
+            .pieces()
             .at(from)
             .expect("cannot generate moves for empty position");
 
         Self {
             board,
             bitboard,
-            mover,
             from,
         }
     }
 
     pub fn generate(self) -> Vec<Move> {
-        let mut gen = Generator::new(self.board, self.from, self.mover);
+        let mut gen = Generator::new(self.board, self.from);
         match self.bitboard.piece() {
             Piece::Pawn(color) => match color {
                 Color::B => black_pawn(&mut gen),
@@ -62,8 +60,7 @@ impl<'board> MoveGen<'board> {
     }
 
     fn king_castle(&self, gen: &mut Generator) {
-        let color = self.bitboard.color();
-        let pieces = self.board.pieces(color);
+        let pieces = self.board.pieces();
         if let Piece::King(_, has_moved) = pieces.king.piece() {
             if has_moved {
                 return;
@@ -73,17 +70,21 @@ impl<'board> MoveGen<'board> {
         if let Piece::Rook(_, lrm, rrm) = pieces.rooks.piece() {
             let pos = pieces.king.iter_pos().next().expect("should be there");
             if !rrm {
-                let mut subgen = Generator::new(self.board, pos, self.mover);
+                let mut subgen = Generator::new(self.board, pos);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    gen.mov(Move::RightCastle { mover: color });
+                    gen.mov(Move::RightCastle {
+                        mover: self.board.mover(),
+                    });
                 }
             }
             if !lrm {
-                let mut subgen = Generator::new(self.board, pos, self.mover);
+                let mut subgen = Generator::new(self.board, pos);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    gen.mov(Move::LeftCastle { mover: color });
+                    gen.mov(Move::LeftCastle {
+                        mover: self.board.mover(),
+                    });
                 }
             }
         }
