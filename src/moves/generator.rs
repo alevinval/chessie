@@ -160,17 +160,11 @@ impl<'board> Generator<'board> {
                 .next()
                 .expect("should have a king");
 
-            next.pseudo_movements().iter().all(|m| match m {
-                Move::Slide { from: _, to } => *to != king_pos,
-                Move::PawnPromo {
-                    from: _,
-                    to: _,
-                    piece: _,
-                }
-                | Move::LeftCastle { mover: _ }
-                | Move::RightCastle { mover: _ }
-                | Move::None => true,
-            })
+            !next
+                .pseudo_movements()
+                .iter()
+                .filter_map(|m| m.to())
+                .any(|to| to == king_pos)
         } else {
             true
         }

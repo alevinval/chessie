@@ -22,6 +22,18 @@ impl Move {
         next
     }
 
+    pub fn to(self) -> Option<Pos> {
+        match self {
+            Move::Slide { from: _, to }
+            | Move::PawnPromo {
+                from: _,
+                to,
+                piece: _,
+            } => Some(to),
+            Move::None | Move::LeftCastle { mover: _ } | Move::RightCastle { mover: _ } => None,
+        }
+    }
+
     fn inner_apply(self, board: &mut Board) {
         match self {
             Move::Slide { from, to } => {
@@ -118,6 +130,27 @@ mod test {
     use std::mem;
 
     use super::*;
+
+    const FROM: Pos = Pos::new(1, 1);
+    const TO: Pos = Pos::new(3, 3);
+
+    #[test]
+    fn to() {
+        assert!(Move::None.to().is_none());
+        assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to().unwrap());
+        assert_eq!(
+            TO,
+            Move::PawnPromo {
+                from: FROM,
+                to: TO,
+                piece: Piece::Pawn(Color::W),
+            }
+            .to()
+            .unwrap()
+        );
+        assert!(Move::LeftCastle { mover: Color::W }.to().is_none());
+        assert!(Move::RightCastle { mover: Color::W }.to().is_none());
+    }
 
     #[test]
     fn size() {
