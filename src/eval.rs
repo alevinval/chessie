@@ -26,56 +26,24 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f32 {
+        if board.pieces_for(color).king.is_empty() {
+            return f32::NEG_INFINITY;
+        } else if board.pieces_for(color.opposite()).king.is_empty() {
+            return f32::INFINITY;
+        }
+
         let material_score: f32 = board
             .pieces_for(color)
             .iter()
             .map(Self::score_bitboard)
             .sum();
 
-        let mut space_score: f32 = board
-            .pieces_for(color)
-            .iter()
-            .flat_map(|bb| {
-                bb.iter_pos().map(|p| {
-                    if p.is_central() && bb.piece().is_pawn() {
-                        0.3
-                    } else if !bb.piece().is_pawn() && p.row() == color.piece_row() as u8 {
-                        -0.1
-                    } else if p.is_central() {
-                        0.1
-                    } else {
-                        0.0
-                    }
-                })
-            })
-            .sum();
-        space_score /= 10.0;
-
-        // let mut king_score = 0.0;
-
-        // let king = &board.pieces_for(color).king;
-        // if let Piece::King(_, moved) = king.piece() {
-        //     if let Piece::Rook(_, left, right) = &board.pieces_for(color).rooks.piece() {
-        //         if !moved && !right {
-        //             king_score -= 0.2;
-        //         } else if !moved && !left {
-        //             king_score -= 0.1;
-        //         }
-        //     }
-        // }
-
-        let total = material_score + space_score;
-
         if debug {
-            println!("----");
-            println!("{color:?}:");
+            println!("{color:?}");
             println!("  material: {material_score}");
-            println!("     space: {space_score}");
-            // println!("      king: {king_score}");
-            println!("     total: {total}");
         }
 
-        total
+        material_score
     }
 
     fn score_piece(piece: Piece) -> f32 {
