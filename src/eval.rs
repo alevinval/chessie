@@ -38,38 +38,40 @@ impl Scorer {
             .flat_map(|bb| {
                 bb.iter_pos().map(|p| {
                     if p.is_central() && bb.piece().is_pawn() {
-                        1.01
+                        0.3
                     } else if !bb.piece().is_pawn() && p.row() == color.piece_row() as u8 {
-                        0.95
+                        -0.1
+                    } else if p.is_central() {
+                        0.1
                     } else {
-                        1.0
+                        0.0
                     }
                 })
             })
             .sum();
-        space_score /= 100.0;
+        space_score /= 10.0;
 
-        let mut king_score = 0.0;
+        // let mut king_score = 0.0;
 
-        let king = &board.pieces_for(color).king;
-        if let Piece::King(_, moved) = king.piece() {
-            if let Piece::Rook(_, left, right) = &board.pieces_for(color).rooks.piece() {
-                if !moved && !right {
-                    king_score -= 0.2;
-                } else if !moved && !left {
-                    king_score -= 0.1;
-                }
-            }
-        }
+        // let king = &board.pieces_for(color).king;
+        // if let Piece::King(_, moved) = king.piece() {
+        //     if let Piece::Rook(_, left, right) = &board.pieces_for(color).rooks.piece() {
+        //         if !moved && !right {
+        //             king_score -= 0.2;
+        //         } else if !moved && !left {
+        //             king_score -= 0.1;
+        //         }
+        //     }
+        // }
 
-        let total = material_score + space_score + king_score;
+        let total = material_score + space_score;
 
         if debug {
             println!("----");
             println!("{color:?}:");
             println!("  material: {material_score}");
             println!("     space: {space_score}");
-            println!("      king: {king_score}");
+            // println!("      king: {king_score}");
             println!("     total: {total}");
         }
 
@@ -83,14 +85,21 @@ impl Scorer {
             Piece::Knight(_) => 2.8,
             Piece::Bishop(_) => 3.0,
             Piece::Queen(_) => 9.0,
-            Piece::King(_, _) => 25.0,
+            Piece::King(_, _) => 0.0,
         }
     }
 
     fn score_bitboard(bitboard: &BitBoard) -> f32 {
         bitboard
             .iter_pos()
-            .map(|p| Self::score_piece(bitboard.piece()) + if p.is_central() { 0.25 } else { 0.0 })
+            .map(|p| {
+                Self::score_piece(bitboard.piece())
+                    + if p.is_central() && bitboard.piece().is_pawn() {
+                        0.25
+                    } else {
+                        0.0
+                    }
+            })
             .sum()
     }
 }
