@@ -49,8 +49,8 @@ impl BitBoard {
         self.value == 0
     }
 
-    pub fn has_piece<P: Into<Pos>>(&self, pos: P) -> bool {
-        rshiftpos(self.value, pos.into()) == 1
+    pub fn has_piece<P: Into<u64>>(&self, pos: P) -> bool {
+        self.value & pos.into() != 0
     }
 
     pub fn slide<P: Into<u64>>(&mut self, from: P, to: P) {
@@ -83,7 +83,7 @@ impl BitBoard {
         rows.flat_map(move |row| {
             let ro = row * 8;
             (0..8).filter_map(move |col| {
-                if self.value >> (ro + col) & 1 == 1 {
+                if self.value & (1 << (ro + col)) != 0 {
                     Some((row, col).into())
                 } else {
                     None
@@ -92,11 +92,6 @@ impl BitBoard {
         })
         .take(self.cnt as usize)
     }
-}
-
-fn rshiftpos(value: u64, pos: Pos) -> u64 {
-    let other: u64 = pos.into();
-    (value & other) >> (pos.row() * 8 + pos.col())
 }
 
 impl From<Pos> for u64 {
