@@ -122,7 +122,12 @@ pub fn explore(
     evaluated_movements.sort_by(|a, b| b.1.total_cmp(&a.1));
 
     let mut best = *movements.first().unwrap_or(&Move::None);
-    for (new_board, _, movement) in evaluated_movements {
+    for (new_board, eval, movement) in evaluated_movements {
+        if eval == f32::INFINITY {
+            return (*movement, eval);
+        } else if eval == f32::NEG_INFINITY {
+            continue;
+        }
         let (_, eval) = explore(&new_board, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
