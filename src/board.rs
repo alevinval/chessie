@@ -48,8 +48,8 @@ impl Board {
     }
 
     #[must_use]
-    pub fn movements(&self) -> Vec<Move> {
-        self.pieces()
+    pub fn movements(&self, color: Color) -> Vec<Move> {
+        self.pieces_for(color)
             .iter()
             .flat_map(BitBoard::iter_pos)
             .flat_map(|p| MoveGen::new(self, p).generate(true))
@@ -57,8 +57,8 @@ impl Board {
     }
 
     #[must_use]
-    pub fn pseudo_movements(&self) -> Vec<Move> {
-        self.pieces()
+    pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
+        self.pieces_for(color)
             .iter()
             .flat_map(BitBoard::iter_pos)
             .flat_map(|p| MoveGen::new(self, p).generate(false))

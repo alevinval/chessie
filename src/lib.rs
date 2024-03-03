@@ -67,9 +67,8 @@ pub fn auto_play(mut mover: Color, moves: u8, depth: u8) {
         if matches!(movement, Move::None) {
             let king_pos = board.pieces().king.iter_pos().next().unwrap();
 
-            board.next_turn();
             if board
-                .pseudo_movements()
+                .pseudo_movements(board.mover().opposite())
                 .iter()
                 .filter_map(|m| m.to())
                 .any(|p| p == king_pos)
@@ -111,7 +110,7 @@ pub fn explore(
         f32::INFINITY
     };
 
-    let movements = board.movements();
+    let movements = board.movements(board.mover());
     let mut evaluated_movements: Vec<_> = movements
         .iter()
         .map(|movement| {

@@ -164,7 +164,7 @@ impl<'board> Generator<'board> {
             .expect("should have a king");
 
         !next
-            .pseudo_movements()
+            .pseudo_movements(next.mover())
             .iter()
             .filter_map(|m| m.to())
             .any(|to| to == opponent_king_before || to == mover_king_after)
