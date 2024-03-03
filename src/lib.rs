@@ -57,26 +57,39 @@ pub fn play() {
     }
 }
 
-pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
+pub fn auto_play(mut mover: Color, moves: u8, depth: u8) {
     let mut board = Board::default();
 
     for _ in 0..moves {
-        let (movement, eval) = explore(&board, color, -f32::INFINITY, f32::INFINITY, depth);
-        println!("{color:?} to play... {movement:?} ({eval})");
+        let (movement, eval) = explore(&board, mover, -f32::INFINITY, f32::INFINITY, depth);
+
+        println!("{mover:?} to play... {movement:?} ({eval})");
         if matches!(movement, Move::None) {
-            println!("Winner is {:?}", color.opposite());
+            let king_pos = board.pieces().king.iter_pos().next().unwrap();
+
+            board.next_turn();
+            if board
+                .pseudo_movements()
+                .iter()
+                .filter_map(|m| m.to())
+                .any(|p| p == king_pos)
+            {
+                println!("{:?} wins by checkmate", mover.opposite());
+            } else {
+                println!("stalemate");
+            }
             return;
         }
 
         board = movement.apply(&board);
-        Scorer::debug_eval(&board, color);
+        Scorer::debug_eval(&board, mover);
 
         print_board(
             &board,
             &movement.from().map(|f| vec![f]).unwrap_or_default(),
         );
 
-        color = color.opposite();
+        mover = mover.opposite();
     }
 }
 
