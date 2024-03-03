@@ -57,38 +57,49 @@ pub fn play() {
     }
 }
 
-pub fn auto_play(mut mover: Color, moves: u8, depth: u8) {
+pub fn auto_play(moves: u8, depth: u8) {
     let mut board = Board::default();
 
     for _ in 0..moves {
-        let (movement, eval) = explore(&board, mover, -f32::INFINITY, f32::INFINITY, depth);
+        let pc = board.piece_count();
+        let bonus = if pc < 6 {
+            3
+        } else if pc < 10 {
+            2
+        } else if pc < 16 {
+            1
+        } else {
+            0
+        };
+        let depth = match board.mover() {
+            Color::B => depth,
+            Color::W => depth + bonus,
+        };
+        let (movement, eval) = explore(&board, board.mover(), -f32::INFINITY, f32::INFINITY, depth);
 
-        println!("{mover:?} to play... {movement:?} ({eval})");
+        println!("{:?} to play... {movement:?} ({eval})", board.mover());
         if matches!(movement, Move::None) {
             let king_pos = board.pieces().king.iter_pos().next().unwrap();
-
             if board
                 .pseudo_movements(board.mover().opposite())
                 .iter()
                 .filter_map(|m| m.to())
                 .any(|p| p == king_pos)
             {
-                println!("{:?} wins by checkmate", mover.opposite());
-            } else {
-                println!("stalemate");
+                println!("{:?} wins by checkmate", board.mover().opposite());
+                return;
             }
+
+            println!("stalemate");
             return;
         }
 
         board = movement.apply(&board);
-        Scorer::debug_eval(&board, mover);
 
         print_board(
             &board,
             &movement.from().map(|f| vec![f]).unwrap_or_default(),
         );
-
-        mover = mover.opposite();
     }
 }
 
@@ -126,7 +137,7 @@ pub fn explore(
         if eval == f32::INFINITY {
             return (*movement, eval);
         } else if eval == f32::NEG_INFINITY {
-            continue;
+            return (Move::None, eval);
         }
         let (_, eval) = explore(&new_board, maxer, alpha, beta, depth - 1);
 
@@ -155,6 +166,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(Color::W, u8::MAX, 5);
+    auto_play(u8::MAX, 4);
     // play();
 }

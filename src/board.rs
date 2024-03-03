@@ -64,6 +64,23 @@ impl Board {
             .flat_map(|p| MoveGen::new(self, p).generate(false))
             .collect()
     }
+
+    #[must_use]
+    pub fn piece_count(&self) -> usize {
+        let w: usize = self
+            .pieces_for(Color::W)
+            .iter()
+            .map(|bb| bb.iter_pos().count())
+            .sum();
+
+        let b: usize = self
+            .pieces_for(Color::B)
+            .iter()
+            .map(|bb| bb.iter_pos().count())
+            .sum();
+
+        w + b
+    }
 }
 
 impl Default for Board {
