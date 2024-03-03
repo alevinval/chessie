@@ -34,6 +34,21 @@ impl Move {
         }
     }
 
+    pub fn from(self) -> Option<Pos> {
+        match self {
+            Move::None => None,
+            Move::Slide { from, to: _ }
+            | Move::PawnPromo {
+                from,
+                to: _,
+                piece: _,
+            } => Some(from),
+            Move::LeftCastle { mover } | Move::RightCastle { mover } => {
+                Some((mover.piece_row(), 4).into())
+            }
+        }
+    }
+
     fn inner_apply(self, board: &mut Board) {
         match self {
             Move::Slide { from, to } => {
@@ -150,6 +165,38 @@ mod test {
         );
         assert!(Move::LeftCastle { mover: Color::W }.to().is_none());
         assert!(Move::RightCastle { mover: Color::W }.to().is_none());
+    }
+
+    #[test]
+    fn from() {
+        assert!(Move::None.from().is_none());
+        assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from().unwrap());
+        assert_eq!(
+            FROM,
+            Move::PawnPromo {
+                from: FROM,
+                to: TO,
+                piece: Piece::Pawn(Color::W),
+            }
+            .from()
+            .unwrap()
+        );
+        assert_eq!(
+            Pos::new(0, 4),
+            Move::LeftCastle { mover: Color::W }.from().unwrap()
+        );
+        assert_eq!(
+            Pos::new(7, 4),
+            Move::LeftCastle { mover: Color::B }.from().unwrap()
+        );
+        assert_eq!(
+            Pos::new(0, 4),
+            Move::RightCastle { mover: Color::W }.from().unwrap()
+        );
+        assert_eq!(
+            Pos::new(7, 4),
+            Move::RightCastle { mover: Color::B }.from().unwrap()
+        );
     }
 
     #[test]

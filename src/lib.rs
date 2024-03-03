@@ -4,7 +4,6 @@ use board::Board;
 pub use color::Color;
 use eval::Scorer;
 use moves::Move;
-use pieces::BitBoard;
 pub use pos::Pos;
 
 mod board;
@@ -14,12 +13,12 @@ mod moves;
 mod pieces;
 mod pos;
 
-fn print_board(board: &Board, highlights: &[BitBoard]) {
+fn print_board(board: &Board, highlights: &[Pos]) {
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
             let pos: Pos = (row, col).into();
-            let mark = highlights.iter().find(|h| h.has_piece(pos)).map(|_| "@");
+            let mark = highlights.iter().find(|p| **p == pos).map(|_| "•");
             let piece = board.at(pos).map_or(" ", |set| set.piece().as_str());
             print!("| {} ", mark.unwrap_or(piece));
         }
@@ -72,7 +71,10 @@ pub fn auto_play(mut color: Color, moves: u8, depth: u8) {
         board = movement.apply(&board);
         Scorer::debug_eval(&board, color);
 
-        print_board(&board, &[]);
+        print_board(
+            &board,
+            &movement.from().map(|f| vec![f]).unwrap_or_default(),
+        );
 
         color = color.opposite();
     }
