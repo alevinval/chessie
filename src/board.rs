@@ -43,13 +43,8 @@ impl Board {
         self.white.at_mut(pos).or_else(|| self.black.at_mut(pos))
     }
 
-    #[must_use]
-    pub fn next_turn(&self) -> Self {
-        Self {
-            mover: self.mover.opposite(),
-            white: self.white,
-            black: self.black,
-        }
+    pub fn next_turn(&mut self) {
+        self.mover = self.mover.opposite();
     }
 
     #[must_use]

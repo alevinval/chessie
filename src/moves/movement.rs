@@ -16,8 +16,9 @@ pub enum Move {
 
 impl Move {
     pub fn apply(self, board: &Board) -> Board {
-        let mut next = board.next_turn();
+        let mut next = board.clone();
         self.inner_apply(&mut next);
+        next.next_turn();
         next
     }
 
