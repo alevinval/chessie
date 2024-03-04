@@ -83,7 +83,7 @@ impl BitBoard {
         rows.flat_map(move |row| {
             let ro = row * 8;
             (0..8).filter_map(move |col| {
-                if self.value & (1 << (ro + col)) != 0 {
+                if self.value & (1 << (ro + col)) > 0 {
                     Some((row, col).into())
                 } else {
                     None
