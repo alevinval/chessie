@@ -8,24 +8,24 @@ use crate::{
 pub struct Scorer {}
 
 impl Scorer {
-    pub fn eval(board: &Board, color: Color) -> f32 {
-        Self::inner_eval(board, color, false)
+    pub fn eval(board: &Board, maxer: Color) -> f32 {
+        Self::inner_eval(board, maxer, false)
     }
 
-    pub fn debug_eval(board: &Board, color: Color) -> f32 {
-        Self::inner_eval(board, color, true)
+    pub fn debug_eval(board: &Board, maxer: Color) -> f32 {
+        Self::inner_eval(board, maxer, true)
     }
 
-    fn inner_eval(board: &Board, color: Color, debug: bool) -> f32 {
-        if board.pieces_for(color).king.is_empty() {
+    fn inner_eval(board: &Board, maxer: Color, debug: bool) -> f32 {
+        if board.pieces_for(maxer).king.is_empty() {
             return f32::NEG_INFINITY;
-        } else if board.pieces_for(color.opposite()).king.is_empty() {
+        } else if board.pieces_for(maxer.opposite()).king.is_empty() {
             return f32::INFINITY;
         }
 
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
-        match color {
+        match maxer {
             Color::B => black - white,
             Color::W => white - black,
         }

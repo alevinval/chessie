@@ -111,7 +111,10 @@ pub fn explore(
     mut beta: f32,
     depth: u8,
 ) -> (Move, f32) {
-    if depth == 0 {
+    if depth == 0
+        || board.pieces().king.is_empty()
+        || board.pieces_for(board.mover().opposite()).king.is_empty()
+    {
         return (Move::None, Scorer::eval(board, maxer));
     }
 
@@ -127,42 +130,37 @@ pub fn explore(
         .map(|movement| {
             let next = movement.apply(board);
             let eval = Scorer::eval(&next, maxer);
-            (next, eval, movement)
+            (next, movement, eval)
         })
         .collect();
-    evaluated_movements.sort_by(|a, b| b.1.total_cmp(&a.1));
+    evaluated_movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
-    let mut best = *movements.first().unwrap_or(&Move::None);
-    for (new_board, eval, movement) in evaluated_movements {
-        if eval == f32::INFINITY {
-            return (*movement, eval);
-        } else if eval == f32::NEG_INFINITY {
-            return (Move::None, eval);
-        }
-        let (_, eval) = explore(&new_board, maxer, alpha, beta, depth - 1);
+    let mut best = movements.first().unwrap_or(&Move::None);
+    for (child, movement, _) in evaluated_movements.iter_mut() {
+        let (_, eval) = explore(child, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
             if eval > value {
                 value = eval;
-                best = *movement;
+                alpha = alpha.max(value);
+                best = movement;
             }
-            alpha = alpha.max(value);
             if value >= beta {
                 break;
             }
         } else {
             if eval < value {
                 value = eval;
-                best = *movement;
+                beta = beta.min(value);
+                best = movement;
             }
-            beta = beta.min(value);
             if value <= alpha {
                 break;
             }
         }
     }
 
-    (best, value)
+    (*best, value)
 }
 
 pub fn main() {
