@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::{
     board::Board,
     pieces::{BitBoard, Piece},
@@ -32,11 +34,14 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f32 {
-        let material_score: f32 = board
+        let mut material_score: f32 = board
             .pieces_for(color)
             .iter()
             .map(Self::score_bitboard)
             .sum();
+
+        let mut rng = rand::thread_rng();
+        material_score += rng.gen_range(-0.001..0.001);
 
         if debug {
             println!("{color:?}");

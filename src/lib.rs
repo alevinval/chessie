@@ -57,7 +57,7 @@ pub fn play() {
     }
 }
 
-pub fn auto_play(moves: u8, depth: u8) {
+pub fn auto_play(moves: usize, depth: u8) {
     let mut board = Board::default();
 
     for _ in 0..moves {
@@ -164,6 +164,6 @@ pub fn explore(
 }
 
 pub fn main() {
-    auto_play(u8::MAX, 4);
+    auto_play(500, 4);
     // play();
 }
