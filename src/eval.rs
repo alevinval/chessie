@@ -17,6 +17,12 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, color: Color, debug: bool) -> f32 {
+        if board.pieces_for(color).king.is_empty() {
+            return f32::NEG_INFINITY;
+        } else if board.pieces_for(color.opposite()).king.is_empty() {
+            return f32::INFINITY;
+        }
+
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
         match color {
@@ -26,12 +32,6 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f32 {
-        if board.pieces_for(color).king.is_empty() {
-            return f32::NEG_INFINITY;
-        } else if board.pieces_for(color.opposite()).king.is_empty() {
-            return f32::INFINITY;
-        }
-
         let material_score: f32 = board
             .pieces_for(color)
             .iter()
