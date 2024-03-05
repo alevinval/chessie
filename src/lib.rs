@@ -112,12 +112,6 @@ pub fn explore(
         return (Move::None, Scorer::eval(board, maxer, false));
     }
 
-    let mut value: f32 = if board.mover() == maxer {
-        -f32::INFINITY
-    } else {
-        f32::INFINITY
-    };
-
     let movements = board.movements(board.mover());
     let mut evaluated_movements: Vec<_> = movements
         .iter()
@@ -129,7 +123,12 @@ pub fn explore(
         .collect();
     evaluated_movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
-    let mut best = *evaluated_movements
+    let mut best_eval = if board.mover() == maxer {
+        -f32::INFINITY
+    } else {
+        f32::INFINITY
+    };
+    let mut best_move = *evaluated_movements
         .first()
         .map(|r| r.1)
         .unwrap_or(&Move::None);
@@ -138,31 +137,31 @@ pub fn explore(
         let (_, eval) = explore(&child, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
-            if eval > value {
-                value = eval;
-                alpha = alpha.max(value);
-                best = *movement;
+            if eval > best_eval {
+                best_eval = eval;
+                alpha = alpha.max(best_eval);
+                best_move = *movement;
             }
-            if value >= beta {
+            if best_eval >= beta {
                 break;
             }
         } else {
-            if eval < value {
-                value = eval;
-                beta = beta.min(value);
-                best = *movement;
+            if eval < best_eval {
+                best_eval = eval;
+                beta = beta.min(best_eval);
+                best_move = *movement;
             }
-            if value <= alpha {
+            if best_eval <= alpha {
                 break;
             }
         }
     }
 
-    if best == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
+    if best_move == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
         return (Move::None, f32::NEG_INFINITY);
     }
 
-    (best, value)
+    (best_move, best_eval)
 }
 
 pub fn main() {
