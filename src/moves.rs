@@ -113,10 +113,10 @@ fn black_pawn(g: &mut Generator) {
         if g.check_dir(Dir::Down(1), is_empty).placed() {
             g.pawn_promo(Dir::Down(1));
         }
-        if g.check_dir(Dir::Custom(-1, 1), takes).placed() {
+        if g.col() < 7 && g.check_dir(Dir::Custom(-1, 1), takes).placed() {
             g.pawn_promo(Dir::Custom(-1, 1));
         }
-        if g.check_dir(Dir::Custom(-1, -1), takes).placed() {
+        if g.col() > 0 && g.check_dir(Dir::Custom(-1, -1), takes).placed() {
             g.pawn_promo(Dir::Custom(-1, -1));
         }
     }
@@ -137,10 +137,10 @@ fn white_pawn(g: &mut Generator) {
         if g.check_dir(Dir::Up(1), is_empty).placed() {
             g.pawn_promo(Dir::Up(1));
         }
-        if g.check_dir(Dir::Custom(1, 1), takes).placed() {
+        if g.col() < 7 && g.check_dir(Dir::Custom(1, 1), takes).placed() {
             g.pawn_promo(Dir::Custom(1, 1));
         }
-        if g.check_dir(Dir::Custom(1, -1), takes).placed() {
+        if g.col() > 0 && g.check_dir(Dir::Custom(1, -1), takes).placed() {
             g.pawn_promo(Dir::Custom(1, -1));
         }
     }
