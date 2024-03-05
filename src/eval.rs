@@ -25,9 +25,7 @@ impl Scorer {
             return f32::INFINITY;
         }
 
-        let mut rng = rand::thread_rng();
-        let offset = rng.gen_range(0.0..0.00001);
-
+        let offset = rand::thread_rng().gen_range(-0.00001..0.00001);
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
         let score = match maxer {
