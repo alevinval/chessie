@@ -62,16 +62,6 @@ impl Scorer {
     }
 
     fn score_bitboard(bitboard: &BitBoard) -> f32 {
-        bitboard
-            .iter_pos()
-            .map(|p| {
-                Self::score_piece(bitboard.piece())
-                    + if p.is_central() && bitboard.piece().is_pawn() {
-                        0.25
-                    } else {
-                        0.0
-                    }
-            })
-            .sum()
+        bitboard.iter_pos().count() as f32 * Self::score_piece(bitboard.piece())
     }
 }
