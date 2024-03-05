@@ -129,15 +129,19 @@ pub fn explore(
         .collect();
     evaluated_movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
-    let mut best = movements.first().unwrap_or(&Move::None);
-    for (child, movement, _) in evaluated_movements.iter_mut() {
-        let (_, eval) = explore(child, maxer, alpha, beta, depth - 1);
+    let mut best = *evaluated_movements
+        .first()
+        .map(|r| r.1)
+        .unwrap_or(&Move::None);
+
+    for (child, movement, _) in evaluated_movements {
+        let (_, eval) = explore(&child, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
             if eval > value {
                 value = eval;
                 alpha = alpha.max(value);
-                best = movement;
+                best = *movement;
             }
             if value >= beta {
                 break;
@@ -146,7 +150,7 @@ pub fn explore(
             if eval < value {
                 value = eval;
                 beta = beta.min(value);
-                best = movement;
+                best = *movement;
             }
             if value <= alpha {
                 break;
@@ -154,11 +158,11 @@ pub fn explore(
         }
     }
 
-    if *best == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
+    if best == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
         return (Move::None, f32::NEG_INFINITY);
     }
 
-    (*best, value)
+    (best, value)
 }
 
 pub fn main() {
