@@ -154,6 +154,10 @@ pub fn explore(
         }
     }
 
+    if *best == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
+        return (Move::None, f32::NEG_INFINITY);
+    }
+
     (*best, value)
 }
 
