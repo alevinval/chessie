@@ -8,6 +8,7 @@ pub struct Board {
     mover: Color,
     white: Pieces,
     black: Pieces,
+    n: usize,
 }
 
 impl Board {
@@ -45,6 +46,11 @@ impl Board {
 
     pub fn next_turn(&mut self) {
         self.mover = self.mover.opposite();
+        self.n += 1;
+    }
+
+    pub fn n(&self) -> usize {
+        self.n
     }
 
     #[must_use]
@@ -102,6 +108,7 @@ impl Default for Board {
             mover: Color::W,
             white: Pieces::new(Color::W),
             black: Pieces::new(Color::B),
+            n: 0,
         }
     }
 }
