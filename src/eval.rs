@@ -10,22 +10,26 @@ use crate::{
 pub struct Scorer {}
 
 impl Scorer {
-    pub fn eval(board: &Board, maxer: Color) -> f32 {
-        Self::inner_eval(board, maxer, false)
+    pub fn eval(board: &Board, maxer: Color, jitter: bool) -> f32 {
+        Self::inner_eval(board, maxer, false, jitter)
     }
 
     pub fn debug_eval(board: &Board, maxer: Color) -> f32 {
-        Self::inner_eval(board, maxer, true)
+        Self::inner_eval(board, maxer, true, false)
     }
 
-    fn inner_eval(board: &Board, maxer: Color, debug: bool) -> f32 {
+    fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f32 {
         if board.pieces_for(maxer).king.is_empty() {
             return f32::NEG_INFINITY;
         } else if board.pieces_for(maxer.opposite()).king.is_empty() {
             return f32::INFINITY;
         }
 
-        let offset = rand::thread_rng().gen_range(-0.00001..0.00001);
+        let offset = if jitter {
+            rand::thread_rng().gen_range(-0.00001..0.00001)
+        } else {
+            0.0
+        };
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
         let score = match maxer {

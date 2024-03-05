@@ -109,7 +109,7 @@ pub fn explore(
         || board.pieces().king.is_empty()
         || board.pieces_for(board.mover().opposite()).king.is_empty()
     {
-        return (Move::None, Scorer::eval(board, maxer));
+        return (Move::None, Scorer::eval(board, maxer, false));
     }
 
     let mut value: f32 = if board.mover() == maxer {
@@ -123,7 +123,7 @@ pub fn explore(
         .iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, maxer);
+            let eval = Scorer::eval(&next, maxer, true);
             (next, movement, eval)
         })
         .collect();
