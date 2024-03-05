@@ -79,13 +79,7 @@ pub fn auto_play(moves: usize, depth: u8) {
 
         println!("{:?} to play... {movement:?} ({eval})", board.mover());
         if matches!(movement, Move::None) {
-            let king_pos = board.pieces().king.iter_pos().next().unwrap();
-            if board
-                .pseudo_movements(board.mover().opposite())
-                .iter()
-                .filter_map(|m| m.to())
-                .any(|p| p == king_pos)
-            {
+            if board.in_check(board.mover()) {
                 println!("{:?} wins by checkmate", board.mover().opposite());
                 return;
             }

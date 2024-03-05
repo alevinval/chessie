@@ -81,6 +81,19 @@ impl Board {
 
         w + b
     }
+
+    pub fn in_check(&self, color: Color) -> bool {
+        let king = self.pieces_for(color).king.iter_pos().next();
+
+        match king {
+            Some(king) => self
+                .pseudo_movements(color.opposite())
+                .iter()
+                .filter_map(|m| m.to())
+                .any(|to| to == king),
+            None => true,
+        }
+    }
 }
 
 impl Default for Board {

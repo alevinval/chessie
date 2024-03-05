@@ -148,26 +148,7 @@ impl<'board> Generator<'board> {
 
     fn is_legal(&self, movement: Move) -> bool {
         let next = movement.apply(self.board);
-        let opponent_king_before = self
-            .board
-            .pieces_for(next.mover())
-            .king
-            .iter_pos()
-            .next()
-            .expect("should have a king");
-
-        let mover_king_after = next
-            .pieces_for(self.board.mover())
-            .king
-            .iter_pos()
-            .next()
-            .expect("should have a king");
-
-        !next
-            .pseudo_movements(next.mover())
-            .iter()
-            .filter_map(|m| m.to())
-            .any(|to| to == opponent_king_before || to == mover_king_after)
+        !next.in_check(self.board.mover())
     }
 }
 
