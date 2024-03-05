@@ -25,23 +25,24 @@ impl Scorer {
             return f32::INFINITY;
         }
 
+        let mut rng = rand::thread_rng();
+        let offset = rng.gen_range(0.0..0.00001);
+
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
-        match maxer {
+        let score = match maxer {
             Color::B => black - white,
             Color::W => white - black,
-        }
+        };
+        score + offset
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f32 {
-        let mut material_score: f32 = board
+        let material_score: f32 = board
             .pieces_for(color)
             .iter()
             .map(Self::score_bitboard)
             .sum();
-
-        let mut rng = rand::thread_rng();
-        material_score += rng.gen_range(-0.001..0.001);
 
         if debug {
             println!("{color:?}");
