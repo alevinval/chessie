@@ -77,7 +77,11 @@ pub fn auto_play(moves: usize, depth: u8) {
         };
         let (movement, eval) = explore(&board, board.mover(), -f32::INFINITY, f32::INFINITY, depth);
 
-        println!("{:?} to play... {movement:?} ({eval})", board.mover());
+        println!(
+            "{} => {:?} to play... {movement:?} ({eval})",
+            board.n(),
+            board.mover()
+        );
         if matches!(movement, Move::None) {
             if board.in_check(board.mover()) {
                 println!("{:?} wins by checkmate", board.mover().opposite());
@@ -109,7 +113,7 @@ pub fn explore(
         || board.pieces().king.is_empty()
         || board.pieces_for(board.mover().opposite()).king.is_empty()
     {
-        return (Move::None, Scorer::eval(board, maxer, false));
+        return (Move::None, Scorer::eval(board, maxer, true));
     }
 
     let movements = board.movements(board.mover());
