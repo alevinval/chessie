@@ -57,7 +57,7 @@ pub fn play() {
     }
 }
 
-pub fn auto_play(moves: usize, depth: u8) {
+pub fn auto_play(moves: usize, depth: usize) {
     let mut board = Board::default();
 
     for _ in 0..moves {
@@ -107,13 +107,16 @@ pub fn explore(
     maxer: Color,
     mut alpha: f32,
     mut beta: f32,
-    depth: u8,
+    depth: usize,
 ) -> (Move, f32) {
     if depth == 0
         || board.pieces().king.is_empty()
         || board.pieces_for(board.mover().opposite()).king.is_empty()
     {
-        return (Move::None, Scorer::eval(board, maxer, true));
+        return (
+            Move::None,
+            Scorer::eval(board, maxer, board.mover() == maxer),
+        );
     }
 
     let movements = board.movements(board.mover());
@@ -121,7 +124,7 @@ pub fn explore(
         .iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, maxer, true);
+            let eval = Scorer::eval(&next, maxer, board.mover() == maxer);
             (next, movement, eval)
         })
         .collect();
