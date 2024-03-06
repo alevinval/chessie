@@ -10,19 +10,19 @@ use crate::{
 pub struct Scorer {}
 
 impl Scorer {
-    pub fn eval(board: &Board, maxer: Color, jitter: bool) -> f32 {
+    pub fn eval(board: &Board, maxer: Color, jitter: bool) -> f64 {
         Self::inner_eval(board, maxer, false, jitter)
     }
 
-    pub fn debug_eval(board: &Board, maxer: Color) -> f32 {
+    pub fn debug_eval(board: &Board, maxer: Color) -> f64 {
         Self::inner_eval(board, maxer, true, false)
     }
 
-    fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f32 {
+    fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
         if board.pieces_for(maxer).king.is_empty() {
-            return f32::NEG_INFINITY;
+            return f64::NEG_INFINITY;
         } else if board.pieces_for(maxer.opposite()).king.is_empty() {
-            return f32::INFINITY;
+            return f64::INFINITY;
         }
 
         let offset = if jitter {
@@ -39,8 +39,8 @@ impl Scorer {
         score + offset
     }
 
-    fn score(board: &Board, color: Color, debug: bool) -> f32 {
-        let material_score: f32 = board
+    fn score(board: &Board, color: Color, debug: bool) -> f64 {
+        let material_score: f64 = board
             .pieces_for(color)
             .iter()
             .map(Self::score_bitboard)
@@ -54,7 +54,7 @@ impl Scorer {
         material_score
     }
 
-    fn score_piece(piece: Piece) -> f32 {
+    fn score_piece(piece: Piece) -> f64 {
         match piece {
             Piece::Pawn(_) => 1.0,
             Piece::Rook(_, _, _) => 5.0,
@@ -65,7 +65,7 @@ impl Scorer {
         }
     }
 
-    fn score_bitboard(bitboard: &BitBoard) -> f32 {
-        bitboard.iter_pos().count() as f32 * Self::score_piece(bitboard.piece())
+    fn score_bitboard(bitboard: &BitBoard) -> f64 {
+        bitboard.iter_pos().count() as f64 * Self::score_piece(bitboard.piece())
     }
 }

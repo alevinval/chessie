@@ -51,7 +51,7 @@ pub fn play() {
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
-        let (movement, _) = explore(&board, Color::B, -f32::INFINITY, f32::INFINITY, 4);
+        let (movement, _) = explore(&board, Color::B, -f64::INFINITY, f64::INFINITY, 4);
         board = movement.apply(&board);
         print_board(&board, &[]);
     }
@@ -75,7 +75,7 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval) = explore(&board, board.mover(), -f32::INFINITY, f32::INFINITY, depth);
+        let (movement, eval) = explore(&board, board.mover(), -f64::INFINITY, f64::INFINITY, depth);
 
         println!(
             "{} => {:?} to play... {movement:?} ({eval})",
@@ -105,10 +105,10 @@ pub fn auto_play(moves: usize, depth: usize) {
 pub fn explore(
     board: &Board,
     maxer: Color,
-    mut alpha: f32,
-    mut beta: f32,
+    mut alpha: f64,
+    mut beta: f64,
     depth: usize,
-) -> (Move, f32) {
+) -> (Move, f64) {
     if depth == 0
         || board.pieces().king.is_empty()
         || board.pieces_for(board.mover().opposite()).king.is_empty()
@@ -131,14 +131,11 @@ pub fn explore(
     evaluated_movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
     let mut best_eval = if board.mover() == maxer {
-        -f32::INFINITY
+        -f64::INFINITY
     } else {
-        f32::INFINITY
+        f64::INFINITY
     };
-    let mut best_move = *evaluated_movements
-        .first()
-        .map(|r| r.1)
-        .unwrap_or(&Move::None);
+    let mut best_move = *evaluated_movements.first().map_or(&Move::None, |r| r.1);
 
     for (child, movement, _) in evaluated_movements {
         let (_, eval) = explore(&child, maxer, alpha, beta, depth - 1);
@@ -165,7 +162,7 @@ pub fn explore(
     }
 
     if best_move == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
-        return (Move::None, f32::NEG_INFINITY);
+        return (Move::None, f64::NEG_INFINITY);
     }
 
     (best_move, best_eval)
