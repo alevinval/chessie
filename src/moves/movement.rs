@@ -7,7 +7,6 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
-    None,
     Slide { from: Pos, to: Pos },
     PawnPromo { from: Pos, to: Pos, piece: Piece },
     LeftCastle { mover: Color },
@@ -30,13 +29,12 @@ impl Move {
                 to,
                 piece: _,
             } => Some(to),
-            Move::None | Move::LeftCastle { mover: _ } | Move::RightCastle { mover: _ } => None,
+            Move::LeftCastle { mover: _ } | Move::RightCastle { mover: _ } => None,
         }
     }
 
     pub fn from(self) -> Option<Pos> {
         match self {
-            Move::None => None,
             Move::Slide { from, to: _ }
             | Move::PawnPromo {
                 from,
@@ -80,7 +78,6 @@ impl Move {
                     self.apply_move(board, (0, 7), (0, 5));
                 }
             },
-            Move::None => unreachable!("should never apply a non-move"),
         }
     }
 
@@ -127,8 +124,7 @@ impl Move {
                 }
                 Move::LeftCastle { mover } => Piece::Rook(mover, true, right),
                 Move::RightCastle { mover } => Piece::Rook(mover, left, true),
-                Move::None
-                | Move::PawnPromo {
+                Move::PawnPromo {
                     from: _,
                     to: _,
                     piece: _,
@@ -151,7 +147,6 @@ mod test {
 
     #[test]
     fn to() {
-        assert!(Move::None.to().is_none());
         assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to().unwrap());
         assert_eq!(
             TO,
@@ -169,7 +164,6 @@ mod test {
 
     #[test]
     fn from() {
-        assert!(Move::None.from().is_none());
         assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from().unwrap());
         assert_eq!(
             FROM,

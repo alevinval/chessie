@@ -51,9 +51,17 @@ pub fn play() {
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
-        let (movement, _) = explore(&board, Color::B, -f64::INFINITY, f64::INFINITY, 4);
-        board = movement.apply(&board);
-        print_board(&board, &[]);
+        let (movement, _) = minmax(&board, Color::B, -f64::INFINITY, f64::INFINITY, 4);
+        match movement {
+            Some(movement) => {
+                board = movement.apply(&board);
+                print_board(&board, &[]);
+            }
+            None => {
+                println!("Game over");
+                return;
+            }
+        }
     }
 }
 
@@ -75,48 +83,49 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval) = explore(&board, board.mover(), -f64::INFINITY, f64::INFINITY, depth);
+        let (movement, eval) = minmax(&board, board.mover(), -f64::INFINITY, f64::INFINITY, depth);
 
-        println!(
-            "{} => {:?} to play... {movement:?} ({eval})",
-            board.n(),
-            board.mover()
-        );
-        if matches!(movement, Move::None) {
-            if board.in_check(board.mover()) {
-                println!("{:?} wins by checkmate", board.mover().opposite());
+        match movement {
+            Some(movement) => {
+                println!(
+                    "{} => {:?} to play... {movement:?} ({eval})",
+                    board.n(),
+                    board.mover()
+                );
+
+                board = movement.apply(&board);
+
+                print_board(
+                    &board,
+                    &movement.from().map(|f| vec![f]).unwrap_or_default(),
+                );
+            }
+            None => {
+                if board.in_check(board.mover()) {
+                    println!("{:?} wins by checkmate", board.mover().opposite());
+                    return;
+                }
+
+                println!("stalemate");
                 return;
             }
-
-            println!("stalemate");
-            return;
         }
-
-        board = movement.apply(&board);
-
-        print_board(
-            &board,
-            &movement.from().map(|f| vec![f]).unwrap_or_default(),
-        );
     }
 }
 
 #[must_use]
-pub fn explore(
+pub fn minmax(
     board: &Board,
     maxer: Color,
     mut alpha: f64,
     mut beta: f64,
     depth: usize,
-) -> (Move, f64) {
+) -> (Option<Move>, f64) {
     if depth == 0
         || board.pieces().king.is_empty()
         || board.pieces_for(board.mover().opposite()).king.is_empty()
     {
-        return (
-            Move::None,
-            Scorer::eval(board, maxer, board.mover() == maxer),
-        );
+        return (None, Scorer::eval(board, maxer, board.mover() == maxer));
     }
 
     let movements = board.movements(board.mover());
@@ -135,16 +144,16 @@ pub fn explore(
     } else {
         f64::INFINITY
     };
-    let mut best_move = *evaluated_movements.first().map_or(&Move::None, |r| r.1);
+    let mut best_move = evaluated_movements.first().map(|r| *r.1);
 
     for (child, movement, _) in evaluated_movements {
-        let (_, eval) = explore(&child, maxer, alpha, beta, depth - 1);
+        let (_, eval) = minmax(&child, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
             if eval > best_eval {
                 best_eval = eval;
                 alpha = alpha.max(best_eval);
-                best_move = *movement;
+                best_move = Some(*movement);
             }
             if best_eval >= beta {
                 break;
@@ -153,7 +162,7 @@ pub fn explore(
             if eval < best_eval {
                 best_eval = eval;
                 beta = beta.min(best_eval);
-                best_move = *movement;
+                best_move = Some(*movement);
             }
             if best_eval <= alpha {
                 break;
@@ -161,8 +170,8 @@ pub fn explore(
         }
     }
 
-    if best_move == Move::None && board.mover() != maxer && !board.in_check(board.mover()) {
-        return (Move::None, f64::NEG_INFINITY);
+    if best_move.is_none() && board.mover() != maxer && !board.in_check(board.mover()) {
+        return (None, f64::NEG_INFINITY);
     }
 
     (best_move, best_eval)
