@@ -128,32 +128,32 @@ pub fn minmax(
         return (None, Scorer::eval(board, maxer, board.mover() == maxer));
     }
 
-    let movements = board.movements(board.mover());
-    let mut evaluated_movements: Vec<_> = movements
-        .iter()
+    let mut movements: Vec<_> = board
+        .movements(board.mover())
+        .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
             let eval = Scorer::eval(&next, maxer, board.mover() == maxer);
             (next, movement, eval)
         })
         .collect();
-    evaluated_movements.sort_by(|a, b| b.2.total_cmp(&a.2));
+    movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
     let mut best_eval = if board.mover() == maxer {
         -f64::INFINITY
     } else {
         f64::INFINITY
     };
-    let mut best_move = evaluated_movements.first().map(|r| *r.1);
+    let mut best_move = movements.first().map(|r| r.1);
 
-    for (child, movement, _) in evaluated_movements {
+    for (child, movement, _) in movements {
         let (_, eval) = minmax(&child, maxer, alpha, beta, depth - 1);
 
         if board.mover() == maxer {
             if eval > best_eval {
                 best_eval = eval;
                 alpha = alpha.max(best_eval);
-                best_move = Some(*movement);
+                best_move = Some(movement);
             }
             if best_eval >= beta {
                 break;
@@ -162,7 +162,7 @@ pub fn minmax(
             if eval < best_eval {
                 best_eval = eval;
                 beta = beta.min(best_eval);
-                best_move = Some(*movement);
+                best_move = Some(movement);
             }
             if best_eval <= alpha {
                 break;
