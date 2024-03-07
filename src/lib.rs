@@ -51,7 +51,7 @@ pub fn play() {
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
-        let (movement, _) = minmax(&board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
+        let (movement, _, _) = minmax(&board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
         match movement {
             Some(movement) => {
                 board = movement.apply(&board);
@@ -77,13 +77,13 @@ pub fn auto_play(moves: usize, depth: usize) {
         } else if pc < 16 {
             1
         } else {
-            0
+            1
         };
         let depth = match board.mover() {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval) = minmax(
+        let (movement, eval, mate) = minmax(
             &board,
             depth,
             -f64::INFINITY,
@@ -94,6 +94,9 @@ pub fn auto_play(moves: usize, depth: usize) {
 
         match movement {
             Some(movement) => {
+                if let Some(mate) = mate {
+                    println!("Mate in {}", mate - board.n());
+                }
                 println!(
                     "{} => {:?} to play... {movement:?} ({eval})",
                     board.n(),
@@ -125,9 +128,18 @@ pub fn minmax(
     mut beta: f64,
     maxer: bool,
     maxer_color: Color,
-) -> (Option<Move>, f64) {
+) -> (Option<Move>, f64, Option<usize>) {
     if depth == 0 || board.pieces().king.is_empty() {
-        return (None, Scorer::eval(board, maxer_color, false));
+        let eval = Scorer::eval(board, maxer_color, false);
+        return (
+            None,
+            eval,
+            if eval.is_infinite() {
+                Some(board.n())
+            } else {
+                None
+            },
+        );
     }
 
     let mover = board.mover();
@@ -148,8 +160,12 @@ pub fn minmax(
     } else {
         f64::INFINITY
     };
+    let mut shortest_mate: Option<usize> = None;
     for (child, movement, _) in movements {
-        let (_, curr_eval) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
+        let (_, curr_eval, mate) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
+        if let Some(proposal) = mate {
+            shortest_mate = shortest_mate.map(|current| current.max(proposal)).or(mate)
+        }
         if maxer {
             if curr_eval > best_eval {
                 best_eval = curr_eval;
@@ -172,9 +188,14 @@ pub fn minmax(
     }
 
     if best_move.is_none() && !maxer && !board.in_check(board.mover()) {
-        (None, f64::NEG_INFINITY)
+        (None, f64::NEG_INFINITY, None)
     } else {
-        (best_move, best_eval)
+        let m = if best_eval.is_infinite() {
+            Some(board.n())
+        } else {
+            None
+        };
+        (best_move, best_eval, shortest_mate.or(m))
     }
 }
 
