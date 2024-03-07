@@ -36,8 +36,10 @@ impl<'board> Generator<'board> {
         self.from.col()
     }
 
-    pub fn mov(&mut self, m: Move) {
-        self.moves.push(m);
+    pub fn emit_move(&mut self, m: Move) {
+        if !self.check_legal || self.is_legal(m) {
+            self.moves.push(m);
+        }
     }
 
     pub fn check_dir(&self, d: Dir, stop_at: StopCondition) -> Placement {
@@ -55,9 +57,7 @@ impl<'board> Generator<'board> {
         let placement = stop_at(self.board, self.from, to);
 
         if let Some(m) = placement.movement() {
-            if !self.check_legal || self.is_legal(m) {
-                self.moves.push(m);
-            }
+            self.emit_move(m);
         }
         placement
     }
@@ -79,7 +79,7 @@ impl<'board> Generator<'board> {
                     to,
                     piece: bitboard.piece(),
                 };
-                self.moves.push(promo);
+                self.emit_move(promo);
             });
     }
 

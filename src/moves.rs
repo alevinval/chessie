@@ -78,7 +78,7 @@ impl<'board> MoveGen<'board> {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    gen.mov(Move::RightCastle {
+                    gen.emit_move(Move::RightCastle {
                         mover: self.board.mover(),
                     });
                 }
@@ -87,7 +87,7 @@ impl<'board> MoveGen<'board> {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    gen.mov(Move::LeftCastle {
+                    gen.emit_move(Move::LeftCastle {
                         mover: self.board.mover(),
                     });
                 }
