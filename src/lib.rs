@@ -95,10 +95,7 @@ pub fn auto_play(moves: usize, depth: usize) {
 
                 board = movement.apply(&board);
 
-                print_board(
-                    &board,
-                    &movement.from().map(|f| vec![f]).unwrap_or_default(),
-                );
+                print_board(&board, &vec![movement.from()]);
             }
             None => {
                 if board.in_check(board.mover()) {

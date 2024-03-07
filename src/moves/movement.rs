@@ -21,28 +21,29 @@ impl Move {
         next
     }
 
-    pub fn to(self) -> Option<Pos> {
+    pub fn to(self) -> Pos {
         match self {
             Move::Slide { from: _, to }
             | Move::PawnPromo {
                 from: _,
                 to,
                 piece: _,
-            } => Some(to),
-            Move::LeftCastle { mover: _ } | Move::RightCastle { mover: _ } => None,
+            } => to,
+            Move::LeftCastle { mover } => (mover.piece_row(), 2).into(),
+            Move::RightCastle { mover } => (mover.piece_row(), 6).into(),
         }
     }
 
-    pub fn from(self) -> Option<Pos> {
+    pub fn from(self) -> Pos {
         match self {
             Move::Slide { from, to: _ }
             | Move::PawnPromo {
                 from,
                 to: _,
                 piece: _,
-            } => Some(from),
+            } => from,
             Move::LeftCastle { mover } | Move::RightCastle { mover } => {
-                Some((mover.piece_row(), 4).into())
+                (mover.piece_row(), 4).into()
             }
         }
     }
@@ -147,7 +148,7 @@ mod test {
 
     #[test]
     fn to() {
-        assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to().unwrap());
+        assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to());
         assert_eq!(
             TO,
             Move::PawnPromo {
@@ -156,15 +157,16 @@ mod test {
                 piece: Piece::Pawn(Color::W),
             }
             .to()
-            .unwrap()
         );
-        assert!(Move::LeftCastle { mover: Color::W }.to().is_none());
-        assert!(Move::RightCastle { mover: Color::W }.to().is_none());
+        assert_eq!(Pos::new(0, 2), Move::LeftCastle { mover: Color::W }.to());
+        assert_eq!(Pos::new(7, 2), Move::LeftCastle { mover: Color::B }.to());
+        assert_eq!(Pos::new(0, 6), Move::RightCastle { mover: Color::W }.to());
+        assert_eq!(Pos::new(7, 6), Move::RightCastle { mover: Color::B }.to());
     }
 
     #[test]
     fn from() {
-        assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from().unwrap());
+        assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from());
         assert_eq!(
             FROM,
             Move::PawnPromo {
@@ -173,24 +175,11 @@ mod test {
                 piece: Piece::Pawn(Color::W),
             }
             .from()
-            .unwrap()
         );
-        assert_eq!(
-            Pos::new(0, 4),
-            Move::LeftCastle { mover: Color::W }.from().unwrap()
-        );
-        assert_eq!(
-            Pos::new(7, 4),
-            Move::LeftCastle { mover: Color::B }.from().unwrap()
-        );
-        assert_eq!(
-            Pos::new(0, 4),
-            Move::RightCastle { mover: Color::W }.from().unwrap()
-        );
-        assert_eq!(
-            Pos::new(7, 4),
-            Move::RightCastle { mover: Color::B }.from().unwrap()
-        );
+        assert_eq!(Pos::new(0, 4), Move::LeftCastle { mover: Color::W }.from());
+        assert_eq!(Pos::new(7, 4), Move::LeftCastle { mover: Color::B }.from());
+        assert_eq!(Pos::new(0, 4), Move::RightCastle { mover: Color::W }.from());
+        assert_eq!(Pos::new(7, 4), Move::RightCastle { mover: Color::B }.from());
     }
 
     #[test]

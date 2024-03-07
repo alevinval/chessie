@@ -97,8 +97,7 @@ impl Board {
             Some(king) => self
                 .pseudo_movements(color.opposite())
                 .iter()
-                .filter_map(|m| m.to())
-                .any(|to| to == king),
+                .any(|m| m.to() == king),
             None => true,
         }
     }
