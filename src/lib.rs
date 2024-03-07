@@ -51,7 +51,7 @@ pub fn play() {
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
-        let (movement, _) = minmax(&board, Color::B, -f64::INFINITY, f64::INFINITY, 4);
+        let (movement, _) = minmax(&board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
         match movement {
             Some(movement) => {
                 board = movement.apply(&board);
@@ -83,7 +83,14 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval) = minmax(&board, board.mover(), -f64::INFINITY, f64::INFINITY, depth);
+        let (movement, eval) = minmax(
+            &board,
+            depth,
+            -f64::INFINITY,
+            f64::INFINITY,
+            true,
+            board.mover(),
+        );
 
         match movement {
             Some(movement) => {
@@ -113,68 +120,65 @@ pub fn auto_play(moves: usize, depth: usize) {
 #[must_use]
 pub fn minmax(
     board: &Board,
-    maxer: Color,
+    depth: usize,
     mut alpha: f64,
     mut beta: f64,
-    depth: usize,
+    maxer: bool,
+    maxer_color: Color,
 ) -> (Option<Move>, f64) {
-    if depth == 0
-        || board.pieces().king.is_empty()
-        || board.pieces_for(board.mover().opposite()).king.is_empty()
-    {
-        return (None, Scorer::eval(board, maxer, board.mover() == maxer));
+    if depth == 0 || board.pieces().king.is_empty() {
+        return (None, Scorer::eval(board, maxer_color, false));
     }
 
+    let mover = board.mover();
     let mut movements: Vec<_> = board
-        .movements(board.mover())
+        .movements(mover)
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, maxer, board.mover() == maxer);
+            let eval = Scorer::eval(&next, mover, true);
             (next, movement, eval)
         })
         .collect();
     movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
-    let mut best_eval = if board.mover() == maxer {
-        -f64::INFINITY
+    let mut best_move = movements.first().map(|r| r.1);
+    let mut best_eval = if maxer {
+        f64::NEG_INFINITY
     } else {
         f64::INFINITY
     };
-    let mut best_move = movements.first().map(|r| r.1);
-
     for (child, movement, _) in movements {
-        let (_, eval) = minmax(&child, maxer, alpha, beta, depth - 1);
-
-        if board.mover() == maxer {
-            if eval > best_eval {
-                best_eval = eval;
-                alpha = alpha.max(best_eval);
+        let (_, curr_eval) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
+        if maxer {
+            if curr_eval > best_eval {
+                best_eval = curr_eval;
                 best_move = Some(movement);
             }
+            alpha = alpha.max(best_eval);
             if best_eval >= beta {
                 break;
             }
         } else {
-            if eval < best_eval {
-                best_eval = eval;
-                beta = beta.min(best_eval);
+            if curr_eval < best_eval {
+                best_eval = curr_eval;
                 best_move = Some(movement);
             }
+            beta = beta.min(best_eval);
             if best_eval <= alpha {
                 break;
             }
         }
     }
 
-    if best_move.is_none() && board.mover() != maxer && !board.in_check(board.mover()) {
-        return (None, f64::NEG_INFINITY);
+    if best_move.is_none() && !maxer && !board.in_check(board.mover()) {
+        (None, f64::NEG_INFINITY)
+    } else {
+        (best_move, best_eval)
     }
-
-    (best_move, best_eval)
 }
 
 pub fn main() {
-    auto_play(500, 4);
+    auto_play(500, 3);
     // play();
 }
