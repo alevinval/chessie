@@ -38,22 +38,34 @@ impl Board {
         }
     }
 
-    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<&BitBoard> {
+    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, &BitBoard)> {
         let pos = pos.into();
 
         self.white
             .iter()
             .find(|bb| bb.has_piece(pos))
-            .or_else(|| self.black.iter().find(|bb| bb.has_piece(pos)))
+            .map(|bb| (Color::W, bb))
+            .or_else(|| {
+                self.black
+                    .iter()
+                    .find(|bb| bb.has_piece(pos))
+                    .map(|bb| (Color::B, bb))
+            })
     }
 
-    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
+    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, &mut BitBoard)> {
         let pos = pos.into();
 
         self.white
             .iter_mut()
             .find(|bb| bb.has_piece(pos))
-            .or_else(|| self.black.iter_mut().find(|bb| bb.has_piece(pos)))
+            .map(|bb| (Color::W, bb))
+            .or_else(|| {
+                self.black
+                    .iter_mut()
+                    .find(|bb| bb.has_piece(pos))
+                    .map(|bb| (Color::B, bb))
+            })
     }
 
     pub fn next_turn(&mut self) {
@@ -116,12 +128,12 @@ impl Board {
 
     fn gen_pieces(color: Color) -> [BitBoard; 6] {
         [
-            Piece::Pawn(color).into(),
-            Piece::Knight(color).into(),
-            Piece::Bishop(color).into(),
-            Piece::Rook(color, false, false).into(),
-            Piece::Queen(color).into(),
-            Piece::King(color, false).into(),
+            BitBoard::new(Piece::Pawn, color),
+            BitBoard::new(Piece::Knight, color),
+            BitBoard::new(Piece::Bishop, color),
+            BitBoard::new(Piece::Rook(false, false), color),
+            BitBoard::new(Piece::Queen, color),
+            BitBoard::new(Piece::King(false), color),
         ]
     }
 }
@@ -164,9 +176,9 @@ mod test {
 
         assert!(king.is_some());
 
-        if let Some(king) = king {
-            assert_eq!(Color::W, king.color());
-            assert_eq!(Piece::King(Color::W, false), king.piece());
+        if let Some((color, king)) = king {
+            assert_eq!(Color::W, color);
+            assert_eq!(Piece::King(false), king.piece());
         }
     }
 
@@ -177,9 +189,9 @@ mod test {
 
         assert!(king.is_some());
 
-        if let Some(king) = king {
-            assert_eq!(Color::B, king.color());
-            assert_eq!(Piece::King(Color::B, false), king.piece());
+        if let Some((color, king)) = king {
+            assert_eq!(Color::B, color);
+            assert_eq!(Piece::King(false), king.piece());
         }
     }
 
@@ -188,8 +200,8 @@ mod test {
         let pos = (0, 0);
 
         assert_eq!(
-            Board::default().at(pos).unwrap(),
-            Board::default().at_mut(pos).unwrap()
+            Board::default().at(pos).unwrap().1,
+            Board::default().at_mut(pos).unwrap().1
         );
     }
 
@@ -198,8 +210,8 @@ mod test {
         let pos = (7, 7);
 
         assert_eq!(
-            Board::default().at(pos).unwrap(),
-            Board::default().at_mut(pos).unwrap()
+            Board::default().at(pos).unwrap().1,
+            Board::default().at_mut(pos).unwrap().1
         );
     }
 

@@ -39,15 +39,17 @@ pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
 }
 
 pub fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
-    board.at(from).map_or(Placement::Invalid, |ps_from| {
-        board.at(to).map_or(Placement::Invalid, |ps_to| {
-            if ps_from.color() == ps_to.color() {
-                Placement::Invalid
-            } else {
-                Placement::Takes { from, to }
-            }
+    board
+        .at(from)
+        .map_or(Placement::Invalid, |(color_from, _)| {
+            board.at(to).map_or(Placement::Invalid, |(color_to, _)| {
+                if color_from == color_to {
+                    Placement::Invalid
+                } else {
+                    Placement::Takes { from, to }
+                }
+            })
         })
-    })
 }
 
 pub fn empty_or_take(board: &Board, from: Pos, to: Pos) -> Placement {

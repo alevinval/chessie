@@ -13,6 +13,7 @@ use self::{
 
 pub struct MoveGen<'board> {
     board: &'board Board,
+    color: Color,
     bitboard: &'board BitBoard,
     from: Pos,
 }
@@ -20,13 +21,14 @@ pub struct MoveGen<'board> {
 impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
-        let bitboard = board.at(from).unwrap_or_else(|| {
+        let (color, bitboard) = board.at(from).unwrap_or_else(|| {
             print_board(board, &[]);
             unreachable!("cannot generate moves for empty position {from:?}")
         });
 
         Self {
             board,
+            color,
             bitboard,
             from,
         }
@@ -35,18 +37,18 @@ impl<'board> MoveGen<'board> {
     pub fn generate(self, check_legal: bool) -> Vec<Move> {
         let mut gen = Generator::new(self.board, self.from, check_legal);
         match self.bitboard.piece() {
-            Piece::Pawn(color) => match color {
+            Piece::Pawn => match self.color {
                 Color::B => black_pawn(&mut gen),
                 Color::W => white_pawn(&mut gen),
             },
-            Piece::Rook(_, _, _) => gen.cross(empty_or_take),
-            Piece::Bishop(_) => gen.diagonals(empty_or_take),
-            Piece::Queen(_) => {
+            Piece::Rook(_, _) => gen.cross(empty_or_take),
+            Piece::Bishop => gen.diagonals(empty_or_take),
+            Piece::Queen => {
                 gen.diagonals(empty_or_take);
                 gen.cross(empty_or_take);
             }
-            Piece::Knight(_) => knight(&mut gen),
-            Piece::King(_, _) => {
+            Piece::Knight => knight(&mut gen),
+            Piece::King(_) => {
                 king(&mut gen);
                 self.king_castle(&mut gen);
             }
@@ -56,13 +58,13 @@ impl<'board> MoveGen<'board> {
 
     fn king_castle(&self, gen: &mut Generator) {
         let pieces = self.board.pieces(self.board.mover());
-        if let Piece::King(_, has_moved) = pieces[Board::K].piece() {
+        if let Piece::King(has_moved) = pieces[Board::K].piece() {
             if has_moved {
                 return;
             }
         }
 
-        if let Piece::Rook(_, lrm, rrm) = pieces[Board::R].piece() {
+        if let Piece::Rook(lrm, rrm) = pieces[Board::R].piece() {
             let pos = pieces[Board::K].iter_pos().next().expect("should be there");
             if !rrm {
                 let mut subgen = Generator::new(self.board, pos, false);

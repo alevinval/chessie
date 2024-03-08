@@ -1,5 +1,3 @@
-use either::Either;
-
 use crate::{piece::Piece, pos::Pos};
 
 use super::Color;
@@ -12,15 +10,14 @@ pub struct BitBoard {
 }
 
 impl BitBoard {
-    pub const fn new(piece: Piece) -> Self {
-        let color = piece.color();
+    pub const fn new(piece: Piece, color: Color) -> Self {
         let mut value = match piece {
-            Piece::Pawn(_) => 0b1111_1111,
-            Piece::Rook(_, _, _) => 0b1000_0001,
-            Piece::Knight(_) => 0b0100_0010,
-            Piece::Bishop(_) => 0b0010_0100,
-            Piece::Queen(_) => 0b0000_1000,
-            Piece::King(_, _) => 0b000_10000,
+            Piece::Pawn => 0b1111_1111,
+            Piece::Rook(_, _) => 0b1000_0001,
+            Piece::Knight => 0b0100_0010,
+            Piece::Bishop => 0b0010_0100,
+            Piece::Queen => 0b0000_1000,
+            Piece::King(_) => 0b000_10000,
         };
         value <<= 8 * if piece.is_pawn() {
             color.pawn_row()
@@ -29,9 +26,9 @@ impl BitBoard {
         };
 
         let cnt = match piece {
-            Piece::Pawn(_) => 8,
-            Piece::Rook(_, _, _) | Piece::Knight(_) | Piece::Bishop(_) => 2,
-            Piece::Queen(_) | Piece::King(_, _) => 1,
+            Piece::Pawn => 8,
+            Piece::Rook(_, _) | Piece::Knight | Piece::Bishop => 2,
+            Piece::Queen | Piece::King(_) => 1,
         };
 
         Self { piece, value, cnt }
@@ -39,10 +36,6 @@ impl BitBoard {
 
     pub fn piece(&self) -> Piece {
         self.piece
-    }
-
-    pub fn color(&self) -> Color {
-        self.piece.color()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -76,21 +69,18 @@ impl BitBoard {
     }
 
     pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
-        let rows = match self.piece.color() {
-            Color::B => Either::Left((0..8).rev()),
-            Color::W => Either::Right(0..8),
-        };
-        rows.flat_map(move |row| {
-            let ro = row * 8;
-            (0..8).filter_map(move |col| {
-                if self.value & (1 << (ro + col)) > 0 {
-                    Some((row, col).into())
-                } else {
-                    None
-                }
+        (0..8)
+            .flat_map(move |row| {
+                let ro = row * 8;
+                (0..8).filter_map(move |col| {
+                    if self.value & (1 << (ro + col)) > 0 {
+                        Some((row, col).into())
+                    } else {
+                        None
+                    }
+                })
             })
-        })
-        .take(self.cnt as usize)
+            .take(self.cnt as usize)
     }
 }
 
@@ -100,18 +90,10 @@ impl From<Pos> for u64 {
     }
 }
 
-impl From<Piece> for BitBoard {
-    fn from(piece: Piece) -> Self {
-        Self::new(piece)
-    }
-}
-
 #[cfg(test)]
 mod test {
 
     use std::mem;
-
-    use crate::color::W;
 
     use super::*;
 
@@ -121,28 +103,28 @@ mod test {
     #[test]
     fn has_piece() {
         let sut = BitBoard {
-            piece: Piece::Pawn(W),
+            piece: Piece::Pawn,
             value: 0,
             cnt: 0,
         };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn(W),
+            piece: Piece::Pawn,
             value: 1,
             cnt: 0,
         };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn(W),
+            piece: Piece::Pawn,
             value: 0,
             cnt: 0,
         };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn(W),
+            piece: Piece::Pawn,
             value: TARGET.into(),
             cnt: 0,
         };
@@ -154,7 +136,7 @@ mod test {
         let from: Pos = (1, 1).into();
         let to: Pos = (2, 2).into();
 
-        let mut sut: BitBoard = Piece::Pawn(W).into();
+        let mut sut = BitBoard::new(Piece::Pawn, Color::W);
         assert!(!sut.has_piece(to));
 
         sut.slide(from, to);
@@ -166,7 +148,7 @@ mod test {
     #[test]
     fn unset() {
         let pos: Pos = (1, 1).into();
-        let mut sut: BitBoard = Piece::Pawn(W).into();
+        let mut sut = BitBoard::new(Piece::Pawn, Color::W);
         assert!(sut.has_piece(pos));
 
         sut.unset(pos);
@@ -176,7 +158,7 @@ mod test {
     #[test]
     fn to_le_bytes() {
         let sut = BitBoard {
-            piece: Piece::Pawn(W),
+            piece: Piece::Pawn,
             value: u64::MAX,
             cnt: 0,
         };

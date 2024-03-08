@@ -20,7 +20,7 @@ fn print_board(board: &Board, highlights: &[Pos]) {
         for col in 0..8 {
             let pos: Pos = (row, col).into();
             let mark = highlights.iter().find(|p| **p == pos).map(|_| "•");
-            let piece = board.at(pos).map_or(" ", |set| set.piece().as_str());
+            let piece = board.at(pos).map_or(" ", |(c, bb)| bb.piece().as_str(c));
             print!("| {} ", mark.unwrap_or(piece));
         }
         println!("| {row}");
@@ -69,7 +69,7 @@ pub fn auto_play(moves: usize, depth: usize) {
     for _ in 0..moves {
         let pc = board.piece_count();
         let bonus = if pc < 6 {
-            6
+            3
         } else if pc < 10 {
             2
         } else if pc < 16 {

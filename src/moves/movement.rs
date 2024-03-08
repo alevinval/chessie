@@ -47,9 +47,7 @@ impl Move {
     }
 
     pub fn priority(self) -> f64 {
-        match self {
-            _ => 0.0,
-        }
+        0.0
     }
 
     fn inner_apply(self, board: &mut Board) {
@@ -90,7 +88,7 @@ impl Move {
     }
 
     fn clear_dst(board: &mut Board, to: Pos) {
-        if let Some(dst) = board.at_mut(to) {
+        if let Some((_, dst)) = board.at_mut(to) {
             dst.unset(to);
         }
     }
@@ -101,12 +99,12 @@ impl Move {
 
         let pieces = board.pieces_mut();
         match piece {
-            Piece::Pawn(_) => pieces[Board::P],
-            Piece::Rook(_, _, _) => pieces[Board::R],
-            Piece::Knight(_) => pieces[Board::N],
-            Piece::Bishop(_) => pieces[Board::B],
-            Piece::Queen(_) => pieces[Board::Q],
-            Piece::King(_, _) => unreachable!("cannot promote pawn to king"),
+            Piece::Pawn => pieces[Board::P],
+            Piece::Rook(_, _) => pieces[Board::R],
+            Piece::Knight => pieces[Board::N],
+            Piece::Bishop => pieces[Board::B],
+            Piece::Queen => pieces[Board::Q],
+            Piece::King(_) => unreachable!("cannot promote pawn to king"),
         }
         .set(pos);
     }
@@ -114,7 +112,7 @@ impl Move {
     fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
         let from = from.into();
         match board.at_mut(from) {
-            Some(bb) => {
+            Some((_, bb)) => {
                 bb.slide(from, to.into());
                 self.flag_piece_movement(bb);
             }
@@ -126,19 +124,19 @@ impl Move {
 
     fn flag_piece_movement(self, bb: &mut BitBoard) {
         bb.update_piece(match bb.piece() {
-            Piece::Rook(c, left, right) => match self {
+            Piece::Rook(left, right) => match self {
                 Move::Slide { from, to: _ } | Move::Takes { from, to: _ } => {
-                    Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
+                    Piece::Rook(left || from.col() == 0, right || from.col() == 7)
                 }
-                Move::LeftCastle { mover } => Piece::Rook(mover, true, right),
-                Move::RightCastle { mover } => Piece::Rook(mover, left, true),
+                Move::LeftCastle { mover: _ } => Piece::Rook(true, right),
+                Move::RightCastle { mover: _ } => Piece::Rook(left, true),
                 Move::PawnPromo {
                     from: _,
                     to: _,
                     piece: _,
                 } => unreachable!(),
             },
-            Piece::King(c, _) => Piece::King(c, true),
+            Piece::King(_) => Piece::King(true),
             piece => piece,
         });
     }
@@ -161,7 +159,7 @@ mod test {
             Move::PawnPromo {
                 from: FROM,
                 to: TO,
-                piece: Piece::Pawn(Color::W),
+                piece: Piece::Pawn,
             }
             .to()
         );
@@ -179,7 +177,7 @@ mod test {
             Move::PawnPromo {
                 from: FROM,
                 to: TO,
-                piece: Piece::Pawn(Color::W),
+                piece: Piece::Pawn,
             }
             .from()
         );
@@ -191,7 +189,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(7, mem::size_of::<Move>());
+        assert_eq!(6, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }
