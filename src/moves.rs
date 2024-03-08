@@ -2,12 +2,7 @@ mod generator;
 mod movement;
 mod placement;
 
-use crate::{
-    board::Board,
-    pieces::{BitBoard, Piece, Pieces},
-    pos::Dir,
-    print_board, Color, Pos,
-};
+use crate::{bitboard::BitBoard, board::Board, piece::Piece, pos::Dir, print_board, Color, Pos};
 
 pub use self::movement::Move;
 
@@ -25,14 +20,9 @@ pub struct MoveGen<'board> {
 impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
-        let bitboard = board.pieces().at(from).unwrap_or_else(|| {
-            board
-                .pieces_for(board.mover().opposite())
-                .at(from)
-                .unwrap_or_else(|| {
-                    print_board(board, &[]);
-                    unreachable!("cannot generate moves for empty position {from:?}")
-                })
+        let bitboard = board.at(from).unwrap_or_else(|| {
+            print_board(board, &[]);
+            unreachable!("cannot generate moves for empty position {from:?}")
         });
 
         Self {
@@ -65,18 +55,15 @@ impl<'board> MoveGen<'board> {
     }
 
     fn king_castle(&self, gen: &mut Generator) {
-        let pieces = self.board.pieces();
-        if let Piece::King(_, has_moved) = pieces.pieces[Pieces::K].piece() {
+        let pieces = self.board.pieces(self.board.mover());
+        if let Piece::King(_, has_moved) = pieces[Board::K].piece() {
             if has_moved {
                 return;
             }
         }
 
-        if let Piece::Rook(_, lrm, rrm) = pieces.pieces[Pieces::R].piece() {
-            let pos = pieces.pieces[Pieces::K]
-                .iter_pos()
-                .next()
-                .expect("should be there");
+        if let Piece::Rook(_, lrm, rrm) = pieces[Board::R].piece() {
+            let pos = pieces[Board::K].iter_pos().next().expect("should be there");
             if !rrm {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);

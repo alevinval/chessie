@@ -70,7 +70,7 @@ impl<'board> Generator<'board> {
         let to = self.from.to(d);
 
         self.board
-            .pieces()
+            .pieces(self.board.mover())
             .iter()
             .filter(|bitboard| !bitboard.piece().is_king())
             .for_each(|bitboard| {

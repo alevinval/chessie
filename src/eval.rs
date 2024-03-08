@@ -1,10 +1,6 @@
 use rand::Rng;
 
-use crate::{
-    board::Board,
-    pieces::{BitBoard, Piece, Pieces},
-    Color,
-};
+use crate::{bitboard::BitBoard, board::Board, piece::Piece, Color};
 
 #[derive(Default)]
 pub struct Scorer {}
@@ -19,9 +15,9 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
-        if board.pieces_for(maxer).pieces[Pieces::K].is_empty() {
+        if board.pieces(maxer)[Board::K].is_empty() {
             return f64::NEG_INFINITY;
-        } else if board.pieces_for(maxer.opposite()).pieces[Pieces::K].is_empty() {
+        } else if board.pieces(maxer.opposite())[Board::K].is_empty() {
             return f64::INFINITY;
         }
 
@@ -40,11 +36,7 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
-        let material_score: f64 = board
-            .pieces_for(color)
-            .iter()
-            .map(Self::score_bitboard)
-            .sum();
+        let material_score: f64 = board.pieces(color).iter().map(Self::score_bitboard).sum();
 
         if debug {
             println!("{color:?}");
