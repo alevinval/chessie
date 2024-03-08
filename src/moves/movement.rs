@@ -5,8 +5,11 @@ use crate::{
     Color,
 };
 
+use super::MoveGen;
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
+    Takes { from: Pos, to: Pos },
     Slide { from: Pos, to: Pos },
     PawnPromo { from: Pos, to: Pos, piece: Piece },
     LeftCastle { mover: Color },
@@ -23,7 +26,8 @@ impl Move {
 
     pub fn to(self) -> Pos {
         match self {
-            Move::Slide { from: _, to }
+            Move::Takes { from: _, to }
+            | Move::Slide { from: _, to }
             | Move::PawnPromo {
                 from: _,
                 to,
@@ -36,7 +40,8 @@ impl Move {
 
     pub fn from(self) -> Pos {
         match self {
-            Move::Slide { from, to: _ }
+            Move::Takes { from, to: _ }
+            | Move::Slide { from, to: _ }
             | Move::PawnPromo {
                 from,
                 to: _,
@@ -48,10 +53,19 @@ impl Move {
         }
     }
 
+    pub fn priority(self) -> f64 {
+        match self {
+            _ => 0.0,
+        }
+    }
+
     fn inner_apply(self, board: &mut Board) {
         match self {
-            Move::Slide { from, to } => {
+            Move::Takes { from, to } => {
                 Self::clear_dst(board, to);
+                self.apply_move(board, from, to);
+            }
+            Move::Slide { from, to } => {
                 self.apply_move(board, from, to);
             }
             Move::PawnPromo { from, to, piece } => {
@@ -120,7 +134,7 @@ impl Move {
     fn flag_piece_movement(self, bb: &mut BitBoard) {
         bb.update_piece(match bb.piece() {
             Piece::Rook(c, left, right) => match self {
-                Move::Slide { from, to: _ } => {
+                Move::Slide { from, to: _ } | Move::Takes { from, to: _ } => {
                     Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
                 }
                 Move::LeftCastle { mover } => Piece::Rook(mover, true, right),

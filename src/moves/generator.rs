@@ -237,7 +237,7 @@ mod test {
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = vec![Move::Slide {
+        let expected = vec![Move::Takes {
             from: (1, 3).into(),
             to: (2, 3).into(),
         }];

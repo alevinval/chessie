@@ -52,15 +52,12 @@ pub fn play() {
         print_board(&board, &[]);
 
         let (movement, _, _) = minmax(&board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
-        match movement {
-            Some(movement) => {
-                board = movement.apply(&board);
-                print_board(&board, &[]);
-            }
-            None => {
-                println!("Game over");
-                return;
-            }
+        if let Some(movement) = movement {
+            board = movement.apply(&board);
+            print_board(&board, &[]);
+        } else {
+            println!("Game over");
+            return;
         }
     }
 }
@@ -92,30 +89,24 @@ pub fn auto_play(moves: usize, depth: usize) {
             board.mover(),
         );
 
-        match movement {
-            Some(movement) => {
-                if let Some(mate) = mate {
-                    println!("Mate in {}", mate - board.n());
-                }
-                println!(
-                    "{} => {:?} to play... {movement:?} ({eval})",
-                    board.n(),
-                    board.mover()
-                );
-
-                board = movement.apply(&board);
-
-                print_board(&board, &vec![movement.from()]);
+        if let Some(movement) = movement {
+            if let Some(mate) = mate {
+                println!("Mate in {}", mate - board.n());
             }
-            None => {
-                if board.in_check(board.mover()) {
-                    println!("{:?} wins by checkmate", board.mover().opposite());
-                    return;
-                }
-
-                println!("stalemate");
+            println!(
+                "{} => {:?} to play... {movement:?} ({eval}) (depth={depth}",
+                board.n(),
+                board.mover()
+            );
+            board = movement.apply(&board);
+            print_board(&board, &[movement.from()]);
+        } else {
+            if board.in_check(board.mover()) {
+                println!("{:?} wins by checkmate", board.mover().opposite());
                 return;
             }
+            println!("stalemate");
+            return;
         }
     }
 }
@@ -148,7 +139,7 @@ pub fn minmax(
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, mover, true);
+            let eval: f64 = Scorer::eval(&next, mover, true) + movement.priority();
             (next, movement, eval)
         })
         .collect();
@@ -164,7 +155,7 @@ pub fn minmax(
     for (child, movement, _) in movements {
         let (_, curr_eval, mate) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
         if let Some(proposal) = mate {
-            shortest_mate = shortest_mate.map(|current| current.max(proposal)).or(mate)
+            shortest_mate = shortest_mate.map(|current| current.min(proposal)).or(mate);
         }
         if maxer {
             if curr_eval > best_eval {
@@ -190,12 +181,15 @@ pub fn minmax(
     if best_move.is_none() && !maxer && !board.in_check(board.mover()) {
         (None, f64::NEG_INFINITY, None)
     } else {
-        let m = if best_eval.is_infinite() {
-            Some(board.n())
-        } else {
-            None
-        };
-        (best_move, best_eval, shortest_mate.or(m))
+        (
+            best_move,
+            best_eval,
+            if best_eval.is_infinite() {
+                shortest_mate.or(Some(board.n()))
+            } else {
+                None
+            },
+        )
     }
 }
 

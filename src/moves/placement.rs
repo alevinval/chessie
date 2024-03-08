@@ -24,9 +24,8 @@ impl Placement {
     pub fn movement(&self) -> Option<Move> {
         match *self {
             Placement::Invalid => None,
-            Placement::Empty { from, to } | Placement::Takes { from, to } => {
-                Some(Move::Slide { from, to })
-            }
+            Placement::Empty { from, to } => Some(Move::Slide { from, to }),
+            Placement::Takes { from, to } => Some(Move::Takes { from, to }),
         }
     }
 }
