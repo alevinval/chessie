@@ -4,11 +4,19 @@ use crate::piece::Piece;
 use crate::pos::Pos;
 use crate::Color;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Castling {
+    None,
+    Some(bool, bool),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Board {
     mover: Color,
-    white: [BitBoard; 6],
-    black: [BitBoard; 6],
+    pub white: [BitBoard; 6],
+    pub black: [BitBoard; 6],
+    white_rights: Castling,
+    black_rights: Castling,
     n: usize,
 }
 
@@ -24,6 +32,20 @@ impl Board {
         self.mover
     }
 
+    pub fn castling_rights(&self, color: Color) -> Castling {
+        match color {
+            Color::B => self.black_rights,
+            Color::W => self.white_rights,
+        }
+    }
+
+    pub fn set_rights(&mut self, color: Color, rights: Castling) {
+        match color {
+            Color::B => self.black_rights = rights,
+            Color::W => self.white_rights = rights,
+        }
+    }
+
     pub fn pieces(&self, color: Color) -> &[BitBoard; 6] {
         match color {
             Color::B => &self.black,
@@ -35,6 +57,21 @@ impl Board {
         match self.mover {
             Color::B => &mut self.black,
             Color::W => &mut self.white,
+        }
+    }
+
+    pub fn apply_promo<P: Into<Pos>>(&mut self, pos: P, piece: Piece) {
+        let idx = match piece {
+            Piece::Pawn => Board::P,
+            Piece::Rook => Board::R,
+            Piece::Knight => Board::N,
+            Piece::Bishop => Board::B,
+            Piece::Queen => Board::Q,
+            Piece::King => unreachable!("cannot promote pawn to king"),
+        };
+        match self.mover {
+            Color::B => self.black[idx].set(pos.into()),
+            Color::W => self.white[idx].set(pos.into()),
         }
     }
 
@@ -131,9 +168,9 @@ impl Board {
             BitBoard::new(Piece::Pawn, color),
             BitBoard::new(Piece::Knight, color),
             BitBoard::new(Piece::Bishop, color),
-            BitBoard::new(Piece::Rook(false, false), color),
+            BitBoard::new(Piece::Rook, color),
             BitBoard::new(Piece::Queen, color),
-            BitBoard::new(Piece::King(false), color),
+            BitBoard::new(Piece::King, color),
         ]
     }
 }
@@ -144,6 +181,8 @@ impl Default for Board {
             mover: Color::W,
             white: Self::gen_pieces(Color::W),
             black: Self::gen_pieces(Color::B),
+            white_rights: Castling::Some(true, true),
+            black_rights: Castling::Some(true, true),
             n: 0,
         }
     }
@@ -178,7 +217,7 @@ mod test {
 
         if let Some((color, king)) = king {
             assert_eq!(Color::W, color);
-            assert_eq!(Piece::King(false), king.piece());
+            assert_eq!(Piece::King, king.piece());
         }
     }
 
@@ -191,7 +230,7 @@ mod test {
 
         if let Some((color, king)) = king {
             assert_eq!(Color::B, color);
-            assert_eq!(Piece::King(false), king.piece());
+            assert_eq!(Piece::King, king.piece());
         }
     }
 

@@ -72,7 +72,7 @@ impl<'board> Generator<'board> {
         self.board
             .pieces(self.board.mover())
             .iter()
-            .filter(|bitboard| !bitboard.piece().is_king())
+            .take(5)
             .for_each(|bitboard| {
                 let promo = Move::PawnPromo {
                     from: self.from,

@@ -2,6 +2,7 @@ mod generator;
 mod movement;
 mod placement;
 
+use crate::board::Castling;
 use crate::{bitboard::BitBoard, board::Board, piece::Piece, pos::Dir, print_board, Color, Pos};
 
 pub use self::movement::Move;
@@ -41,14 +42,14 @@ impl<'board> MoveGen<'board> {
                 Color::B => black_pawn(&mut gen),
                 Color::W => white_pawn(&mut gen),
             },
-            Piece::Rook(_, _) => gen.cross(empty_or_take),
+            Piece::Rook => gen.cross(empty_or_take),
             Piece::Bishop => gen.diagonals(empty_or_take),
             Piece::Queen => {
                 gen.diagonals(empty_or_take);
                 gen.cross(empty_or_take);
             }
             Piece::Knight => knight(&mut gen),
-            Piece::King(_) => {
+            Piece::King => {
                 king(&mut gen);
                 self.king_castle(&mut gen);
             }
@@ -58,15 +59,15 @@ impl<'board> MoveGen<'board> {
 
     fn king_castle(&self, gen: &mut Generator) {
         let pieces = self.board.pieces(self.board.mover());
-        if let Piece::King(has_moved) = pieces[Board::K].piece() {
-            if has_moved {
-                return;
-            }
+        let rights = self.board.castling_rights(self.color);
+
+        if Castling::None == rights {
+            return;
         }
 
-        if let Piece::Rook(lrm, rrm) = pieces[Board::R].piece() {
+        if let Castling::Some(left, right) = rights {
             let pos = pieces[Board::K].iter_pos().next().expect("should be there");
-            if !rrm {
+            if right {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
@@ -75,7 +76,8 @@ impl<'board> MoveGen<'board> {
                     });
                 }
             }
-            if !lrm {
+
+            if left {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {

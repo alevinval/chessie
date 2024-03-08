@@ -1,4 +1,9 @@
-use crate::{bitboard::BitBoard, board::Board, piece::Piece, pos::Pos, Color};
+use crate::{
+    board::{Board, Castling},
+    piece::Piece,
+    pos::Pos,
+    Color,
+};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
@@ -96,49 +101,41 @@ impl Move {
     fn promo<P: Into<Pos>>(board: &mut Board, pos: P, piece: Piece) {
         let pos = pos.into();
         Self::clear_dst(board, pos);
-
-        let pieces = board.pieces_mut();
-        match piece {
-            Piece::Pawn => pieces[Board::P],
-            Piece::Rook(_, _) => pieces[Board::R],
-            Piece::Knight => pieces[Board::N],
-            Piece::Bishop => pieces[Board::B],
-            Piece::Queen => pieces[Board::Q],
-            Piece::King(_) => unreachable!("cannot promote pawn to king"),
-        }
-        .set(pos);
+        board.apply_promo(pos, piece);
     }
 
     fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
         let from = from.into();
-        match board.at_mut(from) {
-            Some((_, bb)) => {
-                bb.slide(from, to.into());
-                self.flag_piece_movement(bb);
+        let rights = board.castling_rights(board.mover());
+
+        let (color, bb) = board.at_mut(from).expect("must have piece to move");
+        bb.slide(from, to.into());
+
+        if let Castling::Some(left, right) = rights {
+            if bb.piece() == Piece::King {
+                board.set_rights(color, Castling::None);
+                return;
             }
-            None => {
-                unreachable!("cannot move square without piece {from:?}");
+
+            if bb.piece() == Piece::Rook {
+                match self {
+                    Move::Slide { from, to: _ } | Move::Takes { from, to: _ } => {
+                        board.set_rights(
+                            color,
+                            Castling::Some(left || from.col() == 0, right || from.col() == 7),
+                        );
+                    }
+                    Move::LeftCastle { mover: _ } | Move::RightCastle { mover: _ } => {
+                        board.set_rights(color, Castling::None)
+                    }
+                    Move::PawnPromo {
+                        from: _,
+                        to: _,
+                        piece: _,
+                    } => unreachable!(),
+                }
             }
         }
-    }
-
-    fn flag_piece_movement(self, bb: &mut BitBoard) {
-        bb.update_piece(match bb.piece() {
-            Piece::Rook(left, right) => match self {
-                Move::Slide { from, to: _ } | Move::Takes { from, to: _ } => {
-                    Piece::Rook(left || from.col() == 0, right || from.col() == 7)
-                }
-                Move::LeftCastle { mover: _ } => Piece::Rook(true, right),
-                Move::RightCastle { mover: _ } => Piece::Rook(left, true),
-                Move::PawnPromo {
-                    from: _,
-                    to: _,
-                    piece: _,
-                } => unreachable!(),
-            },
-            Piece::King(_) => Piece::King(true),
-            piece => piece,
-        });
     }
 }
 
@@ -189,7 +186,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(6, mem::size_of::<Move>());
+        assert_eq!(5, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }

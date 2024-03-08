@@ -2,7 +2,7 @@ use crate::{piece::Piece, pos::Pos};
 
 use super::Color;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BitBoard {
     piece: Piece,
     value: u64,
@@ -13,11 +13,11 @@ impl BitBoard {
     pub const fn new(piece: Piece, color: Color) -> Self {
         let mut value = match piece {
             Piece::Pawn => 0b1111_1111,
-            Piece::Rook(_, _) => 0b1000_0001,
+            Piece::Rook => 0b1000_0001,
             Piece::Knight => 0b0100_0010,
             Piece::Bishop => 0b0010_0100,
             Piece::Queen => 0b0000_1000,
-            Piece::King(_) => 0b000_10000,
+            Piece::King => 0b000_10000,
         };
         value <<= 8 * if piece.is_pawn() {
             color.pawn_row()
@@ -27,8 +27,8 @@ impl BitBoard {
 
         let cnt = match piece {
             Piece::Pawn => 8,
-            Piece::Rook(_, _) | Piece::Knight | Piece::Bishop => 2,
-            Piece::Queen | Piece::King(_) => 1,
+            Piece::Rook | Piece::Knight | Piece::Bishop => 2,
+            Piece::Queen | Piece::King => 1,
         };
 
         Self { piece, value, cnt }
@@ -58,10 +58,6 @@ impl BitBoard {
     pub fn unset<P: Into<u64>>(&mut self, pos: P) {
         self.value &= !pos.into();
         self.cnt -= 1;
-    }
-
-    pub fn update_piece(&mut self, piece: Piece) {
-        self.piece = piece;
     }
 
     pub fn get_le_bytes(&self) -> [u8; 8] {
