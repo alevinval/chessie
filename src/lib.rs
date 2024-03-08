@@ -69,7 +69,7 @@ pub fn auto_play(moves: usize, depth: usize) {
     for _ in 0..moves {
         let pc = board.piece_count();
         let bonus = if pc < 6 {
-            3
+            6
         } else if pc < 10 {
             2
         } else if pc < 16 {
@@ -195,6 +195,6 @@ pub fn minmax(
 }
 
 pub fn main() {
-    auto_play(500, 6);
+    auto_play(500, 4);
     // play();
 }

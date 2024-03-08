@@ -20,17 +20,6 @@ impl Board {
     pub const Q: usize = 4;
     pub const K: usize = 5;
 
-    fn gen_pieces(color: Color) -> [BitBoard; 6] {
-        [
-            Piece::Pawn(color).into(),
-            Piece::Knight(color).into(),
-            Piece::Bishop(color).into(),
-            Piece::Rook(color, false, false).into(),
-            Piece::Queen(color).into(),
-            Piece::King(color, false).into(),
-        ]
-    }
-
     pub fn mover(&self) -> Color {
         self.mover
     }
@@ -123,6 +112,17 @@ impl Board {
                 .any(|m| m.to() == king),
             None => true,
         }
+    }
+
+    fn gen_pieces(color: Color) -> [BitBoard; 6] {
+        [
+            Piece::Pawn(color).into(),
+            Piece::Knight(color).into(),
+            Piece::Bishop(color).into(),
+            Piece::Rook(color, false, false).into(),
+            Piece::Queen(color).into(),
+            Piece::King(color, false).into(),
+        ]
     }
 }
 
