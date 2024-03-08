@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::{
     board::Board,
-    pieces::{BitBoard, Piece},
+    pieces::{BitBoard, Piece, Pieces},
     Color,
 };
 
@@ -19,9 +19,9 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
-        if board.pieces_for(maxer).king.is_empty() {
+        if board.pieces_for(maxer).pieces[Pieces::K].is_empty() {
             return f64::NEG_INFINITY;
-        } else if board.pieces_for(maxer.opposite()).king.is_empty() {
+        } else if board.pieces_for(maxer.opposite()).pieces[Pieces::K].is_empty() {
             return f64::INFINITY;
         }
 

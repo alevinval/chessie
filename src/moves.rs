@@ -4,7 +4,7 @@ mod placement;
 
 use crate::{
     board::Board,
-    pieces::{BitBoard, Piece},
+    pieces::{BitBoard, Piece, Pieces},
     pos::Dir,
     print_board, Color, Pos,
 };
@@ -66,14 +66,17 @@ impl<'board> MoveGen<'board> {
 
     fn king_castle(&self, gen: &mut Generator) {
         let pieces = self.board.pieces();
-        if let Piece::King(_, has_moved) = pieces.king.piece() {
+        if let Piece::King(_, has_moved) = pieces.pieces[Pieces::K].piece() {
             if has_moved {
                 return;
             }
         }
 
-        if let Piece::Rook(_, lrm, rrm) = pieces.rooks.piece() {
-            let pos = pieces.king.iter_pos().next().expect("should be there");
+        if let Piece::Rook(_, lrm, rrm) = pieces.pieces[Pieces::R].piece() {
+            let pos = pieces.pieces[Pieces::K]
+                .iter_pos()
+                .next()
+                .expect("should be there");
             if !rrm {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);

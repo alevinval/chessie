@@ -91,7 +91,7 @@ impl Board {
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.pieces_for(color).king.iter_pos().next();
+        let king = self.pieces_for(color).pieces[Pieces::K].iter_pos().next();
 
         match king {
             Some(king) => self

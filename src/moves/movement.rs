@@ -1,11 +1,9 @@
 use crate::{
     board::Board,
-    pieces::{BitBoard, Piece},
+    pieces::{BitBoard, Piece, Pieces},
     pos::Pos,
     Color,
 };
-
-use super::MoveGen;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
@@ -108,11 +106,11 @@ impl Move {
 
         let pieces = board.pieces_mut();
         match piece {
-            Piece::Pawn(_) => &mut pieces.pawns,
-            Piece::Rook(_, _, _) => &mut pieces.rooks,
-            Piece::Knight(_) => &mut pieces.knights,
-            Piece::Bishop(_) => &mut pieces.bishops,
-            Piece::Queen(_) => &mut pieces.queen,
+            Piece::Pawn(_) => pieces.pieces[Pieces::P],
+            Piece::Rook(_, _, _) => pieces.pieces[Pieces::R],
+            Piece::Knight(_) => pieces.pieces[Pieces::N],
+            Piece::Bishop(_) => pieces.pieces[Pieces::B],
+            Piece::Queen(_) => pieces.pieces[Pieces::Q],
             Piece::King(_, _) => unreachable!("cannot promote pawn to king"),
         }
         .set(pos);

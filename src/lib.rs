@@ -4,6 +4,7 @@ use board::Board;
 pub use color::Color;
 use eval::Scorer;
 use moves::Move;
+use pieces::Pieces;
 pub use pos::Pos;
 
 mod board;
@@ -120,7 +121,7 @@ pub fn minmax(
     maxer: bool,
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
-    if depth == 0 || board.pieces().king.is_empty() {
+    if depth == 0 || board.pieces().pieces[Pieces::K].is_empty() {
         let eval = Scorer::eval(board, maxer_color, false);
         return (
             None,

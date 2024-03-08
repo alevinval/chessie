@@ -9,72 +9,42 @@ mod piece;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Pieces {
-    pub pawns: BitBoard,
-    pub knights: BitBoard,
-    pub bishops: BitBoard,
-    pub rooks: BitBoard,
-    pub queen: BitBoard,
-    pub king: BitBoard,
+    pub pieces: [BitBoard; 6],
 }
 
 impl Pieces {
+    pub const P: usize = 0;
+    pub const N: usize = 1;
+    pub const B: usize = 2;
+    pub const R: usize = 3;
+    pub const Q: usize = 4;
+    pub const K: usize = 5;
+
     pub fn new(color: Color) -> Self {
         Self {
-            pawns: Piece::Pawn(color).into(),
-            knights: Piece::Knight(color).into(),
-            bishops: Piece::Bishop(color).into(),
-            rooks: Piece::Rook(color, false, false).into(),
-            queen: Piece::Queen(color).into(),
-            king: Piece::King(color, false).into(),
+            pieces: [
+                Piece::Pawn(color).into(),
+                Piece::Knight(color).into(),
+                Piece::Bishop(color).into(),
+                Piece::Rook(color, false, false).into(),
+                Piece::Queen(color).into(),
+                Piece::King(color, false).into(),
+            ],
         }
     }
 
     pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<&BitBoard> {
         let pos = pos.into();
-        if self.pawns.has_piece(pos) {
-            return Some(&self.pawns);
-        } else if self.knights.has_piece(pos) {
-            return Some(&self.knights);
-        } else if self.bishops.has_piece(pos) {
-            return Some(&self.bishops);
-        } else if self.rooks.has_piece(pos) {
-            return Some(&self.rooks);
-        } else if self.queen.has_piece(pos) {
-            return Some(&self.queen);
-        } else if self.king.has_piece(pos) {
-            return Some(&self.king);
-        }
-        None
+        self.pieces.iter().find(|bb| bb.has_piece(pos))
     }
 
     pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
         let pos = pos.into();
-        if self.pawns.has_piece(pos) {
-            return Some(&mut self.pawns);
-        } else if self.knights.has_piece(pos) {
-            return Some(&mut self.knights);
-        } else if self.bishops.has_piece(pos) {
-            return Some(&mut self.bishops);
-        } else if self.rooks.has_piece(pos) {
-            return Some(&mut self.rooks);
-        } else if self.queen.has_piece(pos) {
-            return Some(&mut self.queen);
-        } else if self.king.has_piece(pos) {
-            return Some(&mut self.king);
-        }
-        None
+        self.pieces.iter_mut().find(|bb| bb.has_piece(pos))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &BitBoard> {
-        [
-            &self.pawns,
-            &self.knights,
-            &self.bishops,
-            &self.rooks,
-            &self.queen,
-            &self.king,
-        ]
-        .into_iter()
+        self.pieces.iter()
     }
 }
 
