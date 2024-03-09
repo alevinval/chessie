@@ -119,7 +119,7 @@ impl Board {
     pub fn movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = Bits::iter_pos(bb)
+                let moves: Vec<_> = Bits::iter_pos(color, bb)
                     .map(|p| MoveGen::new(self, p).generate(true))
                     .collect();
                 moves
@@ -132,7 +132,7 @@ impl Board {
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = Bits::iter_pos(bb)
+                let moves: Vec<_> = Bits::iter_pos(color, bb)
                     .map(|p| MoveGen::new(self, p).generate(false))
                     .collect();
                 moves
@@ -159,7 +159,7 @@ impl Board {
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = Bits::iter_pos(self.get_piece(color, Piece::King)).next();
+        let king = Bits::iter_pos(color, self.get_piece(color, Piece::King)).next();
 
         match king {
             Some(king) => self

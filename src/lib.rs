@@ -198,6 +198,6 @@ pub fn minmax(
 }
 
 pub fn main() {
-    auto_play(500, 4);
+    auto_play(500, 3);
     // play();
 }

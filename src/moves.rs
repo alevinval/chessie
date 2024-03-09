@@ -67,7 +67,9 @@ impl<'board> MoveGen<'board> {
 
         if let Castling::Some(left, right) = rights {
             let king = self.board.get_piece(self.board.mover(), Piece::King);
-            let pos = Bits::iter_pos(king).next().expect("should be there");
+            let pos = Bits::iter_pos(self.color, king)
+                .next()
+                .expect("should be there");
             if right {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);
