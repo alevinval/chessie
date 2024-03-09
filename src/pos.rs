@@ -19,21 +19,21 @@ impl Pos {
     }
 
     #[must_use]
-    pub fn sq(self) -> usize {
+    pub const fn sq(self) -> usize {
         (self.0 * 8 + self.1) as usize
     }
 
     #[must_use]
-    pub fn to(self, d: Dir) -> Self {
+    pub const fn to(self, d: Dir) -> Self {
         let (row, col) = (self.0, self.1);
-        match d {
+        let (row, col) = match d {
             Dir::Up(n) => (row + n, col),
             Dir::Down(n) => (row - n, col),
             Dir::Left(n) => (row, col - n),
             Dir::Right(n) => (row, col + n),
             Dir::Custom(nr, nc) => (((row as i8) + nr) as u8, ((col as i8) + nc) as u8),
-        }
-        .into()
+        };
+        Self(row, col)
     }
 
     #[must_use]
