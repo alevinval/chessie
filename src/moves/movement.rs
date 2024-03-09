@@ -93,7 +93,7 @@ impl Move {
     }
 
     fn clear_dst(board: &mut Board, to: Pos) {
-        if let Some((_, dst)) = board.at_mut(to) {
+        if let Some((_, _, dst)) = board.at_mut(to) {
             dst.unset(to);
         }
     }
@@ -108,16 +108,16 @@ impl Move {
         let from = from.into();
         let rights = board.castling_rights(board.mover());
 
-        let (color, bb) = board.at_mut(from).expect("must have piece to move");
+        let (color, piece, bb) = board.at_mut(from).expect("must have piece to move");
         bb.slide(from, to.into());
 
         if let Castling::Some(left, right) = rights {
-            if bb.piece() == Piece::King {
+            if piece == Piece::King {
                 board.set_rights(color, Castling::None);
                 return;
             }
 
-            if bb.piece() == Piece::Rook {
+            if piece == Piece::Rook {
                 match self {
                     Move::Slide { from, to: _ } | Move::Takes { from, to: _ } => {
                         board.set_rights(

@@ -71,21 +71,14 @@ impl<'board> Generator<'board> {
     pub fn pawn_promo(&mut self, d: Dir) {
         let to = self.from.to(d);
 
-        self.board
-            .pieces(self.board.mover())
-            .iter()
-            .for_each(|bitboard| {
-                if matches!(bitboard.piece(), Piece::King) {
-                    return;
-                }
-
-                let promo = Move::PawnPromo {
-                    piece: bitboard.piece(),
-                    from: self.from,
-                    to,
-                };
-                self.emit_move(promo);
-            });
+        for piece in Piece::PROMO {
+            let promo = Move::PawnPromo {
+                from: self.from,
+                to,
+                piece,
+            };
+            self.emit_move(promo);
+        }
     }
 
     pub fn left(&mut self, stop_at: StopCondition) {

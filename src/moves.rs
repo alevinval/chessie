@@ -3,7 +3,7 @@ mod movement;
 mod placement;
 
 use crate::board::Castling;
-use crate::{bitboard::BitBoard, board::Board, piece::Piece, pos::Dir, print_board, Color, Pos};
+use crate::{board::Board, piece::Piece, pos::Dir, print_board, Color, Pos};
 
 pub use self::movement::Move;
 
@@ -15,14 +15,14 @@ use self::{
 pub struct MoveGen<'board> {
     board: &'board Board,
     color: Color,
-    bitboard: &'board BitBoard,
+    piece: Piece,
     from: Pos,
 }
 
 impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
-        let (color, bitboard) = board.at(from).unwrap_or_else(|| {
+        let (color, piece, _) = board.at(from).unwrap_or_else(|| {
             print_board(board, &[]);
             unreachable!("cannot generate moves for empty position {from:?}")
         });
@@ -30,14 +30,14 @@ impl<'board> MoveGen<'board> {
         Self {
             board,
             color,
-            bitboard,
+            piece,
             from,
         }
     }
 
     pub fn generate(self, check_legal: bool) -> Vec<Move> {
         let mut gen = Generator::new(self.board, self.from, check_legal);
-        match self.bitboard.piece() {
+        match self.piece {
             Piece::Pawn => match self.color {
                 Color::B => black_pawn(&mut gen),
                 Color::W => white_pawn(&mut gen),
@@ -58,7 +58,6 @@ impl<'board> MoveGen<'board> {
     }
 
     fn king_castle(&self, gen: &mut Generator) {
-        let pieces = self.board.pieces(self.board.mover());
         let rights = self.board.castling_rights(self.color);
 
         if Castling::None == rights {
@@ -66,10 +65,8 @@ impl<'board> MoveGen<'board> {
         }
 
         if let Castling::Some(left, right) = rights {
-            let pos = pieces[Piece::King.idx()]
-                .iter_pos()
-                .next()
-                .expect("should be there");
+            let king = self.board.get_piece(self.board.mover(), Piece::King);
+            let pos = king.iter_pos().next().expect("should be there");
             if right {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);

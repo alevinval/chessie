@@ -11,12 +11,26 @@ pub enum Piece {
 }
 
 impl Piece {
+    pub const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
+
     const P: usize = 0;
     const N: usize = 1;
     const B: usize = 2;
     const R: usize = 3;
     const Q: usize = 4;
     const K: usize = 5;
+
+    pub const fn from_idx(idx: usize) -> Self {
+        match idx {
+            Self::P => Self::Pawn,
+            Self::N => Self::Knight,
+            Self::B => Self::Bishop,
+            Self::R => Self::Rook,
+            Self::Q => Self::Queen,
+            Self::K => Self::King,
+            Self::K.. => panic!("nope"),
+        }
+    }
 
     pub const fn idx(self) -> usize {
         match self {
@@ -29,7 +43,7 @@ impl Piece {
         }
     }
 
-    pub fn as_str(self, c: Color) -> &'static str {
+    pub const fn as_str(self, c: Color) -> &'static str {
         match self {
             Self::Bishop => match c {
                 Color::B => "♝",

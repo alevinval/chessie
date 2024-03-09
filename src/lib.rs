@@ -21,7 +21,7 @@ fn print_board(board: &Board, highlights: &[Pos]) {
         for col in 0..8 {
             let pos: Pos = (row, col).into();
             let mark = highlights.iter().find(|p| **p == pos).map(|_| "•");
-            let piece = board.at(pos).map_or(" ", |(c, bb)| bb.piece().as_str(c));
+            let piece = board.at(pos).map_or(" ", |(c, piece, _)| piece.as_str(c));
             print!("| {} ", mark.unwrap_or(piece));
         }
         println!("| {row}");
@@ -122,7 +122,7 @@ pub fn minmax(
     maxer: bool,
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
-    if depth == 0 || board.pieces(board.mover())[Piece::King.idx()].is_empty() {
+    if depth == 0 || board.get_piece(board.mover(), Piece::King).is_empty() {
         let eval = Scorer::eval(board, maxer_color, false);
         return (
             None,
@@ -141,8 +141,9 @@ pub fn minmax(
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval: f64 = Scorer::eval(&next, mover, board.n() < 16 || board.piece_count() < 14)
-                + movement.priority();
+            let eval = Scorer::eval(&next, mover, false);
+            // let eval: f64 = Scorer::eval(&next, mover, board.n() < 16 || board.piece_count() < 14)
+            // + movement.priority();
             (next, movement, eval)
         })
         .collect();

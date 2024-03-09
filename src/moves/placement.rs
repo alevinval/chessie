@@ -30,8 +30,8 @@ pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Option<Placement> {
 }
 
 pub fn takes(board: &Board, from: Pos, to: Pos) -> Option<Placement> {
-    board.at(from).and_then(|(color_from, _)| {
-        board.at(to).and_then(|(color_to, _)| {
+    board.at(from).and_then(|(color_from, _, _)| {
+        board.at(to).and_then(|(color_to, _, _)| {
             if color_from == color_to {
                 None
             } else {

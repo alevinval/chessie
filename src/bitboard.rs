@@ -2,14 +2,16 @@ use crate::{piece::Piece, pos::Pos};
 
 use super::Color;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct BitBoard {
-    piece: Piece,
     value: u64,
-    cnt: u8,
 }
 
 impl BitBoard {
+    pub const fn empty() -> Self {
+        Self { value: 0 }
+    }
+
     pub const fn new(piece: Piece, color: Color) -> Self {
         let mut value = match piece {
             Piece::Pawn => 0b1111_1111,
@@ -25,24 +27,24 @@ impl BitBoard {
             color.piece_row()
         };
 
-        let cnt = match piece {
-            Piece::Pawn => 8,
-            Piece::Rook | Piece::Knight | Piece::Bishop => 2,
-            Piece::Queen | Piece::King => 1,
-        };
-
-        Self { piece, value, cnt }
+        Self { value }
     }
 
-    pub fn piece(&self) -> Piece {
-        self.piece
+    pub fn count(self) -> usize {
+        let mut count = 0;
+        let mut value = self.value;
+        while value != 0 {
+            count += 1;
+            value &= value - 1;
+        }
+        count
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub fn is_empty(self) -> bool {
         self.value == 0
     }
 
-    pub fn has_piece<P: Into<u64>>(&self, pos: P) -> bool {
+    pub fn has_piece<P: Into<u64>>(self, pos: P) -> bool {
         self.value & pos.into() != 0
     }
 
@@ -52,19 +54,17 @@ impl BitBoard {
 
     pub fn set<P: Into<u64>>(&mut self, pos: P) {
         self.value |= pos.into();
-        self.cnt += 1;
     }
 
     pub fn unset<P: Into<u64>>(&mut self, pos: P) {
         self.value &= !pos.into();
-        self.cnt -= 1;
     }
 
-    pub fn get_le_bytes(&self) -> [u8; 8] {
+    pub fn get_le_bytes(self) -> [u8; 8] {
         u64::to_le_bytes(self.value)
     }
 
-    pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
+    pub fn iter_pos(self) -> impl Iterator<Item = Pos> {
         (0..8)
             .flat_map(move |row| {
                 let ro = row * 8;
@@ -76,7 +76,7 @@ impl BitBoard {
                     }
                 })
             })
-            .take(self.cnt as usize)
+            .take(self.count())
     }
 }
 
@@ -98,31 +98,19 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard {
-            piece: Piece::Pawn,
-            value: 0,
-            cnt: 0,
-        };
+        let sut = BitBoard { value: 0 };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
+        assert_eq!(0, sut.count());
 
-        let sut = BitBoard {
-            piece: Piece::Pawn,
-            value: 1,
-            cnt: 0,
-        };
+        let sut = BitBoard { value: 1 };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
+        assert_eq!(1, sut.count());
 
-        let sut = BitBoard {
-            piece: Piece::Pawn,
-            value: 0,
-            cnt: 0,
-        };
+        let sut = BitBoard { value: 0 };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
         let sut = BitBoard {
-            piece: Piece::Pawn,
             value: TARGET.into(),
-            cnt: 0,
         };
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
@@ -153,11 +141,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard {
-            piece: Piece::Pawn,
-            value: u64::MAX,
-            cnt: 0,
-        };
+        let sut = BitBoard { value: u64::MAX };
         let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");
@@ -165,7 +149,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(16, mem::size_of::<BitBoard>());
+        assert_eq!(8, mem::size_of::<BitBoard>());
         assert_eq!(8, mem::size_of::<&BitBoard>());
     }
 }
