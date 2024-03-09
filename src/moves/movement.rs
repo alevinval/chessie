@@ -126,7 +126,7 @@ impl Move {
                         );
                     }
                     Move::LeftCastle { mover: _ } | Move::RightCastle { mover: _ } => {
-                        board.set_rights(color, Castling::None)
+                        board.set_rights(color, Castling::None);
                     }
                     Move::PawnPromo {
                         from: _,

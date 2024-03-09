@@ -2,6 +2,7 @@ use std::iter::zip;
 
 use crate::{
     board::Board,
+    piece::Piece,
     pos::{Dir, Pos},
 };
 
@@ -72,12 +73,15 @@ impl<'board> Generator<'board> {
         self.board
             .pieces(self.board.mover())
             .iter()
-            .take(5)
             .for_each(|bitboard| {
+                if matches!(bitboard.piece(), Piece::King) {
+                    return;
+                }
+
                 let promo = Move::PawnPromo {
+                    piece: bitboard.piece(),
                     from: self.from,
                     to,
-                    piece: bitboard.piece(),
                 };
                 self.emit_move(promo);
             });

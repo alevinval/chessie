@@ -15,9 +15,9 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
-        if board.pieces(maxer)[Board::K].is_empty() {
+        if board.pieces(maxer)[Piece::King.idx()].is_empty() {
             return f64::NEG_INFINITY;
-        } else if board.pieces(maxer.opposite())[Board::K].is_empty() {
+        } else if board.pieces(maxer.opposite())[Piece::King.idx()].is_empty() {
             return f64::INFINITY;
         }
 

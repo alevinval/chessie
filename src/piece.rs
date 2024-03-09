@@ -1,49 +1,59 @@
 use super::Color;
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Piece {
-    Pawn,
-    Rook,
-    Knight,
     Bishop,
-    Queen,
     King,
+    Knight,
+    Pawn,
+    Queen,
+    Rook,
 }
 
 impl Piece {
-    pub const fn is_king(self) -> bool {
-        matches!(self, Piece::King)
-    }
+    const P: usize = 0;
+    const N: usize = 1;
+    const B: usize = 2;
+    const R: usize = 3;
+    const Q: usize = 4;
+    const K: usize = 5;
 
-    pub const fn is_pawn(self) -> bool {
-        matches!(self, Piece::Pawn)
+    pub const fn idx(self) -> usize {
+        match self {
+            Self::Bishop => Self::B,
+            Self::King => Self::K,
+            Self::Knight => Self::N,
+            Self::Pawn => Self::P,
+            Self::Queen => Self::Q,
+            Self::Rook => Self::R,
+        }
     }
 
     pub fn as_str(self, c: Color) -> &'static str {
         match self {
-            Piece::Pawn => match c {
-                Color::B => "♟",
-                Color::W => "♙",
-            },
-            Piece::Rook => match c {
-                Color::B => "♜",
-                Color::W => "♖",
-            },
-            Piece::Knight => match c {
-                Color::B => "♞",
-                Color::W => "♘",
-            },
-            Piece::Bishop => match c {
+            Self::Bishop => match c {
                 Color::B => "♝",
                 Color::W => "♗",
             },
-            Piece::Queen => match c {
+            Self::King => match c {
+                Color::B => "♚",
+                Color::W => "♔",
+            },
+            Self::Knight => match c {
+                Color::B => "♞",
+                Color::W => "♘",
+            },
+            Self::Pawn => match c {
+                Color::B => "♟",
+                Color::W => "♙",
+            },
+            Self::Queen => match c {
                 Color::B => "♛",
                 Color::W => "♕",
             },
-            Piece::King => match c {
-                Color::B => "♚",
-                Color::W => "♔",
+            Self::Rook => match c {
+                Color::B => "♜",
+                Color::W => "♖",
             },
         }
     }
@@ -57,20 +67,6 @@ mod test {
     use crate::color::{B, W};
 
     use super::*;
-
-    #[test]
-    fn is_pawn() {
-        let sut = Piece::Pawn;
-        assert!(sut.is_pawn());
-        assert!(!sut.is_king());
-    }
-
-    #[test]
-    fn is_king() {
-        let sut = Piece::King;
-        assert!(sut.is_king());
-        assert!(!sut.is_pawn());
-    }
 
     #[test]
     fn as_str() {

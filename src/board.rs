@@ -21,13 +21,6 @@ pub struct Board {
 }
 
 impl Board {
-    pub const P: usize = 0;
-    pub const N: usize = 1;
-    pub const B: usize = 2;
-    pub const R: usize = 3;
-    pub const Q: usize = 4;
-    pub const K: usize = 5;
-
     pub fn mover(&self) -> Color {
         self.mover
     }
@@ -61,17 +54,9 @@ impl Board {
     }
 
     pub fn apply_promo<P: Into<Pos>>(&mut self, pos: P, piece: Piece) {
-        let idx = match piece {
-            Piece::Pawn => Board::P,
-            Piece::Rook => Board::R,
-            Piece::Knight => Board::N,
-            Piece::Bishop => Board::B,
-            Piece::Queen => Board::Q,
-            Piece::King => unreachable!("cannot promote pawn to king"),
-        };
         match self.mover {
-            Color::B => self.black[idx].set(pos.into()),
-            Color::W => self.white[idx].set(pos.into()),
+            Color::B => self.black[piece.idx()].set(pos.into()),
+            Color::W => self.white[piece.idx()].set(pos.into()),
         }
     }
 
@@ -137,14 +122,14 @@ impl Board {
         let w: usize = self
             .pieces(Color::W)
             .iter()
-            .filter(|bb| !bb.piece().is_pawn())
+            .filter(|bb| bb.piece() != Piece::Pawn)
             .map(|bb| bb.iter_pos().count())
             .sum();
 
         let b: usize = self
             .pieces(Color::B)
             .iter()
-            .filter(|bb| !bb.piece().is_pawn())
+            .filter(|bb| bb.piece() != Piece::Pawn)
             .map(|bb| bb.iter_pos().count())
             .sum();
 
@@ -152,7 +137,7 @@ impl Board {
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.pieces(color)[Board::K].iter_pos().next();
+        let king = self.pieces(color)[Piece::King.idx()].iter_pos().next();
 
         match king {
             Some(king) => self
