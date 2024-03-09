@@ -5,7 +5,6 @@ use crate::{
     board::Board,
     piece::Piece,
     pos::{Dir, Pos},
-    print_bitboard,
 };
 
 use super::{
@@ -76,11 +75,13 @@ impl<'board> Generator<'board> {
         let empty = bb & !takes;
 
         let from = self.from;
-        Bits::iter_pos(self.board.mover(), takes)
-            .map(|to| Move::Takes { from, to })
+        Bits::pos(takes)
+            .iter()
+            .map(|to| Move::Takes { from, to: *to })
             .for_each(|m| self.emit_move(m));
-        Bits::iter_pos(self.board.mover(), empty)
-            .map(|to| Move::Slide { from, to })
+        Bits::pos(empty)
+            .iter()
+            .map(|to| Move::Slide { from, to: *to })
             .for_each(|m| self.emit_move(m));
     }
 

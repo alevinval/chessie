@@ -160,7 +160,7 @@ pub fn minmax(
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, mover, false);
+            let eval = Scorer::eval(&next, mover, true);
             // let eval: f64 = Scorer::eval(&next, mover, board.n() < 16 || board.piece_count() < 14)
             // + movement.priority();
             (next, movement, eval)
@@ -217,6 +217,6 @@ pub fn minmax(
 }
 
 pub fn main() {
-    auto_play(500, 3);
+    auto_play(500, 4);
     // play();
 }

@@ -71,11 +71,10 @@ impl<'board> MoveGen<'board> {
 
         if let Castling::Some(left, right) = rights {
             let king = self.board.get_piece(self.board.mover(), Piece::King);
-            let pos = Bits::iter_pos(self.color, king)
-                .next()
-                .expect("should be there");
+            let king = Bits::pos(king);
+            let pos = king.first().expect("should be there");
             if right {
-                let mut subgen = Generator::new(self.board, pos, false);
+                let mut subgen = Generator::new(self.board, *pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
                     gen.emit_move(Move::RightCastle {
@@ -85,7 +84,7 @@ impl<'board> MoveGen<'board> {
             }
 
             if left {
-                let mut subgen = Generator::new(self.board, pos, false);
+                let mut subgen = Generator::new(self.board, *pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
                     gen.emit_move(Move::LeftCastle {

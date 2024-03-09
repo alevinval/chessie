@@ -138,8 +138,9 @@ impl Board {
     pub fn movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = Bits::iter_pos(color, bb)
-                    .map(|p| MoveGen::new(self, p).generate(true))
+                let moves: Vec<_> = Bits::pos(bb)
+                    .iter()
+                    .map(|p| MoveGen::new(self, *p).generate(true))
                     .collect();
                 moves
             })
@@ -151,8 +152,9 @@ impl Board {
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = Bits::iter_pos(color, bb)
-                    .map(|p| MoveGen::new(self, p).generate(false))
+                let moves: Vec<_> = Bits::pos(bb)
+                    .iter()
+                    .map(|p| MoveGen::new(self, *p).generate(false))
                     .collect();
                 moves
             })
@@ -178,13 +180,14 @@ impl Board {
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = Bits::iter_pos(color, self.get_piece(color, Piece::King)).next();
+        let king = Bits::pos(self.get_piece(color, Piece::King));
+        let king = king.first();
 
         match king {
             Some(king) => self
                 .pseudo_movements(color.opposite())
                 .iter()
-                .any(|m| m.to() == king),
+                .any(|m| m.to() == *king),
             None => true,
         }
     }
@@ -284,7 +287,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(112, mem::size_of::<Board>());
+        assert_eq!(128, mem::size_of::<Board>());
         assert_eq!(8, mem::size_of::<&Board>());
     }
 }

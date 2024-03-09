@@ -47,6 +47,8 @@ mod test {
 
         print_bitboard(pregen[Pos::new(0, 6).sq()]);
 
+        println!("pos={:?}", Bits::pos(pregen[Pos::new(0, 6).sq()]));
+
         let mut board = Board::default();
         Bits::set(&mut board.black[0], Pos::new(2, 5));
 

@@ -23,8 +23,12 @@ impl Pos {
         (self.0 * 8 + self.1) as usize
     }
 
+    pub fn from_sq(sq: u8) -> Self {
+        Self(sq / 8, sq % 8)
+    }
+
     #[must_use]
-    pub const fn to(self, d: Dir) -> Self {
+    pub fn to(self, d: Dir) -> Self {
         let (row, col) = (self.0, self.1);
         let (row, col) = match d {
             Dir::Up(n) => (row + n, col),
@@ -33,7 +37,7 @@ impl Pos {
             Dir::Right(n) => (row, col + n),
             Dir::Custom(nr, nc) => (((row as i8) + nr) as u8, ((col as i8) + nc) as u8),
         };
-        Self(row, col)
+        Self(row, col).assert_bounds()
     }
 
     #[must_use]
@@ -87,6 +91,11 @@ mod test {
         assert_eq!(Pos(4, 5), sut.to(Dir::Right(1)));
         assert_eq!(Pos(4, 3), sut.to(Dir::Left(1)));
         assert_eq!(Pos(7, 0), sut.to(Dir::Custom(3, -4)));
+    }
+
+    #[test]
+    fn from_sq() {
+        assert_eq!(Pos(4, 4), Pos::from_sq(Pos(4, 4).sq() as u8));
     }
 
     #[test]

@@ -1,5 +1,3 @@
-use either::Either;
-
 use crate::{piece::Piece, pos::Pos};
 
 use super::Color;
@@ -52,22 +50,21 @@ impl Bits {
         *bb &= !pos.into();
     }
 
-    pub fn iter_pos(c: Color, bb: BitBoard) -> impl Iterator<Item = Pos> {
-        let rows = match c {
-            Color::B => Either::Left((0..8).rev()),
-            Color::W => Either::Right(0..8),
-        };
-        rows.flat_map(move |row| {
-            let ro = row * 8;
-            (0..8).filter_map(move |col| {
-                if bb & (1 << (ro + col)) > 0 {
-                    Some((row, col).into())
-                } else {
-                    None
-                }
-            })
-        })
-        .take(Self::count(bb))
+    pub fn pos(mut bb: BitBoard) -> Vec<Pos> {
+        let mut pos: Vec<_> = vec![];
+        let mut curr_square = 0;
+        while bb > 0 {
+            let trailing = bb.trailing_zeros() as u8;
+            if trailing == 0 {
+                pos.push(Pos::from_sq(curr_square));
+                curr_square += 1;
+                bb >>= 1;
+                continue;
+            }
+            bb >>= trailing;
+            curr_square += trailing;
+        }
+        pos
     }
 }
 
