@@ -139,7 +139,7 @@ pub fn minmax(
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval: f64 = Scorer::eval(&next, mover, true) + movement.priority();
+            let eval = Scorer::eval(&next, mover, board.n() < 16) + movement.priority();
             (next, movement, eval)
         })
         .collect();
