@@ -4,7 +4,8 @@ mod placement;
 
 use crate::bitboard::Bits;
 use crate::board::Castling;
-use crate::magic::KNIGHT_MAGIC;
+use crate::magic::{Magic, KNIGHT_MAGIC};
+
 use crate::{board::Board, piece::Piece, pos::Dir, print_board, Color, Pos};
 
 pub use self::movement::Move;
@@ -41,8 +42,8 @@ impl<'board> MoveGen<'board> {
         let mut gen = Generator::new(self.board, self.from, check_legal);
         match self.piece {
             Piece::Pawn => match self.color {
-                Color::B => black_pawn(&mut gen),
-                Color::W => white_pawn(&mut gen),
+                Color::B => black_pawn(self.board, self.from, &mut gen),
+                Color::W => white_pawn(self.board, self.from, &mut gen),
             },
             Piece::Rook => gen.cross(empty_or_take),
             Piece::Bishop => gen.diagonals(empty_or_take),
@@ -96,20 +97,19 @@ impl<'board> MoveGen<'board> {
     }
 }
 
-fn black_pawn(g: &mut Generator) {
-    if g.row() > 1 {
-        if g.dir(Dir::Down(1), is_empty).is_some() && g.row() == 6 {
-            g.dir(Dir::Down(2), is_empty);
-        }
+fn black_pawn(board: &Board, from: Pos, g: &mut Generator) {
+    let pawns = board.get_piece(Color::B, Piece::Pawn) & u64::from(from);
+    let white_side = board.side(Color::W);
+    let side_attack = (pawns >> 7 & Magic::NOT_A_FILE & white_side)
+        | (pawns >> 9 & Magic::NOT_H_FILE & white_side);
+    g.takes_from_magic(side_attack);
 
-        if g.col() < 7 {
-            g.dir(Dir::Custom(-1, 1), takes);
-        }
+    let first_push = pawns >> 8 & !white_side;
+    let second_push = first_push >> 8 & !white_side;
+    let pushes = first_push | second_push;
+    g.slides_from_magic(pushes);
 
-        if g.col() > 0 {
-            g.dir(Dir::Custom(-1, -1), takes);
-        }
-    } else {
+    if g.row() == 0 {
         if g.check_dir(Dir::Down(1), is_empty).is_some() {
             g.pawn_promo(Dir::Down(1));
         }
@@ -122,18 +122,19 @@ fn black_pawn(g: &mut Generator) {
     }
 }
 
-fn white_pawn(g: &mut Generator) {
-    if g.row() < 6 {
-        if g.dir(Dir::Up(1), is_empty).is_some() && g.row() == 1 {
-            g.dir(Dir::Up(2), is_empty);
-        }
-        if g.col() < 7 {
-            g.dir(Dir::Custom(1, 1), takes);
-        }
-        if g.col() > 0 {
-            g.dir(Dir::Custom(1, -1), takes);
-        }
-    } else {
+fn white_pawn(board: &Board, from: Pos, g: &mut Generator) {
+    let pawns = board.get_piece(Color::W, Piece::Pawn) & u64::from(from);
+    let black_side = board.side(Color::B);
+    let side_attack = (pawns << 7 & Magic::NOT_H_FILE & black_side)
+        | (pawns << 9 & Magic::NOT_A_FILE & black_side);
+    g.takes_from_magic(side_attack);
+
+    let first_push = pawns << 8 & !black_side;
+    let second_push = first_push << 8 & !black_side;
+    let pushes = first_push | second_push;
+    g.slides_from_magic(pushes);
+
+    if g.row() > 6 {
         if g.check_dir(Dir::Up(1), is_empty).is_some() {
             g.pawn_promo(Dir::Up(1));
         }
@@ -220,5 +221,30 @@ fn king(g: &mut Generator) {
 
     if g.col() > 0 {
         g.dir(Dir::Left(1), empty_or_take);
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn white_pawn_gen() {
+        let mut board = Board::default();
+
+        Bits::set(&mut board.black[0], Pos::new(3, 5));
+        Bits::set(&mut board.black[0], Pos::new(2, 2));
+        Bits::set(&mut board.white[0], Pos::new(4, 5));
+        Bits::set(&mut board.white[0], Pos::new(5, 2));
+
+        board.next_turn();
+
+        let m = MoveGen::new(&board, Pos::new(6, 3)).generate(true);
+
+        let t: Vec<_> = m.iter().map(|m| m.to()).collect();
+        print_board(&board, &t);
+
+        assert!(false);
     }
 }

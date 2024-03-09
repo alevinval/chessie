@@ -12,7 +12,7 @@ pub fn magic_knight() -> [BitBoard; 64] {
     board.clear();
 
     for sq in 0..64 {
-        let p = Pos::new(sq / 8, sq % 8);
+        let p = Pos::from_sq(sq);
         let mut g = Generator::new(&board, p, false);
         knight(&mut g);
         let moves = g.moves();
@@ -56,6 +56,10 @@ mod test {
 
         let t: Vec<_> = m.iter().map(|m| m.to()).collect();
         print_board(&board, &t);
-        assert!(false);
+
+        // assert!(false);
     }
+
+    #[test]
+    fn test_pawns() {}
 }

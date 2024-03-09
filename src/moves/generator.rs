@@ -74,12 +74,21 @@ impl<'board> Generator<'board> {
         let takes = bb & self.board.side(self.board.mover().opposite());
         let empty = bb & !takes;
 
+        self.takes_from_magic(takes);
+        self.slides_from_magic(empty);
+    }
+
+    pub fn takes_from_magic(&mut self, bb: BitBoard) {
         let from = self.from;
-        Bits::pos(takes)
+        Bits::pos(bb)
             .iter()
             .map(|to| Move::Takes { from, to: *to })
             .for_each(|m| self.emit_move(m));
-        Bits::pos(empty)
+    }
+
+    pub fn slides_from_magic(&mut self, bb: BitBoard) {
+        let from = self.from;
+        Bits::pos(bb)
             .iter()
             .map(|to| Move::Slide { from, to: *to })
             .for_each(|m| self.emit_move(m));
