@@ -95,7 +95,7 @@ impl<'board> MoveGen<'board> {
 
 fn black_pawn(g: &mut Generator) {
     if g.row() > 1 {
-        if g.dir(Dir::Down(1), is_empty).placed() && g.row() == 6 {
+        if g.dir(Dir::Down(1), is_empty).is_some() && g.row() == 6 {
             g.dir(Dir::Down(2), is_empty);
         }
 
@@ -107,13 +107,13 @@ fn black_pawn(g: &mut Generator) {
             g.dir(Dir::Custom(-1, -1), takes);
         }
     } else {
-        if g.check_dir(Dir::Down(1), is_empty).placed() {
+        if g.check_dir(Dir::Down(1), is_empty).is_some() {
             g.pawn_promo(Dir::Down(1));
         }
-        if g.col() < 7 && g.check_dir(Dir::Custom(-1, 1), takes).placed() {
+        if g.col() < 7 && g.check_dir(Dir::Custom(-1, 1), takes).is_some() {
             g.pawn_promo(Dir::Custom(-1, 1));
         }
-        if g.col() > 0 && g.check_dir(Dir::Custom(-1, -1), takes).placed() {
+        if g.col() > 0 && g.check_dir(Dir::Custom(-1, -1), takes).is_some() {
             g.pawn_promo(Dir::Custom(-1, -1));
         }
     }
@@ -121,7 +121,7 @@ fn black_pawn(g: &mut Generator) {
 
 fn white_pawn(g: &mut Generator) {
     if g.row() < 6 {
-        if g.dir(Dir::Up(1), is_empty).placed() && g.row() == 1 {
+        if g.dir(Dir::Up(1), is_empty).is_some() && g.row() == 1 {
             g.dir(Dir::Up(2), is_empty);
         }
         if g.col() < 7 {
@@ -131,13 +131,13 @@ fn white_pawn(g: &mut Generator) {
             g.dir(Dir::Custom(1, -1), takes);
         }
     } else {
-        if g.check_dir(Dir::Up(1), is_empty).placed() {
+        if g.check_dir(Dir::Up(1), is_empty).is_some() {
             g.pawn_promo(Dir::Up(1));
         }
-        if g.col() < 7 && g.check_dir(Dir::Custom(1, 1), takes).placed() {
+        if g.col() < 7 && g.check_dir(Dir::Custom(1, 1), takes).is_some() {
             g.pawn_promo(Dir::Custom(1, 1));
         }
-        if g.col() > 0 && g.check_dir(Dir::Custom(1, -1), takes).placed() {
+        if g.col() > 0 && g.check_dir(Dir::Custom(1, -1), takes).is_some() {
             g.pawn_promo(Dir::Custom(1, -1));
         }
     }
