@@ -1,4 +1,5 @@
 use crate::{
+    bitboard::Bits,
     board::{Board, Castling},
     piece::Piece,
     pos::Pos,
@@ -94,7 +95,7 @@ impl Move {
 
     fn clear_dst(board: &mut Board, to: Pos) {
         if let Some((_, _, dst)) = board.at_mut(to) {
-            dst.unset(to);
+            Bits::unset(dst, to);
         }
     }
 
@@ -109,7 +110,7 @@ impl Move {
         let rights = board.castling_rights(board.mover());
 
         let (color, piece, bb) = board.at_mut(from).expect("must have piece to move");
-        bb.slide(from, to.into());
+        Bits::slide(bb, from, to.into());
 
         if let Castling::Some(left, right) = rights {
             if piece == Piece::King {

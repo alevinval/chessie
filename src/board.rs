@@ -1,4 +1,4 @@
-use crate::bitboard::BitBoard;
+use crate::bitboard::{BitBoard, Bits};
 use crate::moves::{Move, MoveGen};
 use crate::piece::Piece;
 use crate::pos::Pos;
@@ -65,8 +65,8 @@ impl Board {
 
     pub fn apply_promo<P: Into<Pos>>(&mut self, pos: P, piece: Piece) {
         match self.mover {
-            Color::B => self.black[piece.idx()].set(pos.into()),
-            Color::W => self.white[piece.idx()].set(pos.into()),
+            Color::B => Bits::set(&mut self.black[piece.idx()], pos.into()),
+            Color::W => Bits::set(&mut self.white[piece.idx()], pos.into()),
         }
     }
 
@@ -76,13 +76,13 @@ impl Board {
         self.white
             .iter()
             .enumerate()
-            .find(|(_, bb)| bb.has_piece(pos))
+            .find(|(_, bb)| Bits::has_piece(**bb, pos))
             .map(|(idx, bb)| (Color::W, idx, bb))
             .or_else(|| {
                 self.black
                     .iter()
                     .enumerate()
-                    .find(|(_, bb)| bb.has_piece(pos))
+                    .find(|(_, bb)| Bits::has_piece(**bb, pos))
                     .map(|(idx, bb)| (Color::B, idx, bb))
             })
             .map(|(c, idx, bb)| (c, Piece::from_idx(idx), bb))
@@ -94,13 +94,13 @@ impl Board {
         self.white
             .iter_mut()
             .enumerate()
-            .find(|(_, bb)| bb.has_piece(pos))
+            .find(|(_, bb)| Bits::has_piece(**bb, pos))
             .map(|(idx, bb)| (Color::W, idx, bb))
             .or_else(|| {
                 self.black
                     .iter_mut()
                     .enumerate()
-                    .find(|(_, bb)| bb.has_piece(pos))
+                    .find(|(_, bb)| Bits::has_piece(**bb, pos))
                     .map(|(idx, bb)| (Color::B, idx, bb))
             })
             .map(|(c, idx, bb)| (c, Piece::from_idx(idx), bb))
@@ -119,8 +119,7 @@ impl Board {
     pub fn movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = bb
-                    .iter_pos()
+                let moves: Vec<_> = Bits::iter_pos(bb)
                     .map(|p| MoveGen::new(self, p).generate(true))
                     .collect();
                 moves
@@ -133,8 +132,7 @@ impl Board {
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = bb
-                    .iter_pos()
+                let moves: Vec<_> = Bits::iter_pos(bb)
                     .map(|p| MoveGen::new(self, p).generate(false))
                     .collect();
                 moves
@@ -148,20 +146,20 @@ impl Board {
         let w: usize = self
             .pieces_iter(Color::W)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.count())
+            .map(|(_, bb)| Bits::count(bb))
             .sum();
 
         let b: usize = self
             .pieces_iter(Color::B)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.count())
+            .map(|(_, bb)| Bits::count(bb))
             .sum();
 
         w + b
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.get_piece(color, Piece::King).iter_pos().next();
+        let king = Bits::iter_pos(self.get_piece(color, Piece::King)).next();
 
         match king {
             Some(king) => self
@@ -174,12 +172,12 @@ impl Board {
 
     fn gen_pieces(color: Color) -> [BitBoard; 6] {
         [
-            BitBoard::new(Piece::Pawn, color),
-            BitBoard::new(Piece::Knight, color),
-            BitBoard::new(Piece::Bishop, color),
-            BitBoard::new(Piece::Rook, color),
-            BitBoard::new(Piece::Queen, color),
-            BitBoard::new(Piece::King, color),
+            Bits::init(Piece::Pawn, color),
+            Bits::init(Piece::Knight, color),
+            Bits::init(Piece::Bishop, color),
+            Bits::init(Piece::Rook, color),
+            Bits::init(Piece::Queen, color),
+            Bits::init(Piece::King, color),
         ]
     }
 }
