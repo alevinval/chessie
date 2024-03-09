@@ -5,7 +5,7 @@ use crate::{
     Pos,
 };
 
-pub fn magic_knight() -> [BitBoard; 64] {
+pub fn precompute_knights() -> [BitBoard; 64] {
     let mut gen = [0; 64];
 
     let mut board = Board::default();
@@ -38,7 +38,7 @@ mod test {
 
     #[test]
     fn test_magic_knight() {
-        let pregen = magic_knight();
+        let pregen = precompute_knights();
         println!("const KNIGHT_MAGIC: [BitBoard; 64] = [");
         for g in pregen {
             println!("  {:?},", g);
