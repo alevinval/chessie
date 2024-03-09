@@ -1,9 +1,11 @@
 use std::iter::zip;
 
 use crate::{
+    bitboard::{BitBoard, Bits},
     board::Board,
     piece::Piece,
     pos::{Dir, Pos},
+    print_bitboard,
 };
 
 use super::{
@@ -66,6 +68,20 @@ impl<'board> Generator<'board> {
 
     pub fn moves(self) -> Vec<Move> {
         self.moves
+    }
+
+    pub fn moves_from_magic(&mut self, mut bb: BitBoard) {
+        bb ^= bb & self.board.side(self.board.mover());
+        let takes = bb & self.board.side(self.board.mover().opposite());
+        let empty = bb & !takes;
+
+        let from = self.from;
+        Bits::iter_pos(self.board.mover(), takes)
+            .map(|to| Move::Takes { from, to })
+            .for_each(|m| self.emit_move(m));
+        Bits::iter_pos(self.board.mover(), empty)
+            .map(|to| Move::Slide { from, to })
+            .for_each(|m| self.emit_move(m));
     }
 
     pub fn pawn_promo(&mut self, d: Dir) {

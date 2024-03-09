@@ -1,9 +1,10 @@
-mod generator;
+pub mod generator;
 mod movement;
 mod placement;
 
 use crate::bitboard::Bits;
 use crate::board::Castling;
+use crate::magic::KNIGHT_MAGIC;
 use crate::{board::Board, piece::Piece, pos::Dir, print_board, Color, Pos};
 
 pub use self::movement::Move;
@@ -49,7 +50,10 @@ impl<'board> MoveGen<'board> {
                 gen.diagonals(empty_or_take);
                 gen.cross(empty_or_take);
             }
-            Piece::Knight => knight(&mut gen),
+            Piece::Knight => {
+                let bb = KNIGHT_MAGIC[self.from.sq()];
+                gen.moves_from_magic(bb);
+            }
             Piece::King => {
                 king(&mut gen);
                 self.king_castle(&mut gen);
@@ -143,7 +147,7 @@ fn white_pawn(g: &mut Generator) {
     }
 }
 
-fn knight(g: &mut Generator) {
+pub fn knight(g: &mut Generator) {
     let has_one_right = g.col() < 7;
     let has_two_right = g.col() < 6;
     let has_one_left = g.col() > 0;

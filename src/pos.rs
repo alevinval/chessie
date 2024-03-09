@@ -13,9 +13,14 @@ pub enum Dir {
 pub struct Pos(u8, u8);
 
 impl Pos {
-    #[cfg(test)]
+    #[must_use]
     pub const fn new(row: u8, col: u8) -> Self {
         Self(row, col)
+    }
+
+    #[must_use]
+    pub fn sq(self) -> usize {
+        (self.0 * 8 + self.1) as usize
     }
 
     #[must_use]

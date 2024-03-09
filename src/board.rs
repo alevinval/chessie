@@ -15,6 +15,8 @@ pub struct Board {
     mover: Color,
     pub white: [BitBoard; 6],
     pub black: [BitBoard; 6],
+    white_side: BitBoard,
+    black_side: BitBoard,
     white_rights: Castling,
     black_rights: Castling,
     n: usize,
@@ -44,6 +46,21 @@ impl Board {
             Color::B => self.black[piece.idx()],
             Color::W => self.white[piece.idx()],
         }
+    }
+
+    pub fn side(&self, color: Color) -> BitBoard {
+        match color {
+            Color::B => self.black_side,
+            Color::W => self.white_side,
+        }
+    }
+
+    fn calc_side(bbs: [BitBoard; 6]) -> BitBoard {
+        let mut side: BitBoard = 0;
+        for b in bbs {
+            side |= b;
+        }
+        side
     }
 
     pub fn pieces_iter(&self, color: Color) -> impl Iterator<Item = (Piece, BitBoard)> + '_ {
@@ -107,6 +124,8 @@ impl Board {
     }
 
     pub fn next_turn(&mut self) {
+        self.white_side = Self::calc_side(self.white);
+        self.black_side = Self::calc_side(self.black);
         self.mover = self.mover.opposite();
         self.n += 1;
     }
@@ -180,14 +199,23 @@ impl Board {
             Bits::init(Piece::King, color),
         ]
     }
+
+    pub fn clear(&mut self) {
+        self.white.iter_mut().for_each(|bb| *bb = 0);
+        self.black.iter_mut().for_each(|bb| *bb = 0);
+    }
 }
 
 impl Default for Board {
     fn default() -> Self {
+        let white = Self::gen_pieces(Color::W);
+        let black = Self::gen_pieces(Color::B);
         Self {
             mover: Color::W,
-            white: Self::gen_pieces(Color::W),
-            black: Self::gen_pieces(Color::B),
+            white,
+            black,
+            white_side: Self::calc_side(white),
+            black_side: Self::calc_side(black),
             white_rights: Castling::Some(true, true),
             black_rights: Castling::Some(true, true),
             n: 0,
