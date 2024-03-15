@@ -28,7 +28,7 @@ impl Piece {
             Self::R => Self::Rook,
             Self::Q => Self::Queen,
             Self::K => Self::King,
-            Self::K.. => panic!("nope"),
+            _ => panic!("incorrect index"),
         }
     }
 

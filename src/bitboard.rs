@@ -1,8 +1,10 @@
-use crate::{piece::Piece, pos::Pos};
+use crate::{
+    defs::{BitBoard, Sq},
+    piece::Piece,
+    Pos,
+};
 
 use super::Color;
-
-pub type BitBoard = u64;
 
 pub struct Bits();
 
@@ -25,7 +27,7 @@ impl Bits {
         value
     }
 
-    pub fn count(mut bb: BitBoard) -> usize {
+    pub const fn count(mut bb: BitBoard) -> usize {
         let mut count = 0;
         while bb != 0 {
             count += 1;
@@ -34,50 +36,66 @@ impl Bits {
         count
     }
 
-    pub fn has_piece<P: Into<u64>>(bb: BitBoard, pos: P) -> bool {
+    pub fn has_piece<P: Into<BitBoard>>(bb: BitBoard, pos: P) -> bool {
         bb & pos.into() != 0
     }
 
-    pub fn slide<P: Into<u64>>(bb: &mut BitBoard, from: P, to: P) {
+    pub fn slide<P: Into<BitBoard>>(bb: &mut BitBoard, from: P, to: P) {
         *bb ^= from.into() | to.into();
     }
 
-    pub fn set<P: Into<u64>>(bb: &mut BitBoard, pos: P) {
+    pub fn set<P: Into<BitBoard>>(bb: &mut BitBoard, pos: P) {
         *bb |= pos.into();
     }
 
-    pub fn unset<P: Into<u64>>(bb: &mut BitBoard, pos: P) {
+    pub fn unset<P: Into<BitBoard>>(bb: &mut BitBoard, pos: P) {
         *bb &= !pos.into();
     }
 
     pub fn pos(mut bb: BitBoard) -> Vec<Pos> {
-        let mut pos: Vec<_> = vec![];
-        let mut curr_square = 0;
+        let mut acc: Vec<Pos> = vec![];
+        let mut square: Sq = 0;
         while bb > 0 {
-            let trailing = bb.trailing_zeros() as u8;
-            if trailing == 0 {
-                pos.push(Pos::from_sq(curr_square));
-                curr_square += 1;
-                bb >>= 1;
-                continue;
+            let mut shift = bb.trailing_zeros() as usize;
+            if shift == 0 {
+                acc.push(square.into());
+                shift = 1;
             }
-            bb >>= trailing;
-            curr_square += trailing;
+            bb >>= shift;
+            square += shift;
         }
-        pos
+        acc
     }
-}
 
-impl From<Pos> for u64 {
-    fn from(pos: Pos) -> Self {
-        1 << (pos.row() * 8 + pos.col())
+    pub const fn north(bb: BitBoard) -> BitBoard {
+        bb << 8
+    }
+
+    pub const fn northeast(bb: BitBoard) -> BitBoard {
+        bb << 9
+    }
+
+    pub const fn northwest(bb: BitBoard) -> BitBoard {
+        bb << 7
+    }
+
+    pub const fn south(bb: BitBoard) -> BitBoard {
+        bb >> 8
+    }
+
+    pub const fn southeast(bb: BitBoard) -> BitBoard {
+        bb >> 7
+    }
+
+    pub const fn southwest(bb: BitBoard) -> BitBoard {
+        bb >> 9
     }
 }
 
 #[cfg(test)]
 mod test {
 
-    use std::mem;
+    use crate::{print_bitboard, Pos};
 
     use super::*;
 
@@ -85,31 +103,25 @@ mod test {
     static TARGET: Pos = Pos::new(3, 3);
 
     #[test]
-    fn has_piece() {
-        assert!(
-            !Bits::has_piece(0, ORIGIN),
-            "{ORIGIN:?} should not have piece"
-        );
-        assert_eq!(0, Bits::count(0));
-
-        assert!(Bits::has_piece(1, ORIGIN), "{ORIGIN:?} should have piece");
-        assert_eq!(1, Bits::count(1));
-
-        assert!(
-            !Bits::has_piece(0, TARGET),
-            "{TARGET:?} should not have piece"
-        );
-
-        assert!(
-            Bits::has_piece(TARGET.into(), TARGET),
-            "{TARGET:?} should have piece"
-        );
+    fn count() {
+        let sut = 0x800c00000a007000;
+        print_bitboard(sut);
+        assert_eq!(8, Bits::count(sut));
     }
 
     #[test]
-    fn mov() {
-        let from: Pos = (1, 1).into();
-        let to: Pos = (2, 2).into();
+    fn has_piece() {
+        assert!(!Bits::has_piece(0, ORIGIN));
+        assert!(Bits::has_piece(ORIGIN.bb(), ORIGIN));
+
+        assert!(!Bits::has_piece(0, TARGET));
+        assert!(Bits::has_piece(TARGET.bb(), TARGET));
+    }
+
+    #[test]
+    fn slide() {
+        let from = Pos::new(1, 1);
+        let to = Pos::new(2, 2);
 
         let mut sut = Bits::init(Piece::Pawn, Color::W);
         assert!(!Bits::has_piece(sut, to));
@@ -122,7 +134,7 @@ mod test {
 
     #[test]
     fn unset() {
-        let pos: Pos = (1, 1).into();
+        let pos = Pos::new(1, 1);
         let mut sut = Bits::init(Piece::Pawn, Color::W);
         assert!(Bits::has_piece(sut, pos));
 
@@ -131,8 +143,68 @@ mod test {
     }
 
     #[test]
-    fn size() {
-        assert_eq!(8, mem::size_of::<BitBoard>());
-        assert_eq!(8, mem::size_of::<&BitBoard>());
+    fn north() {
+        let input: BitBoard = 0x1;
+        print_bitboard(input);
+
+        let actual = Bits::north(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x100, actual);
+    }
+
+    #[test]
+    fn northwest() {
+        let input: BitBoard = 0xe00;
+        print_bitboard(input);
+
+        let actual = Bits::northwest(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x70000, actual);
+    }
+
+    #[test]
+    fn northeast() {
+        let input: BitBoard = 0x1;
+        print_bitboard(input);
+
+        let actual = Bits::northeast(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x200, actual);
+    }
+
+    #[test]
+    fn south() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::south(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x400, actual);
+    }
+
+    #[test]
+    fn southwest() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::southwest(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x200, actual);
+    }
+
+    #[test]
+    fn southeast() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::southeast(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x800, actual);
     }
 }

@@ -1,143 +1,121 @@
 use std::fmt::Display;
 
-#[derive(Debug, Copy, Clone)]
-pub enum Dir {
-    Up(u8),
-    Down(u8),
-    Right(u8),
-    Left(u8),
-    Custom(i8, i8),
-}
+use crate::defs::{BitBoard, Dir, Sq};
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Pos(u8, u8);
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Pos(Sq);
 
 impl Pos {
     #[must_use]
-    pub const fn new(row: u8, col: u8) -> Self {
-        Self(row, col)
+    pub const fn new(row: usize, col: usize) -> Self {
+        Self(row * 8 + col)
     }
 
     #[must_use]
-    pub const fn sq(self) -> usize {
-        (self.0 * 8 + self.1) as usize
-    }
-
-    pub fn from_sq(sq: u8) -> Self {
-        Self(sq / 8, sq % 8)
-    }
-
-    #[must_use]
-    pub fn to(self, d: Dir) -> Self {
-        let (row, col) = (self.0, self.1);
-        let (row, col) = match d {
-            Dir::Up(n) => (row + n, col),
-            Dir::Down(n) => (row - n, col),
-            Dir::Left(n) => (row, col - n),
-            Dir::Right(n) => (row, col + n),
-            Dir::Custom(nr, nc) => (((row as i8) + nr) as u8, ((col as i8) + nc) as u8),
-        };
-        Self(row, col).assert_bounds()
-    }
-
-    #[must_use]
-    pub fn row(self) -> u8 {
+    pub const fn sq(self) -> Sq {
         self.0
     }
 
     #[must_use]
-    pub fn col(self) -> u8 {
-        self.1
+    pub const fn row(self) -> usize {
+        self.0 / 8
     }
 
     #[must_use]
-    pub fn is_central(self) -> bool {
-        self.0 >= 3 && self.1 >= 3 && self.0 <= 4 && self.1 <= 4
+    pub const fn col(self) -> usize {
+        self.0 % 8
     }
 
-    fn assert_bounds(self) -> Self {
-        debug_assert!(
-            self.0 < 8 && self.1 < 8,
-            "position {self} outside of bounds"
-        );
-        self
+    #[must_use]
+    pub const fn bb(self) -> BitBoard {
+        1 << self.0
+    }
+
+    #[must_use]
+    pub const fn is_central(self) -> bool {
+        let (row, col) = (self.row(), self.col());
+        row >= 3 && col >= 3 && row <= 4 && col <= 4
+    }
+
+    #[must_use]
+    pub fn to(self, d: Dir) -> Self {
+        Self(d.apply(self.sq()))
+    }
+}
+
+impl From<Sq> for Pos {
+    fn from(value: Sq) -> Self {
+        Self(value)
+    }
+}
+
+impl From<(usize, usize)> for Pos {
+    fn from((row, col): (usize, usize)) -> Self {
+        Self::new(row, col)
+    }
+}
+
+impl From<Pos> for BitBoard {
+    fn from(val: Pos) -> Self {
+        val.bb()
     }
 }
 
 impl Display for Pos {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("({},{})", self.0, self.1))
-    }
-}
-
-impl From<(u8, u8)> for Pos {
-    fn from(value: (u8, u8)) -> Self {
-        Self(value.0, value.1).assert_bounds()
+        f.write_fmt(format_args!("({},{})", self.row(), self.col()))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::mem;
-
     use super::*;
 
     #[test]
-    fn to() {
-        let sut = Pos(4, 4);
-
-        assert_eq!(Pos(5, 4), sut.to(Dir::Up(1)));
-        assert_eq!(Pos(3, 4), sut.to(Dir::Down(1)));
-        assert_eq!(Pos(4, 5), sut.to(Dir::Right(1)));
-        assert_eq!(Pos(4, 3), sut.to(Dir::Left(1)));
-        assert_eq!(Pos(7, 0), sut.to(Dir::Custom(3, -4)));
+    fn sq() {
+        assert_eq!(0, Pos::new(0, 0).sq());
+        assert_eq!(3, Pos::new(0, 3).sq());
+        assert_eq!(8, Pos::new(1, 0).sq());
+        assert_eq!(11, Pos::new(1, 3).sq());
     }
 
     #[test]
-    fn from_sq() {
-        assert_eq!(Pos(4, 4), Pos::from_sq(Pos(4, 4).sq() as u8));
+    fn row() {
+        assert_eq!(0, Pos::new(0, 0).row());
+        assert_eq!(0, Pos::new(0, 3).row());
+        assert_eq!(1, Pos::new(1, 0).row());
+        assert_eq!(1, Pos::new(1, 5).row());
+    }
+
+    #[test]
+    fn col() {
+        assert_eq!(0, Pos::new(0, 0).col());
+        assert_eq!(3, Pos::new(0, 3).col());
+        assert_eq!(0, Pos::new(1, 0).col());
+        assert_eq!(5, Pos::new(1, 5).col());
     }
 
     #[test]
     fn is_central() {
-        let mut sut: Pos = (4, 4).into();
+        let mut sut = Pos::new(4, 4);
         assert!(sut.is_central());
-        sut = (3, 4).into();
+        sut = Pos::new(3, 4);
         assert!(sut.is_central());
-        sut = (3, 3).into();
+        sut = Pos::new(3, 3);
         assert!(sut.is_central());
-        sut = (4, 3).into();
+        sut = Pos::new(4, 3);
         assert!(sut.is_central());
 
-        sut = (5, 3).into();
+        sut = Pos::new(5, 3);
         assert!(!sut.is_central());
-        sut = (2, 3).into();
+        sut = Pos::new(2, 3);
         assert!(!sut.is_central());
-        sut = (4, 5).into();
+        sut = Pos::new(4, 5);
         assert!(!sut.is_central());
     }
 
     #[test]
-    #[should_panic(expected = "attempt to subtract with overflow")]
-    fn to_outside_bounds_lower() {
-        let _ = Pos(0, 0).to(Dir::Down(1));
-    }
-
-    #[test]
-    #[should_panic(expected = "position (9,7) outside of bounds")]
-    fn to_outside_bounds_upper() {
-        let _ = Pos(7, 7).to(Dir::Up(2));
-    }
-
-    #[test]
-    #[should_panic(expected = "position (8,8) outside of bounds")]
-    fn into_outside_bounds() {
-        let _: Pos = (8, 8).into();
-    }
-
-    #[test]
-    fn size() {
-        assert_eq!(2, mem::size_of::<Pos>());
-        assert_eq!(8, mem::size_of::<&Pos>());
+    fn display() {
+        assert_eq!("(2,3)", Pos::new(2, 3).to_string())
     }
 }

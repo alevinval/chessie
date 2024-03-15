@@ -1,11 +1,7 @@
 use rand::Rng;
 
-use crate::{
-    bitboard::{BitBoard, Bits},
-    board::Board,
-    piece::Piece,
-    Color,
-};
+use crate::defs::BitBoard;
+use crate::{bitboard::Bits, board::Board, piece::Piece, Color};
 
 #[derive(Default)]
 pub struct Scorer {}

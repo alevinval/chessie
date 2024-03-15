@@ -99,8 +99,7 @@ impl Move {
         }
     }
 
-    fn promo<P: Into<Pos>>(board: &mut Board, pos: P, piece: Piece) {
-        let pos = pos.into();
+    fn promo(board: &mut Board, pos: Pos, piece: Piece) {
         Self::clear_dst(board, pos);
         board.apply_promo(pos, piece);
     }
@@ -157,7 +156,7 @@ mod test {
             Move::PawnPromo {
                 from: FROM,
                 to: TO,
-                piece: Piece::Pawn,
+                piece: Piece::Pawn
             }
             .to()
         );
@@ -175,7 +174,7 @@ mod test {
             Move::PawnPromo {
                 from: FROM,
                 to: TO,
-                piece: Piece::Pawn,
+                piece: Piece::Pawn
             }
             .from()
         );
@@ -187,7 +186,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(5, mem::size_of::<Move>());
+        assert_eq!(24, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }

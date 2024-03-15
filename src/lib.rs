@@ -1,8 +1,8 @@
 use std::io;
 
-use bitboard::BitBoard;
 use board::Board;
 pub use color::Color;
+use defs::BitBoard;
 use eval::Scorer;
 use moves::Move;
 use piece::Piece;
@@ -13,6 +13,7 @@ use crate::bitboard::Bits;
 mod bitboard;
 mod board;
 mod color;
+mod defs;
 mod eval;
 mod exp;
 mod magic;
@@ -21,6 +22,7 @@ mod piece;
 mod pos;
 
 pub fn print_bitboard(bb: BitBoard) {
+    println!("[bitboard=0x{bb:x}]");
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
@@ -35,6 +37,7 @@ pub fn print_bitboard(bb: BitBoard) {
 }
 
 fn print_board(board: &Board, highlights: &[Pos]) {
+    println!("[highlights={highlights:?}]");
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
@@ -52,10 +55,10 @@ fn print_board(board: &Board, highlights: &[Pos]) {
 fn read_pos() -> Pos {
     let mut line = String::new();
     io::stdin().read_line(&mut line).unwrap();
-    let col: u8 = line.trim().parse().unwrap();
+    let col: usize = line.trim().parse().unwrap();
     line.clear();
     io::stdin().read_line(&mut line).unwrap();
-    let row: u8 = line.trim().parse().unwrap();
+    let row: usize = line.trim().parse().unwrap();
     (row, col).into()
 }
 

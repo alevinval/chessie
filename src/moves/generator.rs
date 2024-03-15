@@ -1,11 +1,7 @@
 use std::iter::zip;
 
-use crate::{
-    bitboard::{BitBoard, Bits},
-    board::Board,
-    piece::Piece,
-    pos::{Dir, Pos},
-};
+use crate::defs::{BitBoard, Dir};
+use crate::{bitboard::Bits, board::Board, piece::Piece, pos::Pos, Color};
 
 use super::{
     placement::{Placement, StopCondition},
@@ -16,25 +12,35 @@ use super::{
 pub struct Generator<'board> {
     board: &'board Board,
     from: Pos,
+    color: Color,
+    piece: Piece,
     moves: Vec<Move>,
     check_legal: bool,
 }
 
 impl<'board> Generator<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P, check_legal: bool) -> Self {
+    pub fn new<P: Into<Pos>>(
+        board: &'board Board,
+        from: P,
+        color: Color,
+        piece: Piece,
+        check_legal: bool,
+    ) -> Self {
         Generator {
             board,
             from: from.into(),
+            color,
+            piece,
             moves: vec![],
             check_legal,
         }
     }
 
-    pub fn row(&self) -> u8 {
+    pub fn row(&self) -> usize {
         self.from.row()
     }
 
-    pub fn col(&self) -> u8 {
+    pub fn col(&self) -> usize {
         self.from.col()
     }
 
@@ -44,19 +50,12 @@ impl<'board> Generator<'board> {
         }
     }
 
-    pub fn check_dir(&self, d: Dir, stop_at: StopCondition) -> Option<Placement> {
-        let to = self.from.to(d);
-        stop_at(self.board, self.from, to)
-    }
-
     pub fn dir(&mut self, d: Dir, stop_at: StopCondition) -> Option<Placement> {
-        let to = self.from.to(d);
-        self.pos(to, stop_at)
+        self.pos(self.from.to(d), stop_at)
     }
 
     pub fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Option<Placement> {
-        let to = to.into();
-        let placement = stop_at(self.board, self.from, to);
+        let placement = stop_at(self.board, self.from, to.into());
 
         if let Some(placement) = &placement {
             self.emit_move(placement.movement());
@@ -80,23 +79,28 @@ impl<'board> Generator<'board> {
 
     pub fn takes_from_magic(&mut self, bb: BitBoard) {
         let from = self.from;
-        Bits::pos(bb)
-            .iter()
-            .map(|to| Move::Takes { from, to: *to })
-            .for_each(|m| self.emit_move(m));
+
+        for to in Bits::pos(bb) {
+            if self.piece == Piece::Pawn && to.row() == self.color.opposite().piece_row() {
+                self.emit_pawn_promos(to);
+                continue;
+            }
+            self.emit_move(Move::Takes { from, to });
+        }
     }
 
     pub fn slides_from_magic(&mut self, bb: BitBoard) {
         let from = self.from;
-        Bits::pos(bb)
-            .iter()
-            .map(|to| Move::Slide { from, to: *to })
-            .for_each(|m| self.emit_move(m));
+        for to in Bits::pos(bb) {
+            if self.piece == Piece::Pawn && to.row() == self.color.opposite().piece_row() {
+                self.emit_pawn_promos(to);
+                continue;
+            }
+            self.emit_move(Move::Slide { from, to });
+        }
     }
 
-    pub fn pawn_promo(&mut self, d: Dir) {
-        let to = self.from.to(d);
-
+    pub fn emit_pawn_promos(&mut self, to: Pos) {
         for piece in Piece::PROMO {
             let promo = Move::PawnPromo {
                 from: self.from,
@@ -201,7 +205,7 @@ mod test {
     #[test]
     fn generator_row_and_col() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3), false);
+        let sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
         assert_eq!(1, sut.row());
         assert_eq!(3, sut.col());
@@ -210,7 +214,7 @@ mod test {
     #[test]
     fn generator_default_bitboard() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3), false);
+        let sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
         assert!(sut.moves().is_empty());
     }
@@ -218,14 +222,14 @@ mod test {
     #[test]
     fn generator_from_direction_empty_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), false);
+        let mut sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
         assert_eq!(
             Some(Placement::Empty {
                 from: (1, 3).into(),
                 to: (2, 3).into()
             }),
-            sut.dir(Dir::Up(1), empty_placement)
+            sut.dir(Dir::Up, empty_placement)
         );
 
         let expected: Vec<Move> = vec![Move::Slide {
@@ -238,14 +242,14 @@ mod test {
     #[test]
     fn generator_from_direction_takes_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), false);
+        let mut sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
         assert_eq!(
             Some(Placement::Takes {
                 from: (1, 3).into(),
-                to: (2, 3).into()
+                to: (2, 3).into(),
             }),
-            sut.dir(Dir::Up(1), takes_placement)
+            sut.dir(Dir::Up, takes_placement)
         );
 
         let expected = vec![Move::Takes {
@@ -258,9 +262,9 @@ mod test {
     #[test]
     fn generator_from_direction_invalid_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), false);
+        let mut sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
-        assert_eq!(None, sut.dir(Dir::Up(1), invalid_placement));
+        assert_eq!(None, sut.dir(Dir::Up, invalid_placement));
 
         assert!(sut.moves().is_empty());
     }

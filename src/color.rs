@@ -6,7 +6,7 @@ pub enum Color {
 
 impl Color {
     #[must_use]
-    pub const fn piece_row(self) -> u8 {
+    pub const fn piece_row(self) -> usize {
         match self {
             Color::B => 7,
             Color::W => 0,
@@ -14,7 +14,7 @@ impl Color {
     }
 
     #[must_use]
-    pub const fn pawn_row(self) -> u8 {
+    pub const fn pawn_row(self) -> usize {
         match self {
             Color::B => 6,
             Color::W => 1,

@@ -1,8 +1,10 @@
-use crate::bitboard::{BitBoard, Bits};
+use crate::bitboard::Bits;
+use crate::defs::BitBoard;
+
 use crate::moves::{Move, MoveGen};
 use crate::piece::Piece;
-use crate::pos::Pos;
 use crate::Color;
+use crate::Pos;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Castling {
@@ -80,16 +82,15 @@ impl Board {
         }
     }
 
-    pub fn apply_promo<P: Into<Pos>>(&mut self, pos: P, piece: Piece) {
+    pub fn apply_promo(&mut self, pos: Pos, piece: Piece) {
         match self.mover {
-            Color::B => Bits::set(&mut self.black[piece.idx()], pos.into()),
-            Color::W => Bits::set(&mut self.white[piece.idx()], pos.into()),
+            Color::B => Bits::set(&mut self.black[piece.idx()], pos),
+            Color::W => Bits::set(&mut self.white[piece.idx()], pos),
         }
     }
 
     pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, Piece, &BitBoard)> {
         let pos = pos.into();
-
         self.white
             .iter()
             .enumerate()
@@ -107,7 +108,6 @@ impl Board {
 
     pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, Piece, &mut BitBoard)> {
         let pos = pos.into();
-
         self.white
             .iter_mut()
             .enumerate()
