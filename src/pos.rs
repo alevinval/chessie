@@ -69,7 +69,16 @@ impl Display for Pos {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
+
+    #[test]
+    fn bb() {
+        assert_eq!(0x1, Pos::new(0, 0).bb());
+        assert_eq!(0x8, Pos::new(0, 3).bb());
+        assert_eq!(0x100, Pos::new(1, 0).bb());
+        assert_eq!(0x800, Pos::new(1, 3).bb());
+    }
 
     #[test]
     fn sq() {

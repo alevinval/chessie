@@ -4,8 +4,7 @@ mod placement;
 
 use crate::bitboard::Bits;
 use crate::board::Castling;
-use crate::defs::Dir;
-use crate::magic::{Magic, KNIGHT_MAGIC};
+use crate::magic::{Magic, KING_MAGIC, KNIGHT_MAGIC};
 use crate::Pos;
 use crate::{board::Board, piece::Piece, print_board, Color};
 
@@ -52,7 +51,8 @@ impl<'board> MoveGen<'board> {
                 gen.moves_from_magic(bb);
             }
             Piece::King => {
-                king(&mut gen);
+                let bb = KING_MAGIC[self.from.sq()];
+                gen.moves_from_magic(bb);
                 self.king_castle(&mut gen);
             }
         };
@@ -115,84 +115,6 @@ fn white_pawn(board: &Board, from: Pos, g: &mut Generator) {
     g.slides_from_magic(pushes);
 }
 
-#[deprecated]
-pub fn knight(g: &mut Generator) {
-    let has_one_right = g.col() < 7;
-    let has_two_right = g.col() < 6;
-    let has_one_left = g.col() > 0;
-    let has_two_left = g.col() > 1;
-
-    if g.row() < 6 {
-        if has_one_left {
-            g.dir(Dir::Custom(2, -1), empty_or_take);
-        }
-        if has_one_right {
-            g.dir(Dir::Custom(2, 1), empty_or_take);
-        }
-    }
-
-    if g.row() > 2 {
-        if has_one_left {
-            g.dir(Dir::Custom(-2, -1), empty_or_take);
-        }
-        if has_one_right {
-            g.dir(Dir::Custom(-2, 1), empty_or_take);
-        }
-    }
-
-    if g.row() < 7 {
-        if has_two_left {
-            g.dir(Dir::Custom(1, -2), empty_or_take);
-        }
-        if has_two_right {
-            g.dir(Dir::Custom(1, 2), empty_or_take);
-        }
-    }
-
-    if g.row() > 0 {
-        if has_two_left {
-            g.dir(Dir::Custom(-1, -2), empty_or_take);
-        }
-        if has_two_right {
-            g.dir(Dir::Custom(-1, 2), empty_or_take);
-        }
-    }
-}
-
-fn king(g: &mut Generator) {
-    if g.row() < 7 {
-        g.dir(Dir::Up, empty_or_take);
-
-        if g.col() < 7 {
-            g.dir(Dir::Custom(1, 1), empty_or_take);
-        }
-
-        if g.col() > 0 {
-            g.dir(Dir::Custom(1, -1), empty_or_take);
-        }
-    }
-
-    if g.row() > 0 {
-        g.dir(Dir::Down, empty_or_take);
-
-        if g.col() < 7 {
-            g.dir(Dir::Custom(-1, 1), empty_or_take);
-        }
-
-        if g.col() > 0 {
-            g.dir(Dir::Custom(-1, -1), empty_or_take);
-        }
-    }
-
-    if g.col() < 7 {
-        g.dir(Dir::Right, empty_or_take);
-    }
-
-    if g.col() > 0 {
-        g.dir(Dir::Left, empty_or_take);
-    }
-}
-
 #[cfg(test)]
 mod test {
 
@@ -214,10 +136,10 @@ mod test {
     fn white_pawn_gen() {
         let mut board = Board::default();
 
-        Bits::set(&mut board.black[0], Pos::new(3, 5));
-        Bits::set(&mut board.black[0], Pos::new(2, 2));
-        Bits::set(&mut board.white[0], Pos::new(4, 5));
-        Bits::set(&mut board.white[0], Pos::new(5, 7));
+        Bits::set(&mut board.black[Piece::P], Pos::new(3, 5));
+        Bits::set(&mut board.black[Piece::P], Pos::new(2, 2));
+        Bits::set(&mut board.white[Piece::P], Pos::new(4, 5));
+        Bits::set(&mut board.white[Piece::P], Pos::new(5, 7));
 
         print_board(&board, &[]);
 
@@ -244,10 +166,10 @@ mod test {
     fn black_pawn_gen() {
         let mut board = Board::default();
 
-        Bits::set(&mut board.black[0], Pos::new(3, 5));
-        Bits::set(&mut board.black[0], Pos::new(2, 7));
-        Bits::set(&mut board.white[0], Pos::new(4, 5));
-        Bits::set(&mut board.white[0], Pos::new(5, 7));
+        Bits::set(&mut board.black[Piece::P], Pos::new(3, 5));
+        Bits::set(&mut board.black[Piece::P], Pos::new(2, 7));
+        Bits::set(&mut board.white[Piece::P], Pos::new(4, 5));
+        Bits::set(&mut board.white[Piece::P], Pos::new(5, 7));
 
         print_board(&board, &[]);
 
@@ -268,5 +190,36 @@ mod test {
         let actual = gen_squares(&board, (2, 7));
         print_board(&board, &actual);
         assert_moves(vec![14], actual);
+    }
+
+    #[test]
+    fn king_gen() {
+        let mut board = Board::default();
+        board.clear();
+        Bits::set(&mut board.black[Piece::Q], Pos::new(4, 6));
+        Bits::set(&mut board.white[Piece::P], Pos::new(1, 4));
+        Bits::set(&mut board.white[Piece::K], Pos::new(3, 5));
+        board.next_turn();
+        board.next_turn();
+
+        print_board(&board, &[]);
+
+        let actual = gen_squares(&board, Pos::new(3, 5));
+        print_board(&board, &actual);
+        assert_moves(vec![38, 21, 28], actual);
+
+        Bits::slide(&mut board.white[Piece::K], Pos::new(3, 5), Pos::new(1, 3));
+        board.next_turn();
+        board.next_turn();
+        let actual = gen_squares(&board, Pos::new(1, 3));
+        print_board(&board, &actual);
+        assert_moves(vec![3, 4, 10, 18, 19], actual);
+
+        Bits::slide(&mut board.white[Piece::K], Pos::new(1, 3), Pos::new(0, 0));
+        board.next_turn();
+        board.next_turn();
+        let actual = gen_squares(&board, Pos::new(0, 0));
+        print_board(&board, &actual);
+        assert_moves(vec![1, 8, 9], actual);
     }
 }

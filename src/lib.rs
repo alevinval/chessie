@@ -37,7 +37,7 @@ pub fn print_bitboard(bb: BitBoard) {
 }
 
 fn print_board(board: &Board, highlights: &[Pos]) {
-    println!("[highlights={highlights:?}]");
+    println!("[move={} mover={} highlights={highlights:?}]", board.n(), board.mover());
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {

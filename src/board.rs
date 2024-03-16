@@ -199,6 +199,8 @@ impl Board {
     pub fn clear(&mut self) {
         self.white.iter_mut().for_each(|bb| *bb = 0);
         self.black.iter_mut().for_each(|bb| *bb = 0);
+        self.white_rights = Castling::None;
+        self.black_rights = Castling::None;
     }
 }
 

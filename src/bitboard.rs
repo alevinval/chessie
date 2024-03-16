@@ -87,6 +87,14 @@ impl Bits {
     pub const fn southwest(bb: BitBoard) -> BitBoard {
         bb >> 9
     }
+
+    pub const fn left(bb: BitBoard) -> BitBoard {
+        bb >> 1
+    }
+
+    pub const fn right(bb: BitBoard) -> BitBoard {
+        bb << 1
+    }
 }
 
 #[cfg(test)]

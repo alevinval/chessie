@@ -100,7 +100,9 @@ impl Move {
         let from = from.into();
         let rights = board.castling_rights(board.mover());
 
-        let (color, piece, bb) = board.at_mut(from).expect("must have piece to move");
+        let (color, piece, bb) = board
+            .at_mut(from)
+            .unwrap_or_else(|| unreachable!("must have piece to move {:?} {:?}", self, from));
         Bits::slide(bb, from, to.into());
 
         if let Castling::Some(left, right) = rights {

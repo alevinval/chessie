@@ -13,12 +13,12 @@ pub enum Piece {
 impl Piece {
     pub const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
 
-    const P: usize = 0;
-    const N: usize = 1;
-    const B: usize = 2;
-    const R: usize = 3;
-    const Q: usize = 4;
-    const K: usize = 5;
+    pub const P: usize = 0;
+    pub const N: usize = 1;
+    pub const B: usize = 2;
+    pub const R: usize = 3;
+    pub const Q: usize = 4;
+    pub const K: usize = 5;
 
     pub const fn from_idx(idx: usize) -> Self {
         match idx {
