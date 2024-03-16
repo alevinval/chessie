@@ -18,12 +18,12 @@ impl Pos {
 
     #[must_use]
     pub const fn row(self) -> usize {
-        self.0 / 8
+        self.0 >> 3
     }
 
     #[must_use]
     pub const fn col(self) -> usize {
-        self.0 % 8
+        self.0 & 7
     }
 
     #[must_use]

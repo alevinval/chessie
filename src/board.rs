@@ -127,7 +127,7 @@ impl Board {
     pub fn next_turn(&mut self) {
         self.white_side = Self::calc_side(self.white);
         self.black_side = Self::calc_side(self.black);
-        self.mover = self.mover.opposite();
+        self.mover = self.mover.flip();
         self.n += 1;
     }
 
@@ -185,7 +185,7 @@ impl Board {
         let king = king.first();
 
         match king {
-            Some(king) => self.pseudo_movements(color.opposite()).iter().any(|m| m.to() == *king),
+            Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == *king),
             None => true,
         }
     }

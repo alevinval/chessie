@@ -69,7 +69,7 @@ impl<'board> Generator<'board> {
     pub fn slides_from_magic(&mut self, bb: BitBoard) {
         let from = self.from;
         for to in Bits::pos(bb) {
-            if self.piece == Piece::Pawn && to.row() == self.color.opposite().piece_row() {
+            if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
                 self.emit_pawn_promos(to);
                 continue;
             }
@@ -94,7 +94,7 @@ impl<'board> Generator<'board> {
     }
 
     fn moves_from_magic(&mut self, bb: BitBoard) {
-        let takes = bb & self.board.side(self.color.opposite());
+        let takes = bb & self.board.side(self.color.flip());
         let empty = bb & !takes & !self.board.side(self.color);
 
         self.takes_from_magic(takes);
@@ -105,7 +105,7 @@ impl<'board> Generator<'board> {
         let from = self.from;
 
         for to in Bits::pos(bb) {
-            if self.piece == Piece::Pawn && to.row() == self.color.opposite().piece_row() {
+            if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
                 self.emit_pawn_promos(to);
                 continue;
             }
