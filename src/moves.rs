@@ -31,12 +31,7 @@ impl<'board> MoveGen<'board> {
             unreachable!("cannot generate moves for empty position {from:?}")
         });
 
-        Self {
-            board,
-            color,
-            piece,
-            from,
-        }
+        Self { board, color, piece, from }
     }
 
     pub fn generate(self, check_legal: bool) -> Vec<Move> {
@@ -79,9 +74,7 @@ impl<'board> MoveGen<'board> {
                 let mut subgen = Generator::new(self.board, *pos, self.color, self.piece, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    gen.emit_move(Move::RightCastle {
-                        mover: self.board.mover(),
-                    });
+                    gen.emit_move(Move::RightCastle { mover: self.board.mover() });
                 }
             }
 
@@ -89,9 +82,7 @@ impl<'board> MoveGen<'board> {
                 let mut subgen = Generator::new(self.board, *pos, self.color, self.piece, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    gen.emit_move(Move::LeftCastle {
-                        mover: self.board.mover(),
-                    });
+                    gen.emit_move(Move::LeftCastle { mover: self.board.mover() });
                 }
             }
         }

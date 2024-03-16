@@ -138,10 +138,8 @@ impl Board {
     pub fn movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = Bits::pos(bb)
-                    .iter()
-                    .map(|p| MoveGen::new(self, *p).generate(true))
-                    .collect();
+                let moves: Vec<_> =
+                    Bits::pos(bb).iter().map(|p| MoveGen::new(self, *p).generate(true)).collect();
                 moves
             })
             .flatten()
@@ -152,10 +150,8 @@ impl Board {
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> = Bits::pos(bb)
-                    .iter()
-                    .map(|p| MoveGen::new(self, *p).generate(false))
-                    .collect();
+                let moves: Vec<_> =
+                    Bits::pos(bb).iter().map(|p| MoveGen::new(self, *p).generate(false)).collect();
                 moves
             })
             .flatten()
@@ -184,10 +180,7 @@ impl Board {
         let king = king.first();
 
         match king {
-            Some(king) => self
-                .pseudo_movements(color.opposite())
-                .iter()
-                .any(|m| m.to() == *king),
+            Some(king) => self.pseudo_movements(color.opposite()).iter().any(|m| m.to() == *king),
             None => true,
         }
     }
@@ -269,20 +262,14 @@ mod test {
     fn mut_at_white() {
         let pos = (0, 0);
 
-        assert_eq!(
-            Board::default().at(pos).unwrap().1,
-            Board::default().at_mut(pos).unwrap().1
-        );
+        assert_eq!(Board::default().at(pos).unwrap().1, Board::default().at_mut(pos).unwrap().1);
     }
 
     #[test]
     fn mut_at_black() {
         let pos = (7, 7);
 
-        assert_eq!(
-            Board::default().at(pos).unwrap().1,
-            Board::default().at_mut(pos).unwrap().1
-        );
+        assert_eq!(Board::default().at(pos).unwrap().1, Board::default().at_mut(pos).unwrap().1);
     }
 
     #[test]

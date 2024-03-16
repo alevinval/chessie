@@ -30,10 +30,10 @@ pub fn print_bitboard(bb: BitBoard) {
             let piece = if Bits::has_piece(bb, pos) { "@" } else { " " };
             print!("| {piece} ");
         }
-        println!("| {row}");
+        println!("| {}", row + 1);
     }
     println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   1   2   3   4   5   6   7  ");
+    println!("  1   2   3   4   5   6   7   8  ");
 }
 
 fn print_board(board: &Board, highlights: &[Pos]) {
@@ -46,10 +46,10 @@ fn print_board(board: &Board, highlights: &[Pos]) {
             let piece = board.at(pos).map_or(" ", |(c, piece, _)| piece.as_str(c));
             print!("| {} ", mark.unwrap_or(piece));
         }
-        println!("| {row}");
+        println!("| {}", row + 1);
     }
     println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   1   2   3   4   5   6   7  ");
+    println!("  1   2   3   4   5   6   7   8  ");
 }
 
 fn read_pos() -> Pos {
@@ -104,14 +104,8 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval, mate) = minmax(
-            &board,
-            depth,
-            -f64::INFINITY,
-            f64::INFINITY,
-            true,
-            board.mover(),
-        );
+        let (movement, eval, mate) =
+            minmax(&board, depth, -f64::INFINITY, f64::INFINITY, true, board.mover());
 
         if let Some(movement) = movement {
             if let Some(mate) = mate {
@@ -146,15 +140,7 @@ pub fn minmax(
 ) -> (Option<Move>, f64, Option<usize>) {
     if depth == 0 || board.get_piece(board.mover(), Piece::King) == 0 {
         let eval = Scorer::eval(board, maxer_color, false);
-        return (
-            None,
-            eval,
-            if eval.is_infinite() {
-                Some(board.n())
-            } else {
-                None
-            },
-        );
+        return (None, eval, if eval.is_infinite() { Some(board.n()) } else { None });
     }
 
     let mover = board.mover();
@@ -170,11 +156,7 @@ pub fn minmax(
     movements.sort_by(|a, b| b.2.total_cmp(&a.2));
 
     let mut best_move = movements.first().map(|r| r.1);
-    let mut best_eval = if maxer {
-        f64::NEG_INFINITY
-    } else {
-        f64::INFINITY
-    };
+    let mut best_eval = if maxer { f64::NEG_INFINITY } else { f64::INFINITY };
     let mut shortest_mate: Option<usize> = None;
     for (child, movement, _) in movements {
         let (_, curr_eval, mate) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
@@ -208,11 +190,7 @@ pub fn minmax(
         (
             best_move,
             best_eval,
-            if best_eval.is_infinite() {
-                shortest_mate.or(Some(board.n()))
-            } else {
-                None
-            },
+            if best_eval.is_infinite() { shortest_mate.or(Some(board.n())) } else { None },
         )
     }
 }

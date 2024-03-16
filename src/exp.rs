@@ -17,10 +17,7 @@ pub fn precompute_knights() -> [BitBoard; 64] {
         knight(&mut g);
         let moves = g.moves();
 
-        moves
-            .iter()
-            .map(|m| m.to())
-            .for_each(|dst| Bits::set(bb, dst));
+        moves.iter().map(|m| m.to()).for_each(|dst| Bits::set(bb, dst));
     }
 
     gen

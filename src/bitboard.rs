@@ -18,11 +18,8 @@ impl Bits {
             Piece::Queen => 0b0000_1000,
             Piece::King => 0b000_10000,
         };
-        value <<= 8 * if matches!(piece, Piece::Pawn) {
-            color.pawn_row()
-        } else {
-            color.piece_row()
-        };
+        value <<=
+            8 * if matches!(piece, Piece::Pawn) { color.pawn_row() } else { color.piece_row() };
 
         value
     }

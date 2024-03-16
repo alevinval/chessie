@@ -24,9 +24,7 @@ impl Placement {
 pub type StopCondition = fn(&Board, Pos, Pos) -> Option<Placement>;
 
 pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Option<Placement> {
-    board
-        .at(to)
-        .map_or(Some(Placement::Empty { from, to }), |_| None)
+    board.at(to).map_or(Some(Placement::Empty { from, to }), |_| None)
 }
 
 pub fn takes(board: &Board, from: Pos, to: Pos) -> Option<Placement> {

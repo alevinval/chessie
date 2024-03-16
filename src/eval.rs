@@ -22,11 +22,7 @@ impl Scorer {
             return f64::INFINITY;
         }
 
-        let offset = if jitter {
-            rand::thread_rng().gen_range(-0.00001..0.00001)
-        } else {
-            0.0
-        };
+        let offset = if jitter { rand::thread_rng().gen_range(-0.00001..0.00001) } else { 0.0 };
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
         let score = match maxer {
@@ -37,10 +33,8 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
-        let material_score: f64 = board
-            .pieces_iter(color)
-            .map(|(p, bb)| Self::score_bitboard(p, bb))
-            .sum();
+        let material_score: f64 =
+            board.pieces_iter(color).map(|(p, bb)| Self::score_bitboard(p, bb)).sum();
 
         if debug {
             println!("{color:?}");

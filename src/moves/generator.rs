@@ -26,14 +26,7 @@ impl<'board> Generator<'board> {
         piece: Piece,
         check_legal: bool,
     ) -> Self {
-        Generator {
-            board,
-            from: from.into(),
-            color,
-            piece,
-            moves: vec![],
-            check_legal,
-        }
+        Generator { board, from: from.into(), color, piece, moves: vec![], check_legal }
     }
 
     pub fn row(&self) -> usize {
@@ -102,21 +95,14 @@ impl<'board> Generator<'board> {
 
     pub fn emit_pawn_promos(&mut self, to: Pos) {
         for piece in Piece::PROMO {
-            let promo = Move::PawnPromo {
-                from: self.from,
-                to,
-                piece,
-            };
+            let promo = Move::PawnPromo { from: self.from, to, piece };
             self.emit_move(promo);
         }
     }
 
     pub fn left(&mut self, stop_at: StopCondition) {
         for c in (0..self.col()).rev() {
-            if !self
-                .pos((self.row(), c), stop_at)
-                .is_some_and(|p| !p.stop())
-            {
+            if !self.pos((self.row(), c), stop_at).is_some_and(|p| !p.stop()) {
                 break;
             }
         }
@@ -124,10 +110,7 @@ impl<'board> Generator<'board> {
 
     pub fn right(&mut self, stop_at: StopCondition) {
         for c in self.col() + 1..8 {
-            if !self
-                .pos((self.row(), c), stop_at)
-                .is_some_and(|p| !p.stop())
-            {
+            if !self.pos((self.row(), c), stop_at).is_some_and(|p| !p.stop()) {
                 break;
             }
         }
@@ -225,17 +208,11 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
         assert_eq!(
-            Some(Placement::Empty {
-                from: (1, 3).into(),
-                to: (2, 3).into()
-            }),
+            Some(Placement::Empty { from: (1, 3).into(), to: (2, 3).into() }),
             sut.dir(Dir::Up, empty_placement)
         );
 
-        let expected: Vec<Move> = vec![Move::Slide {
-            from: (1, 3).into(),
-            to: (2, 3).into(),
-        }];
+        let expected: Vec<Move> = vec![Move::Slide { from: (1, 3).into(), to: (2, 3).into() }];
         assert_eq!(expected, sut.moves());
     }
 
@@ -245,17 +222,11 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3), Color::W, Piece::Pawn, false);
 
         assert_eq!(
-            Some(Placement::Takes {
-                from: (1, 3).into(),
-                to: (2, 3).into(),
-            }),
+            Some(Placement::Takes { from: (1, 3).into(), to: (2, 3).into() }),
             sut.dir(Dir::Up, takes_placement)
         );
 
-        let expected = vec![Move::Takes {
-            from: (1, 3).into(),
-            to: (2, 3).into(),
-        }];
+        let expected = vec![Move::Takes { from: (1, 3).into(), to: (2, 3).into() }];
         assert_eq!(expected, sut.moves());
     }
 
