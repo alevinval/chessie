@@ -1,7 +1,8 @@
 use crate::bitboard::Bits;
 use crate::defs::BitBoard;
 
-use crate::moves::{Move, MoveGen};
+use crate::moves::Generator;
+use crate::moves::Move;
 use crate::piece::Piece;
 use crate::Color;
 use crate::Pos;
@@ -138,8 +139,10 @@ impl Board {
     pub fn movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> =
-                    Bits::pos(bb).iter().map(|p| MoveGen::new(self, *p).generate(true)).collect();
+                let moves: Vec<_> = Bits::pos(bb)
+                    .iter()
+                    .map(|p| Generator::from_board(self, *p, true).generate())
+                    .collect();
                 moves
             })
             .flatten()
@@ -150,8 +153,10 @@ impl Board {
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let moves: Vec<_> =
-                    Bits::pos(bb).iter().map(|p| MoveGen::new(self, *p).generate(false)).collect();
+                let moves: Vec<_> = Bits::pos(bb)
+                    .iter()
+                    .map(|p| Generator::from_board(self, *p, false).generate())
+                    .collect();
                 moves
             })
             .flatten()

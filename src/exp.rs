@@ -1,8 +1,10 @@
 use crate::defs::BitBoard;
 use crate::magic::Magic;
 
-use crate::Pos;
-use crate::{bitboard::Bits, board::Board, moves::generator::Generator, piece::Piece, Color};
+use crate::moves::Generator;
+use crate::piece::Piece;
+use crate::{bitboard::Bits, board::Board};
+use crate::{Color, Pos};
 
 pub fn precompute_king() -> [BitBoard; 64] {
     let mut board = Board::default();

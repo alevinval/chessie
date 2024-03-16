@@ -1,65 +1,232 @@
-pub mod generator;
 mod movement;
 mod placement;
 
-use crate::bitboard::Bits;
-use crate::board::Castling;
-use crate::magic::{Magic, KING_MAGIC, KNIGHT_MAGIC};
-use crate::Pos;
-use crate::{board::Board, piece::Piece, print_board, Color};
+use std::iter::zip;
 
-pub use self::movement::Move;
-
-use self::{
-    generator::Generator,
-    placement::{empty_or_take, is_empty},
+use crate::{
+    bitboard::Bits,
+    board::{Board, Castling},
+    defs::BitBoard,
+    magic::{Magic, KING_MAGIC, KNIGHT_MAGIC},
+    piece::Piece,
+    print_board, Color, Pos,
 };
 
-pub struct MoveGen<'board> {
+pub use self::movement::Move;
+use self::placement::{empty_or_take, is_empty, Placement, StopCondition};
+
+#[derive(Debug)]
+pub struct Generator<'board> {
     board: &'board Board,
+    from: Pos,
     color: Color,
     piece: Piece,
-    from: Pos,
+    moves: Vec<Move>,
+    check_legal: bool,
 }
 
-impl<'board> MoveGen<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
+impl<'board> Generator<'board> {
+    pub fn from_board<P: Into<Pos>>(board: &'board Board, from: P, check_legal: bool) -> Self {
         let from = from.into();
         let (color, piece, _) = board.at(from).unwrap_or_else(|| {
             print_board(board, &[]);
             unreachable!("cannot generate moves for empty position {from:?}")
         });
 
-        Self { board, color, piece, from }
+        Self::new(board, from, color, piece, check_legal)
     }
 
-    pub fn generate(self, check_legal: bool) -> Vec<Move> {
-        let mut gen = Generator::new(self.board, self.from, self.color, self.piece, check_legal);
+    pub fn new<P: Into<Pos>>(
+        board: &'board Board,
+        from: P,
+        color: Color,
+        piece: Piece,
+        check_legal: bool,
+    ) -> Self {
+        let from = from.into();
+        Self { board, color, piece, from, moves: vec![], check_legal }
+    }
+
+    pub fn moves(self) -> Vec<Move> {
+        self.moves
+    }
+
+    pub fn generate(mut self) -> Vec<Move> {
         match self.piece {
             Piece::Pawn => match self.color {
-                Color::B => black_pawn(self.board, self.from, &mut gen),
-                Color::W => white_pawn(self.board, self.from, &mut gen),
+                Color::B => self.black_pawn(),
+                Color::W => self.white_pawn(),
             },
-            Piece::Rook => gen.cross(empty_or_take),
-            Piece::Bishop => gen.diagonals(empty_or_take),
-            Piece::Queen => {
-                gen.diagonals(empty_or_take);
-                gen.cross(empty_or_take);
-            }
-            Piece::Knight => {
-                let bb = KNIGHT_MAGIC[self.from.sq()];
-                gen.moves_from_magic(bb);
-            }
-            Piece::King => {
-                let bb = KING_MAGIC[self.from.sq()];
-                gen.moves_from_magic(bb);
-                self.king_castle(&mut gen);
-            }
+            Piece::Rook => self.cross(empty_or_take),
+            Piece::Bishop => self.diagonals(empty_or_take),
+            Piece::Queen => self.queen(),
+            Piece::Knight => self.knight(),
+            Piece::King => self.king(),
         };
-        gen.moves()
+        self.moves
     }
 
-    fn king_castle(&self, gen: &mut Generator) {
+    pub fn slides_from_magic(&mut self, bb: BitBoard) {
+        let from = self.from;
+        for to in Bits::pos(bb) {
+            if self.piece == Piece::Pawn && to.row() == self.color.opposite().piece_row() {
+                self.emit_pawn_promos(to);
+                continue;
+            }
+            self.emit_move(Move::Slide { from, to });
+        }
+    }
+
+    fn emit_move(&mut self, m: Move) {
+        if !self.check_legal || self.is_legal(m) {
+            self.moves.push(m);
+        }
+    }
+
+    fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Option<Placement> {
+        let placement = stop_at(self.board, self.from, to.into());
+
+        if let Some(placement) = &placement {
+            self.emit_move(placement.movement());
+        }
+
+        placement
+    }
+
+    fn moves_from_magic(&mut self, bb: BitBoard) {
+        let takes = bb & self.board.side(self.board.mover().opposite());
+        let empty = bb & !takes & !self.board.side(self.board.mover());
+
+        self.takes_from_magic(takes);
+        self.slides_from_magic(empty);
+    }
+
+    fn takes_from_magic(&mut self, bb: BitBoard) {
+        let from = self.from;
+
+        for to in Bits::pos(bb) {
+            if self.piece == Piece::Pawn && to.row() == self.color.opposite().piece_row() {
+                self.emit_pawn_promos(to);
+                continue;
+            }
+            self.emit_move(Move::Takes { from, to });
+        }
+    }
+
+    fn emit_pawn_promos(&mut self, to: Pos) {
+        for piece in Piece::PROMO {
+            let promo = Move::PawnPromo { from: self.from, to, piece };
+            self.emit_move(promo);
+        }
+    }
+
+    fn left(&mut self, stop_at: StopCondition) {
+        for c in (0..self.col()).rev() {
+            if !self.pos((self.row(), c), stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+    }
+
+    fn right(&mut self, stop_at: StopCondition) {
+        for c in self.col() + 1..8 {
+            if !self.pos((self.row(), c), stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+    }
+
+    fn cross(&mut self, stop_at: StopCondition) {
+        let (row, col) = (self.row(), self.col());
+
+        for r in (0..row).rev() {
+            if !self.pos((r, col), stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+
+        for r in row + 1..8 {
+            if !self.pos((r, col), stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+
+        self.left(stop_at);
+        self.right(stop_at);
+    }
+
+    fn diagonals(&mut self, stop_at: StopCondition) {
+        let (row, col) = (self.row(), self.col());
+
+        for pos in zip(row + 1..8, col + 1..8) {
+            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+
+        for pos in zip((0..row).rev(), col + 1..8) {
+            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+
+        for pos in zip(row + 1..8, (0..col).rev()) {
+            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+
+        for pos in zip((0..row).rev(), (0..col).rev()) {
+            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
+                break;
+            }
+        }
+    }
+
+    fn black_pawn(&mut self) {
+        let pawns = self.board.get_piece(Color::B, Piece::Pawn) & self.from.bb();
+        let white_side = self.board.side(Color::W);
+        let side_attack = (Bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
+            | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
+        self.takes_from_magic(side_attack);
+
+        let first_push = Bits::south(pawns) & !white_side;
+        let second_push = Bits::south(first_push & Magic::RANK_6) & !white_side;
+        let pushes = first_push | second_push;
+        self.slides_from_magic(pushes);
+    }
+
+    fn white_pawn(&mut self) {
+        let pawns = self.board.get_piece(Color::W, Piece::Pawn) & self.from.bb();
+        let black_side = self.board.side(Color::B);
+        let side_attack = (Bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
+            | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
+        self.takes_from_magic(side_attack);
+
+        let first_push = Bits::north(pawns) & !black_side;
+        let second_push = Bits::north(first_push & Magic::RANK_3) & !black_side;
+        let pushes = first_push | second_push;
+        self.slides_from_magic(pushes);
+    }
+
+    fn queen(&mut self) {
+        self.diagonals(empty_or_take);
+        self.cross(empty_or_take);
+    }
+
+    fn knight(&mut self) {
+        let bb = KNIGHT_MAGIC[self.from.sq()];
+        self.moves_from_magic(bb);
+    }
+
+    fn king(&mut self) {
+        self.king_castle();
+
+        let bb = KING_MAGIC[self.from.sq()];
+        self.moves_from_magic(bb);
+    }
+
+    fn king_castle(&mut self) {
         let rights = self.board.castling_rights(self.color);
 
         if Castling::None == rights {
@@ -71,59 +238,46 @@ impl<'board> MoveGen<'board> {
             let king = Bits::pos(king);
             let pos = king.first().expect("should be there");
             if right {
-                let mut subgen = Generator::new(self.board, *pos, self.color, self.piece, false);
+                let mut subgen = Generator::from_board(self.board, *pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    gen.emit_move(Move::RightCastle { mover: self.board.mover() });
+                    self.emit_move(Move::RightCastle { mover: self.board.mover() });
                 }
             }
 
             if left {
-                let mut subgen = Generator::new(self.board, *pos, self.color, self.piece, false);
+                let mut subgen = Generator::from_board(self.board, *pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    gen.emit_move(Move::LeftCastle { mover: self.board.mover() });
+                    self.emit_move(Move::LeftCastle { mover: self.board.mover() });
                 }
             }
         }
     }
-}
 
-fn black_pawn(board: &Board, from: Pos, g: &mut Generator) {
-    let pawns = board.get_piece(Color::B, Piece::Pawn) & from.bb();
-    let white_side = board.side(Color::W);
-    let side_attack = (Bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
-        | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
-    g.takes_from_magic(side_attack);
+    fn is_legal(&self, movement: Move) -> bool {
+        let next = movement.apply(self.board);
+        !next.in_check(self.board.mover())
+    }
 
-    let first_push = Bits::south(pawns) & !white_side;
-    let second_push = Bits::south(first_push & Magic::RANK_6) & !white_side;
-    let pushes = first_push | second_push;
-    g.slides_from_magic(pushes);
-}
+    fn row(&self) -> usize {
+        self.from.row()
+    }
 
-fn white_pawn(board: &Board, from: Pos, g: &mut Generator) {
-    let pawns = board.get_piece(Color::W, Piece::Pawn) & from.bb();
-    let black_side = board.side(Color::B);
-    let side_attack = (Bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
-        | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
-    g.takes_from_magic(side_attack);
-
-    let first_push = Bits::north(pawns) & !black_side;
-    let second_push = Bits::north(first_push & Magic::RANK_3) & !black_side;
-    let pushes = first_push | second_push;
-    g.slides_from_magic(pushes);
+    fn col(&self) -> usize {
+        self.from.col()
+    }
 }
 
 #[cfg(test)]
 mod test {
 
-    use crate::{defs::Sq, Pos};
+    use crate::defs::Sq;
 
     use super::*;
 
     fn gen_squares<P: Into<Pos>>(board: &Board, pos: P) -> Vec<Pos> {
-        let m = MoveGen::new(board, pos).generate(true);
+        let m = Generator::from_board(board, pos, true).generate();
         m.iter().map(|m| m.to()).collect()
     }
 
