@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Color {
     B,
@@ -27,6 +29,15 @@ impl Color {
             Color::B => Color::W,
             Color::W => Color::B,
         }
+    }
+}
+
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Color::B => "Black",
+            Color::W => "White",
+        })
     }
 }
 
