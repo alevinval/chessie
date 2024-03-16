@@ -20,8 +20,8 @@ pub fn precompute_king() -> [BitBoard; 64] {
             | Bits::south(bb)
             | Bits::southwest(bb)
             | Bits::southeast(bb)
-            | Bits::left(bb)
-            | Bits::right(bb);
+            | Bits::west(bb)
+            | Bits::east(bb);
 
         if from.col() == 0 {
             pattern &= Magic::NOT_H_FILE;

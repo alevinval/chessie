@@ -88,11 +88,11 @@ impl Bits {
         bb >> 9
     }
 
-    pub const fn left(bb: BitBoard) -> BitBoard {
+    pub const fn west(bb: BitBoard) -> BitBoard {
         bb >> 1
     }
 
-    pub const fn right(bb: BitBoard) -> BitBoard {
+    pub const fn east(bb: BitBoard) -> BitBoard {
         bb << 1
     }
 }
@@ -211,5 +211,27 @@ mod test {
         print_bitboard(actual);
 
         assert_eq!(0x800, actual);
+    }
+
+    #[test]
+    fn east() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::east(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x80000, actual);
+    }
+
+    #[test]
+    fn west() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::west(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x20000, actual);
     }
 }
