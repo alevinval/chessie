@@ -44,7 +44,7 @@ impl<'board> Generator<'board> {
         check_legal: bool,
     ) -> Self {
         let from = from.into();
-        Self { board, color, piece, from, moves: vec![], check_legal }
+        Self { board, from, color, piece, moves: vec![], check_legal }
     }
 
     pub fn moves(self) -> Vec<Move> {
@@ -94,8 +94,8 @@ impl<'board> Generator<'board> {
     }
 
     fn moves_from_magic(&mut self, bb: BitBoard) {
-        let takes = bb & self.board.side(self.board.mover().opposite());
-        let empty = bb & !takes & !self.board.side(self.board.mover());
+        let takes = bb & self.board.side(self.color.opposite());
+        let empty = bb & !takes & !self.board.side(self.color);
 
         self.takes_from_magic(takes);
         self.slides_from_magic(empty);
@@ -234,14 +234,14 @@ impl<'board> Generator<'board> {
         }
 
         if let Castling::Some(left, right) = rights {
-            let king = self.board.get_piece(self.board.mover(), Piece::King);
+            let king = self.board.get_piece(self.color, self.piece);
             let king = Bits::pos(king);
-            let pos = king.first().expect("should be there");
+            let pos = king.first().unwrap_or_else(|| unreachable!("should have king position"));
             if right {
                 let mut subgen = Generator::from_board(self.board, *pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    self.emit_move(Move::RightCastle { mover: self.board.mover() });
+                    self.emit_move(Move::RightCastle { mover: self.color });
                 }
             }
 
@@ -249,15 +249,14 @@ impl<'board> Generator<'board> {
                 let mut subgen = Generator::from_board(self.board, *pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    self.emit_move(Move::LeftCastle { mover: self.board.mover() });
+                    self.emit_move(Move::LeftCastle { mover: self.color });
                 }
             }
         }
     }
 
     fn is_legal(&self, movement: Move) -> bool {
-        let next = movement.apply(self.board);
-        !next.in_check(self.board.mover())
+        !movement.apply(self.board).in_check(self.color)
     }
 
     fn row(&self) -> usize {
