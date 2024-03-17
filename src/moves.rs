@@ -5,9 +5,7 @@ use crate::{
     bitboard::Bits,
     board::{Board, Castling},
     defs::BitBoard,
-    magic::{
-        Magic, ANTI_DIAG_SLIDER, COL_SLIDER, DIAG_SLIDER, KING_MAGIC, KNIGHT_MAGIC, ROW_SLIDER,
-    },
+    magic::Magic,
     piece::Piece,
     print_board, Color, Pos,
 };
@@ -135,14 +133,14 @@ impl<'board> Generator<'board> {
     }
 
     fn cross(&mut self) {
-        let v = self.hyper_quint(COL_SLIDER[self.from.col()]);
-        let h = self.hyper_quint(ROW_SLIDER[self.from.row()]);
+        let v = self.hyper_quint(Magic::COL_SLIDER[self.from.col()]);
+        let h = self.hyper_quint(Magic::ROW_SLIDER[self.from.row()]);
         self.moves_from_magic(v | h);
     }
 
     fn diagonals(&mut self) {
-        let v = self.hyper_quint(DIAG_SLIDER[self.from.sq()]);
-        let h = self.hyper_quint(ANTI_DIAG_SLIDER[self.from.sq()]);
+        let v = self.hyper_quint(Magic::DIAG_SLIDER[self.from.sq()]);
+        let h = self.hyper_quint(Magic::ANTI_DIAG_SLIDER[self.from.sq()]);
         self.moves_from_magic(v | h);
     }
 
@@ -186,14 +184,14 @@ impl<'board> Generator<'board> {
     }
 
     fn knight(&mut self) {
-        let bb = KNIGHT_MAGIC[self.from.sq()];
+        let bb = Magic::KNIGHT_MAGIC[self.from.sq()];
         self.moves_from_magic(bb);
     }
 
     fn king(&mut self) {
         self.king_castle();
 
-        let bb = KING_MAGIC[self.from.sq()];
+        let bb = Magic::KING_MAGIC[self.from.sq()];
         self.moves_from_magic(bb);
     }
 

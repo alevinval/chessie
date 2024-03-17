@@ -83,29 +83,27 @@ mod test {
 
     use std::mem;
 
-    use crate::color::{B, W};
-
     use super::*;
 
     #[test]
     fn as_str() {
-        assert_eq!("♙", Piece::Pawn.as_str(W));
-        assert_eq!("♟", Piece::Pawn.as_str(B));
+        assert_eq!("♙", Piece::Pawn.as_str(Color::W));
+        assert_eq!("♟", Piece::Pawn.as_str(Color::B));
 
-        assert_eq!("♗", Piece::Bishop.as_str(W));
-        assert_eq!("♝", Piece::Bishop.as_str(B));
+        assert_eq!("♗", Piece::Bishop.as_str(Color::W));
+        assert_eq!("♝", Piece::Bishop.as_str(Color::B));
 
-        assert_eq!("♘", Piece::Knight.as_str(W));
-        assert_eq!("♞", Piece::Knight.as_str(B));
+        assert_eq!("♘", Piece::Knight.as_str(Color::W));
+        assert_eq!("♞", Piece::Knight.as_str(Color::B));
 
-        assert_eq!("♖", Piece::Rook.as_str(W));
-        assert_eq!("♜", Piece::Rook.as_str(B));
+        assert_eq!("♖", Piece::Rook.as_str(Color::W));
+        assert_eq!("♜", Piece::Rook.as_str(Color::B));
 
-        assert_eq!("♕", Piece::Queen.as_str(W));
-        assert_eq!("♛", Piece::Queen.as_str(B));
+        assert_eq!("♕", Piece::Queen.as_str(Color::W));
+        assert_eq!("♛", Piece::Queen.as_str(Color::B));
 
-        assert_eq!("♔", Piece::King.as_str(W));
-        assert_eq!("♚", Piece::King.as_str(B));
+        assert_eq!("♔", Piece::King.as_str(Color::W));
+        assert_eq!("♚", Piece::King.as_str(Color::B));
     }
 
     #[test]

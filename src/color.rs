@@ -42,12 +42,6 @@ impl Display for Color {
 }
 
 #[cfg(test)]
-pub const W: Color = Color::W;
-
-#[cfg(test)]
-pub const B: Color = Color::B;
-
-#[cfg(test)]
 mod test {
     use std::mem;
 
@@ -55,28 +49,28 @@ mod test {
 
     #[test]
     fn piece_row_for_white() {
-        assert_eq!(0, W.piece_row());
+        assert_eq!(0, Color::W.piece_row());
     }
 
     #[test]
     fn piece_row_for_black() {
-        assert_eq!(7, B.piece_row());
+        assert_eq!(7, Color::B.piece_row());
     }
 
     #[test]
     fn pawn_row_for_white() {
-        assert_eq!(1, W.pawn_row());
+        assert_eq!(1, Color::W.pawn_row());
     }
 
     #[test]
     fn pawn_row_for_black() {
-        assert_eq!(6, B.pawn_row());
+        assert_eq!(6, Color::B.pawn_row());
     }
 
     #[test]
     fn flip() {
-        assert_eq!(B, W.flip());
-        assert_eq!(W, B.flip());
+        assert_eq!(Color::B, Color::W.flip());
+        assert_eq!(Color::W, Color::B.flip());
     }
 
     #[test]
