@@ -11,7 +11,7 @@ impl Magic {
     pub const RANK_6: u64 = 0xff0000000000;
 
     #[allow(clippy::unreadable_literal)]
-    pub const KNIGHT_MAGIC: [BitBoard; 64] = [
+    pub const KNIGHT_MOVES: [BitBoard; 64] = [
         0x20400,
         0x50800,
         0xa1100,
@@ -79,7 +79,7 @@ impl Magic {
     ];
 
     #[allow(clippy::unreadable_literal)]
-    pub const KING_MAGIC: [BitBoard; 64] = [
+    pub const KING_MOVES: [BitBoard; 64] = [
         0x302,
         0x705,
         0xe0a,

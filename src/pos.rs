@@ -70,14 +70,16 @@ impl Display for Pos {
 #[cfg(test)]
 mod test {
 
+    use test_case::test_case;
+
     use super::*;
 
-    #[test]
-    fn bb() {
-        assert_eq!(0x1, Pos::new(0, 0).bb());
-        assert_eq!(0x8, Pos::new(0, 3).bb());
-        assert_eq!(0x100, Pos::new(1, 0).bb());
-        assert_eq!(0x800, Pos::new(1, 3).bb());
+    #[test_case((0, 0), 0x1)]
+    #[test_case((1, 0), 0x100)]
+    #[test_case((0, 3), 0x8)]
+    #[test_case((1, 3), 0x800)]
+    fn bb<P: Into<Pos>>(input: P, expected: BitBoard) {
+        assert_eq!(expected, input.into().bb());
     }
 
     #[test]

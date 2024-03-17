@@ -184,14 +184,14 @@ impl<'board> Generator<'board> {
     }
 
     fn knight(&mut self) {
-        let bb = Magic::KNIGHT_MAGIC[self.from.sq()];
+        let bb = Magic::KNIGHT_MOVES[self.from.sq()];
         self.moves_from_magic(bb);
     }
 
     fn king(&mut self) {
         self.king_castle();
 
-        let bb = Magic::KING_MAGIC[self.from.sq()];
+        let bb = Magic::KING_MOVES[self.from.sq()];
         self.moves_from_magic(bb);
     }
 
