@@ -82,28 +82,34 @@ impl Piece {
 mod test {
 
     use std::mem;
+    use test_case::test_case;
 
     use super::*;
 
-    #[test]
-    fn as_str() {
-        assert_eq!("♙", Piece::Pawn.as_str(Color::W));
-        assert_eq!("♟", Piece::Pawn.as_str(Color::B));
+    #[test_case(Piece::Pawn, Color::W, "♙")]
+    #[test_case(Piece::Pawn, Color::B, "♟")]
+    #[test_case(Piece::Bishop, Color::W, "♗")]
+    #[test_case(Piece::Bishop, Color::B, "♝")]
+    #[test_case(Piece::Knight, Color::W, "♘")]
+    #[test_case(Piece::Knight, Color::B, "♞")]
+    #[test_case(Piece::Rook, Color::W, "♖")]
+    #[test_case(Piece::Rook, Color::B, "♜")]
+    #[test_case(Piece::Queen, Color::W, "♕")]
+    #[test_case(Piece::Queen, Color::B, "♛")]
+    #[test_case(Piece::King, Color::W, "♔")]
+    #[test_case(Piece::King, Color::B, "♚")]
+    fn as_str(piece: Piece, color: Color, expected: &str) {
+        assert_eq!(expected, piece.as_str(color));
+    }
 
-        assert_eq!("♗", Piece::Bishop.as_str(Color::W));
-        assert_eq!("♝", Piece::Bishop.as_str(Color::B));
-
-        assert_eq!("♘", Piece::Knight.as_str(Color::W));
-        assert_eq!("♞", Piece::Knight.as_str(Color::B));
-
-        assert_eq!("♖", Piece::Rook.as_str(Color::W));
-        assert_eq!("♜", Piece::Rook.as_str(Color::B));
-
-        assert_eq!("♕", Piece::Queen.as_str(Color::W));
-        assert_eq!("♛", Piece::Queen.as_str(Color::B));
-
-        assert_eq!("♔", Piece::King.as_str(Color::W));
-        assert_eq!("♚", Piece::King.as_str(Color::B));
+    #[test_case(Piece::Pawn)]
+    #[test_case(Piece::Bishop)]
+    #[test_case(Piece::Knight)]
+    #[test_case(Piece::Rook)]
+    #[test_case(Piece::Queen)]
+    #[test_case(Piece::King)]
+    fn index_symmetry(piece: Piece) {
+        assert_eq!(piece, Piece::from_idx(piece.idx()));
     }
 
     #[test]

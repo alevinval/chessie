@@ -44,27 +44,20 @@ impl Display for Color {
 #[cfg(test)]
 mod test {
     use std::mem;
+    use test_case::test_case;
 
     use super::*;
 
-    #[test]
-    fn piece_row_for_white() {
-        assert_eq!(0, Color::W.piece_row());
+    #[test_case(Color::W, 0)]
+    #[test_case(Color::B, 7)]
+    fn piece_row(color: Color, expected: usize) {
+        assert_eq!(expected, color.piece_row());
     }
 
-    #[test]
-    fn piece_row_for_black() {
-        assert_eq!(7, Color::B.piece_row());
-    }
-
-    #[test]
-    fn pawn_row_for_white() {
-        assert_eq!(1, Color::W.pawn_row());
-    }
-
-    #[test]
-    fn pawn_row_for_black() {
-        assert_eq!(6, Color::B.pawn_row());
+    #[test_case(Color::W, 1)]
+    #[test_case(Color::B, 6)]
+    fn pawn_row(color: Color, expected: usize) {
+        assert_eq!(expected, color.pawn_row());
     }
 
     #[test]
