@@ -240,6 +240,12 @@ mod test {
     }
 
     #[test]
+    fn piece_count() {
+        let sut = Board::default();
+        assert_eq!(16, sut.piece_count());
+    }
+
+    #[test]
     fn at_white_king() {
         let sut = Board::default();
         let king = sut.at((0, 4));

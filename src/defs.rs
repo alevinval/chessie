@@ -11,7 +11,7 @@ pub enum Dir {
 
 impl Dir {
     #[must_use]
-    pub fn apply(self, sq: Sq) -> Sq {
+    pub const fn apply(self, sq: Sq) -> Sq {
         match self {
             Dir::Up => sq + 8,
             Dir::Down => sq - 8,

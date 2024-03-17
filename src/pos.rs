@@ -38,7 +38,7 @@ impl Pos {
     }
 
     #[must_use]
-    pub fn to(self, d: Dir) -> Self {
+    pub const fn to(self, d: Dir) -> Self {
         Self(d.apply(self.sq()))
     }
 }
@@ -98,9 +98,9 @@ mod test {
 
     #[test]
     fn col() {
-        assert_eq!(0, Pos::new(0, 0).col());
-        assert_eq!(3, Pos::new(0, 3).col());
-        assert_eq!(0, Pos::new(1, 0).col());
+        assert_eq!(0, Pos::new(5, 0).col());
+        assert_eq!(3, Pos::new(6, 3).col());
+        assert_eq!(7, Pos::new(3, 7).col());
         assert_eq!(5, Pos::new(1, 5).col());
     }
 
