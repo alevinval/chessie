@@ -1,19 +1,19 @@
 mod movement;
 mod placement;
 
-use std::iter::zip;
-
 use crate::{
     bitboard::Bits,
     board::{Board, Castling},
     defs::BitBoard,
-    magic::{Magic, KING_MAGIC, KNIGHT_MAGIC},
+    magic::{
+        Magic, ANTI_DIAG_SLIDER, COL_SLIDER, DIAG_SLIDER, KING_MAGIC, KNIGHT_MAGIC, ROW_SLIDER,
+    },
     piece::Piece,
     print_board, Color, Pos,
 };
 
 pub use self::movement::Move;
-use self::placement::{empty_or_take, is_empty, Placement, StopCondition};
+use self::placement::{is_empty, Placement, StopCondition};
 
 #[derive(Debug)]
 pub struct Generator<'board> {
@@ -52,14 +52,15 @@ impl<'board> Generator<'board> {
         self.moves
     }
 
+    #[must_use]
     pub fn generate(mut self) -> Vec<Move> {
         match self.piece {
             Piece::Pawn => match self.color {
                 Color::B => self.black_pawn(),
                 Color::W => self.white_pawn(),
             },
-            Piece::Rook => self.cross(empty_or_take),
-            Piece::Bishop => self.diagonals(empty_or_take),
+            Piece::Rook => self.cross(),
+            Piece::Bishop => self.diagonals(),
             Piece::Queen => self.queen(),
             Piece::Knight => self.knight(),
             Piece::King => self.king(),
@@ -120,7 +121,7 @@ impl<'board> Generator<'board> {
 
     fn left(&mut self, stop_at: StopCondition) {
         for c in (0..self.col()).rev() {
-            if !self.pos((self.row(), c), stop_at).is_some_and(|p| !p.stop()) {
+            if self.pos((self.row(), c), stop_at).is_none() {
                 break;
             }
         }
@@ -128,57 +129,30 @@ impl<'board> Generator<'board> {
 
     fn right(&mut self, stop_at: StopCondition) {
         for c in self.col() + 1..8 {
-            if !self.pos((self.row(), c), stop_at).is_some_and(|p| !p.stop()) {
+            if self.pos((self.row(), c), stop_at).is_none() {
                 break;
             }
         }
     }
 
-    fn cross(&mut self, stop_at: StopCondition) {
-        let (row, col) = (self.row(), self.col());
-
-        for r in (0..row).rev() {
-            if !self.pos((r, col), stop_at).is_some_and(|p| !p.stop()) {
-                break;
-            }
-        }
-
-        for r in row + 1..8 {
-            if !self.pos((r, col), stop_at).is_some_and(|p| !p.stop()) {
-                break;
-            }
-        }
-
-        self.left(stop_at);
-        self.right(stop_at);
+    fn cross(&mut self) {
+        let v = self.hyper_quint(COL_SLIDER[self.from.col()]);
+        let h = self.hyper_quint(ROW_SLIDER[self.from.row()]);
+        self.moves_from_magic(v | h);
     }
 
-    fn diagonals(&mut self, stop_at: StopCondition) {
-        let (row, col) = (self.row(), self.col());
+    fn diagonals(&mut self) {
+        let v = self.hyper_quint(DIAG_SLIDER[self.from.sq()]);
+        let h = self.hyper_quint(ANTI_DIAG_SLIDER[self.from.sq()]);
+        self.moves_from_magic(v | h);
+    }
 
-        for pos in zip(row + 1..8, col + 1..8) {
-            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
-                break;
-            }
-        }
-
-        for pos in zip((0..row).rev(), col + 1..8) {
-            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
-                break;
-            }
-        }
-
-        for pos in zip(row + 1..8, (0..col).rev()) {
-            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
-                break;
-            }
-        }
-
-        for pos in zip((0..row).rev(), (0..col).rev()) {
-            if !self.pos(pos, stop_at).is_some_and(|p| !p.stop()) {
-                break;
-            }
-        }
+    fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
+        let o = self.board.occupancy() & mask;
+        let r = self.from.bb();
+        let line = (o.wrapping_sub(r.wrapping_mul(2)))
+            ^ (o.reverse_bits().wrapping_sub(r.reverse_bits().wrapping_mul(2))).reverse_bits();
+        line & mask
     }
 
     fn black_pawn(&mut self) {
@@ -208,8 +182,8 @@ impl<'board> Generator<'board> {
     }
 
     fn queen(&mut self) {
-        self.diagonals(empty_or_take);
-        self.cross(empty_or_take);
+        self.diagonals();
+        self.cross();
     }
 
     fn knight(&mut self) {
@@ -372,5 +346,48 @@ mod test {
         let actual = gen_squares(&board, Pos::new(0, 0));
         print_board(&board, &actual);
         assert_moves(vec![1, 8, 9], actual);
+    }
+
+    #[test]
+    fn slide_gen() {
+        let mut board = Board::default();
+        board.clear();
+        Bits::set(&mut board.white[Piece::K], Pos::new(1, 6));
+        Bits::set(&mut board.black[Piece::K], Pos::new(6, 6));
+        Bits::set(&mut board.black[Piece::R], Pos::new(4, 6));
+        board.next_turn();
+        print_board(&board, &[]);
+
+        let actual = gen_squares(&board, Pos::new(4, 6));
+        print_board(&board, &actual);
+        assert_moves(vec![14, 22, 30, 32, 33, 34, 35, 36, 37, 39, 46], actual);
+    }
+
+    #[test]
+    fn slide_three() {
+        let mut board = Board::default();
+        board.clear();
+        Bits::set(&mut board.white[Piece::K], Pos::new(2, 6));
+        Bits::set(&mut board.white[Piece::Q], Pos::new(6, 7));
+
+        Bits::set(&mut board.black[Piece::K], Pos::new(7, 1));
+        Bits::set(&mut board.black[Piece::N], Pos::new(7, 6));
+        Bits::set(&mut board.black[Piece::R], Pos::new(7, 7));
+        board.next_turn();
+        print_board(&board, &[]);
+
+        let actual = gen_squares(&board, Pos::new(7, 7));
+        print_board(&board, &actual);
+        assert_moves(vec![55], actual);
+    }
+
+    #[test]
+    fn slide_gen_two() {
+        let board = Board::default();
+        print_board(&board, &[]);
+
+        let actual = gen_squares(&board, Pos::new(0, 0));
+        print_board(&board, &actual);
+        assert_moves(vec![], actual);
     }
 }
