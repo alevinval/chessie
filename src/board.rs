@@ -62,6 +62,11 @@ impl Board {
         }
     }
 
+    #[must_use]
+    pub fn occupancy(&self) -> BitBoard {
+        self.side(Color::B) | self.side(Color::W)
+    }
+
     fn calc_side(bbs: [BitBoard; 6]) -> BitBoard {
         let mut side: BitBoard = 0;
         for b in bbs {

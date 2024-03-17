@@ -68,13 +68,12 @@ impl<'board> Generator<'board> {
     }
 
     pub fn slides_from_magic(&mut self, bb: BitBoard) {
-        let from = self.from;
         for to in Bits::pos(bb) {
             if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
                 self.emit_pawn_promos(to);
                 continue;
             }
-            self.emit_move(Move::Slide { from, to });
+            self.emit_move(Move::Slide { from: self.from, to });
         }
     }
 
@@ -103,14 +102,12 @@ impl<'board> Generator<'board> {
     }
 
     fn takes_from_magic(&mut self, bb: BitBoard) {
-        let from = self.from;
-
         for to in Bits::pos(bb) {
             if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
                 self.emit_pawn_promos(to);
                 continue;
             }
-            self.emit_move(Move::Takes { from, to });
+            self.emit_move(Move::Takes { from: self.from, to });
         }
     }
 
@@ -191,8 +188,8 @@ impl<'board> Generator<'board> {
             | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
         self.takes_from_magic(side_attack);
 
-        let first_push = Bits::south(pawns) & !white_side;
-        let second_push = Bits::south(first_push & Magic::RANK_6) & !white_side;
+        let first_push = Bits::south(pawns) & !self.board.occupancy();
+        let second_push = Bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
         self.slides_from_magic(pushes);
     }
@@ -204,8 +201,8 @@ impl<'board> Generator<'board> {
             | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
         self.takes_from_magic(side_attack);
 
-        let first_push = Bits::north(pawns) & !black_side;
-        let second_push = Bits::north(first_push & Magic::RANK_3) & !black_side;
+        let first_push = Bits::north(pawns) & !self.board.occupancy();
+        let second_push = Bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
         self.slides_from_magic(pushes);
     }
@@ -294,10 +291,10 @@ mod test {
         Bits::set(&mut board.black[Piece::P], Pos::new(2, 2));
         Bits::set(&mut board.white[Piece::P], Pos::new(4, 5));
         Bits::set(&mut board.white[Piece::P], Pos::new(5, 7));
+        board.next_turn();
+        board.next_turn();
 
         print_board(&board, &[]);
-
-        board.next_turn();
 
         let actual = gen_squares(&board, (1, 1));
         print_board(&board, &actual);
