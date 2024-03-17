@@ -20,6 +20,7 @@ pub struct Board {
     pub black: [BitBoard; 6],
     white_side: BitBoard,
     black_side: BitBoard,
+    occupancy: BitBoard,
     white_rights: Castling,
     black_rights: Castling,
     n: usize,
@@ -64,7 +65,7 @@ impl Board {
 
     #[must_use]
     pub fn occupancy(&self) -> BitBoard {
-        self.side(Color::B) | self.side(Color::W)
+        self.occupancy
     }
 
     fn calc_side(bbs: [BitBoard; 6]) -> BitBoard {
@@ -136,6 +137,7 @@ impl Board {
     pub fn next_turn(&mut self) {
         self.white_side = Self::calc_side(self.white);
         self.black_side = Self::calc_side(self.black);
+        self.occupancy = self.white_side | self.black_side;
         self.mover = self.mover.flip();
         self.n += 1;
     }
@@ -224,12 +226,15 @@ impl Default for Board {
     fn default() -> Self {
         let white = Self::gen_pieces(Color::W);
         let black = Self::gen_pieces(Color::B);
+        let white_side = Self::calc_side(white);
+        let black_side = Self::calc_side(black);
         Self {
             mover: Color::W,
             white,
             black,
-            white_side: Self::calc_side(white),
-            black_side: Self::calc_side(black),
+            white_side,
+            black_side,
+            occupancy: white_side | black_side,
             white_rights: Castling::Some(true, true),
             black_rights: Castling::Some(true, true),
             n: 0,

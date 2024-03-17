@@ -43,8 +43,7 @@ impl<'board> Generator<'board> {
         piece: Piece,
         check_legal: bool,
     ) -> Self {
-        let from = from.into();
-        Self { board, from, color, piece, moves: vec![], check_legal }
+        Self { board, from: from.into(), color, piece, moves: vec![], check_legal }
     }
 
     #[must_use]

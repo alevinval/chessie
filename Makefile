@@ -11,3 +11,7 @@ test:
 cover:
 	cargo llvm-cov --html
 	open target/llvm-cov/html/index.html
+
+.PHONY: run
+run:
+	time cargo run --release --bin main
