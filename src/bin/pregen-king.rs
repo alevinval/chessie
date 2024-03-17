@@ -1,11 +1,9 @@
-use crate::defs::BitBoard;
-use crate::magic::Magic;
+use chessie::{
+    bitboard::Bits, board::Board, color::Color, defs::BitBoard, magic::Magic, moves::Generator,
+    piece::Piece, pos::Pos, print_bitboard,
+};
 
-use crate::moves::Generator;
-use crate::piece::Piece;
-use crate::{bitboard::Bits, board::Board};
-use crate::{Color, Pos};
-
+#[must_use]
 pub fn precompute_king() -> [BitBoard; 64] {
     let mut board = Board::default();
     board.clear();
@@ -40,25 +38,16 @@ pub fn precompute_king() -> [BitBoard; 64] {
     gen
 }
 
-#[cfg(test)]
-mod test {
+fn main() {
+    let pregen = precompute_king();
 
-    use crate::print_bitboard;
-
-    use super::*;
-
-    #[test]
-    fn test_precompute_king() {
-        let pregen = precompute_king();
-
-        for g in pregen {
-            print_bitboard(g);
-        }
-
-        println!("const KING_MAGIC: [BitBoard; 64] = [");
-        for g in pregen {
-            println!("  0x{:x},", g);
-        }
-        println!("]");
+    for bb in pregen {
+        print_bitboard(bb);
     }
+
+    println!("const KING_MAGIC: [BitBoard; 64] = [");
+    for bb in pregen {
+        println!("  0x{bb:x},");
+    }
+    println!("]");
 }

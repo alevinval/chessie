@@ -10,19 +10,20 @@ pub enum Piece {
     Rook,
 }
 
-pub type PieceIdx = usize;
+pub type Idx = usize;
 
 impl Piece {
     pub const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
 
-    pub const P: PieceIdx = 0;
-    pub const N: PieceIdx = 1;
-    pub const B: PieceIdx = 2;
-    pub const R: PieceIdx = 3;
-    pub const Q: PieceIdx = 4;
-    pub const K: PieceIdx = 5;
+    pub const P: Idx = 0;
+    pub const N: Idx = 1;
+    pub const B: Idx = 2;
+    pub const R: Idx = 3;
+    pub const Q: Idx = 4;
+    pub const K: Idx = 5;
 
-    pub const fn from_idx(idx: PieceIdx) -> Self {
+    #[must_use]
+    pub const fn from_idx(idx: Idx) -> Self {
         match idx {
             Self::P => Self::Pawn,
             Self::N => Self::Knight,
@@ -30,10 +31,11 @@ impl Piece {
             Self::R => Self::Rook,
             Self::Q => Self::Queen,
             Self::K => Self::King,
-            _ => panic!("incorrect piece index"),
+            _ => unreachable!(),
         }
     }
 
+    #[must_use]
     pub const fn idx(self) -> usize {
         match self {
             Self::Bishop => Self::B,
@@ -45,6 +47,7 @@ impl Piece {
         }
     }
 
+    #[must_use]
     pub const fn as_str(self, c: Color) -> &'static str {
         match self {
             Self::Bishop => match c {

@@ -16,6 +16,7 @@ pub enum Move {
 }
 
 impl Move {
+    #[must_use]
     pub fn apply(self, board: &Board) -> Board {
         let mut next = board.clone();
         self.inner_apply(&mut next);
@@ -23,6 +24,7 @@ impl Move {
         next
     }
 
+    #[must_use]
     pub fn to(self) -> Pos {
         match self {
             Move::Takes { from: _, to }
@@ -33,6 +35,7 @@ impl Move {
         }
     }
 
+    #[must_use]
     pub fn from(self) -> Pos {
         match self {
             Move::Takes { from, to: _ }
@@ -44,6 +47,7 @@ impl Move {
         }
     }
 
+    #[must_use]
     pub fn priority(self) -> f64 {
         0.0
     }

@@ -47,6 +47,7 @@ impl<'board> Generator<'board> {
         Self { board, from, color, piece, moves: vec![], check_legal }
     }
 
+    #[must_use]
     pub fn moves(self) -> Vec<Move> {
         self.moves
     }

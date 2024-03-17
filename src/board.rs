@@ -26,10 +26,12 @@ pub struct Board {
 }
 
 impl Board {
+    #[must_use]
     pub fn mover(&self) -> Color {
         self.mover
     }
 
+    #[must_use]
     pub fn castling_rights(&self, color: Color) -> Castling {
         match color {
             Color::B => self.black_rights,
@@ -44,6 +46,7 @@ impl Board {
         }
     }
 
+    #[must_use]
     pub fn get_piece(&self, color: Color, piece: Piece) -> BitBoard {
         match color {
             Color::B => self.black[piece.idx()],
@@ -51,6 +54,7 @@ impl Board {
         }
     }
 
+    #[must_use]
     pub fn side(&self, color: Color) -> BitBoard {
         match color {
             Color::B => self.black_side,
@@ -131,6 +135,7 @@ impl Board {
         self.n += 1;
     }
 
+    #[must_use]
     pub fn n(&self) -> usize {
         self.n
     }
@@ -180,6 +185,7 @@ impl Board {
         w + b
     }
 
+    #[must_use]
     pub fn in_check(&self, color: Color) -> bool {
         let king = Bits::pos(self.get_piece(color, Piece::King));
         let king = king.first();

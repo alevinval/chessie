@@ -1,25 +1,24 @@
 use std::io;
 
 use board::Board;
-pub use color::Color;
+use color::Color;
 use defs::BitBoard;
 use eval::Scorer;
 use moves::Move;
 use piece::Piece;
-pub use pos::Pos;
+use pos::Pos;
 
 use crate::bitboard::Bits;
 
-mod bitboard;
-mod board;
-mod color;
-mod defs;
+pub mod bitboard;
+pub mod board;
+pub mod color;
+pub mod defs;
 mod eval;
-mod exp;
-mod magic;
-mod moves;
-mod piece;
-mod pos;
+pub mod magic;
+pub mod moves;
+pub mod piece;
+pub mod pos;
 
 pub fn print_bitboard(bb: BitBoard) {
     println!("[bitboard=0x{bb:x}]");

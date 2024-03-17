@@ -9,6 +9,7 @@ use super::Color;
 pub struct Bits();
 
 impl Bits {
+    #[must_use]
     pub const fn init(piece: Piece, color: Color) -> BitBoard {
         let mut value = match piece {
             Piece::Pawn => 0b1111_1111,
@@ -24,6 +25,7 @@ impl Bits {
         value
     }
 
+    #[must_use]
     pub const fn count(mut bb: BitBoard) -> usize {
         let mut count = 0;
         while bb != 0 {
@@ -33,6 +35,7 @@ impl Bits {
         count
     }
 
+    #[must_use]
     pub fn has_piece<P: Into<BitBoard>>(bb: BitBoard, pos: P) -> bool {
         bb & pos.into() != 0
     }
@@ -49,6 +52,7 @@ impl Bits {
         *bb &= !pos.into();
     }
 
+    #[must_use]
     pub fn pos(mut bb: BitBoard) -> Vec<Pos> {
         let mut acc: Vec<Pos> = vec![];
         let mut square: Sq = 0;
@@ -64,34 +68,42 @@ impl Bits {
         acc
     }
 
+    #[must_use]
     pub const fn north(bb: BitBoard) -> BitBoard {
         bb << 8
     }
 
+    #[must_use]
     pub const fn northeast(bb: BitBoard) -> BitBoard {
         bb << 9
     }
 
+    #[must_use]
     pub const fn northwest(bb: BitBoard) -> BitBoard {
         bb << 7
     }
 
+    #[must_use]
     pub const fn south(bb: BitBoard) -> BitBoard {
         bb >> 8
     }
 
+    #[must_use]
     pub const fn southeast(bb: BitBoard) -> BitBoard {
         bb >> 7
     }
 
+    #[must_use]
     pub const fn southwest(bb: BitBoard) -> BitBoard {
         bb >> 9
     }
 
+    #[must_use]
     pub const fn west(bb: BitBoard) -> BitBoard {
         bb >> 1
     }
 
+    #[must_use]
     pub const fn east(bb: BitBoard) -> BitBoard {
         bb << 1
     }
