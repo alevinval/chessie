@@ -49,7 +49,13 @@ impl Move {
 
     #[must_use]
     pub fn priority(self) -> f64 {
-        0.0
+        match self {
+            Move::Takes { from: _, to: _ } => 5.0,
+            Move::Slide { from: _, to: _ } => 1.0,
+            Move::PawnPromo { from: _, to: _, piece: _ } => 10.0,
+            Move::LeftCastle { mover: _ } => 6.0,
+            Move::RightCastle { mover: _ } => 7.0,
+        }
     }
 
     fn inner_apply(self, board: &mut Board) {
