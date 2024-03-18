@@ -1,5 +1,4 @@
 mod movement;
-mod placement;
 
 use crate::{
     bitboard::Bits,
@@ -11,7 +10,6 @@ use crate::{
 };
 
 pub use self::movement::Move;
-use self::placement::{is_empty, Placement, StopCondition};
 
 #[derive(Debug)]
 pub struct Generator<'board> {
@@ -45,180 +43,139 @@ impl<'board> Generator<'board> {
     }
 
     #[must_use]
-    pub fn moves(self) -> Vec<Move> {
-        self.moves
-    }
-
-    #[must_use]
     pub fn generate(mut self) -> Vec<Move> {
         match self.piece {
             Piece::Pawn => match self.color {
-                Color::B => self.black_pawn(),
-                Color::W => self.white_pawn(),
+                Color::B => self.emit_black_pawn(),
+                Color::W => self.emit_white_pawn(),
             },
-            Piece::Rook => self.cross(),
-            Piece::Bishop => self.diagonals(),
-            Piece::Queen => self.queen(),
-            Piece::Knight => self.knight(),
-            Piece::King => self.king(),
+            Piece::Rook => self.emit_cross(),
+            Piece::Bishop => self.emit_diag(),
+            Piece::Queen => {
+                self.emit_cross();
+                self.emit_diag();
+            }
+            Piece::Knight => {
+                self.emit(Magic::KNIGHT_MOVES[self.from.sq()]);
+            }
+            Piece::King => {
+                self.emit_castling();
+                self.emit(Magic::KING_MOVES[self.from.sq()]);
+            }
         };
         self.moves
     }
 
-    pub fn slides_from_magic(&mut self, bb: BitBoard) {
+    #[must_use]
+    pub fn moves(self) -> Vec<Move> {
+        self.moves
+    }
+
+    pub fn emit(&mut self, bb: BitBoard) {
+        self.emit_takes(bb & self.board.side(self.color.flip()));
+        self.emit_slides(bb & !self.board.occupancy());
+    }
+
+    fn emit_slides(&mut self, bb: BitBoard) {
         for to in Bits::pos(bb) {
             if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
                 self.emit_pawn_promos(to);
                 continue;
             }
-            self.emit_move(Move::Slide { from: self.from, to });
+            self.push_move(Move::Slide { from: self.from, to });
         }
     }
 
-    fn emit_move(&mut self, m: Move) {
+    fn emit_takes(&mut self, bb: BitBoard) {
+        for to in Bits::pos(bb) {
+            if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
+                self.emit_pawn_promos(to);
+                continue;
+            }
+            self.push_move(Move::Takes { from: self.from, to });
+        }
+    }
+
+    fn emit_cross(&mut self) {
+        let col = self.hyper_quint(Magic::COL_SLIDER[self.from.col()]);
+        let row = self.hyper_quint(Magic::ROW_SLIDER[self.from.row()]);
+        self.emit(col | row);
+    }
+
+    fn emit_diag(&mut self) {
+        let diag = self.hyper_quint(Magic::DIAG_SLIDER[self.from.sq()]);
+        let antidiag = self.hyper_quint(Magic::ANTI_DIAG_SLIDER[self.from.sq()]);
+        self.emit(diag | antidiag);
+    }
+
+    fn push_move(&mut self, m: Move) {
         if !self.check_legal || self.is_legal(m) {
             self.moves.push(m);
         }
     }
 
-    fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Option<Placement> {
-        let placement = stop_at(self.board, self.from, to.into());
-
-        if let Some(placement) = &placement {
-            self.emit_move(placement.movement());
-        }
-
-        placement
-    }
-
-    fn moves_from_magic(&mut self, bb: BitBoard) {
-        let takes = bb & self.board.side(self.color.flip());
-        let empty = bb & !takes & !self.board.side(self.color);
-
-        self.takes_from_magic(takes);
-        self.slides_from_magic(empty);
-    }
-
-    fn takes_from_magic(&mut self, bb: BitBoard) {
-        for to in Bits::pos(bb) {
-            if self.piece == Piece::Pawn && to.row() == self.color.flip().piece_row() {
-                self.emit_pawn_promos(to);
-                continue;
-            }
-            self.emit_move(Move::Takes { from: self.from, to });
-        }
-    }
-
-    fn emit_pawn_promos(&mut self, to: Pos) {
-        for piece in Piece::PROMO {
-            let promo = Move::PawnPromo { from: self.from, to, piece };
-            self.emit_move(promo);
-        }
-    }
-
-    fn left(&mut self, stop_at: StopCondition) {
-        for c in (0..self.col()).rev() {
-            if self.pos((self.row(), c), stop_at).is_none() {
-                break;
-            }
-        }
-    }
-
-    fn right(&mut self, stop_at: StopCondition) {
-        for c in self.col() + 1..8 {
-            if self.pos((self.row(), c), stop_at).is_none() {
-                break;
-            }
-        }
-    }
-
-    fn cross(&mut self) {
-        let v = self.hyper_quint(Magic::COL_SLIDER[self.from.col()]);
-        let h = self.hyper_quint(Magic::ROW_SLIDER[self.from.row()]);
-        self.moves_from_magic(v | h);
-    }
-
-    fn diagonals(&mut self) {
-        let v = self.hyper_quint(Magic::DIAG_SLIDER[self.from.sq()]);
-        let h = self.hyper_quint(Magic::ANTI_DIAG_SLIDER[self.from.sq()]);
-        self.moves_from_magic(v | h);
-    }
-
-    fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
-        let o = self.board.occupancy() & mask;
-        let r = self.from.bb();
-        let line = (o.wrapping_sub(r.wrapping_mul(2)))
-            ^ (o.reverse_bits().wrapping_sub(r.reverse_bits().wrapping_mul(2))).reverse_bits();
-        line & mask
-    }
-
-    fn black_pawn(&mut self) {
+    fn emit_black_pawn(&mut self) {
         let pawns = self.board.get_piece(Color::B, Piece::Pawn) & self.from.bb();
         let white_side = self.board.side(Color::W);
         let side_attack = (Bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
             | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
-        self.takes_from_magic(side_attack);
+        self.emit_takes(side_attack);
 
         let first_push = Bits::south(pawns) & !self.board.occupancy();
         let second_push = Bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
-        self.slides_from_magic(pushes);
+        self.emit_slides(pushes);
     }
 
-    fn white_pawn(&mut self) {
+    fn emit_white_pawn(&mut self) {
         let pawns = self.board.get_piece(Color::W, Piece::Pawn) & self.from.bb();
         let black_side = self.board.side(Color::B);
         let side_attack = (Bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
             | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
-        self.takes_from_magic(side_attack);
+        self.emit_takes(side_attack);
 
         let first_push = Bits::north(pawns) & !self.board.occupancy();
         let second_push = Bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
-        self.slides_from_magic(pushes);
+        self.emit_slides(pushes);
     }
 
-    fn queen(&mut self) {
-        self.diagonals();
-        self.cross();
-    }
-
-    fn knight(&mut self) {
-        let bb = Magic::KNIGHT_MOVES[self.from.sq()];
-        self.moves_from_magic(bb);
-    }
-
-    fn king(&mut self) {
-        self.king_castle();
-
-        let bb = Magic::KING_MOVES[self.from.sq()];
-        self.moves_from_magic(bb);
-    }
-
-    fn king_castle(&mut self) {
-        let rights = self.board.castling_rights(self.color);
-
-        if Castling::None == rights {
-            return;
+    fn emit_pawn_promos(&mut self, to: Pos) {
+        for piece in Piece::PROMO {
+            self.push_move(Move::PawnPromo { from: self.from, to, piece });
         }
+    }
 
-        if let Castling::Some(left, right) = rights {
-            let king = self.board.get_piece(self.color, self.piece);
-            let king = Bits::pos(king);
-            let pos = king.first().unwrap_or_else(|| unreachable!("should have king position"));
+    fn emit_castling(&mut self) {
+        if let Castling::Some(left, right) = self.board.castling_rights(self.color) {
+            let occ = self.board.occupancy();
+            let side = self.board.side(self.color);
+
             if right {
-                let mut subgen = Generator::from_board(self.board, *pos, false);
-                subgen.right(is_empty);
-                if subgen.moves().len() == 2 {
-                    self.emit_move(Move::RightCastle { mover: self.color });
+                let right_msk = match self.color {
+                    Color::B => Magic::BLACK_RIGHT_CASTLE,
+                    Color::W => Magic::WHITE_RIGHT_CASTLE,
+                };
+                let right_sq = match self.color {
+                    Color::B => Magic::H8,
+                    Color::W => Magic::H1,
+                };
+                if (right_msk & occ == right_sq) && (right_msk & side == right_sq) {
+                    self.push_move(Move::RightCastle { mover: self.color });
                 }
             }
 
             if left {
-                let mut subgen = Generator::from_board(self.board, *pos, false);
-                subgen.left(is_empty);
-                if subgen.moves().len() == 3 {
-                    self.emit_move(Move::LeftCastle { mover: self.color });
+                let left_msk = match self.color {
+                    Color::B => Magic::BLACK_LEFT_CASTLE,
+                    Color::W => Magic::WHITE_LEFT_CASTLE,
+                };
+                let left_sq = match self.color {
+                    Color::B => Magic::A8,
+                    Color::W => Magic::A1,
+                };
+                if (left_msk & occ == left_sq) && (left_msk & side) == left_sq {
+                    self.push_move(Move::LeftCastle { mover: self.color });
                 }
             }
         }
@@ -228,12 +185,12 @@ impl<'board> Generator<'board> {
         !movement.apply(self.board).in_check(self.color)
     }
 
-    fn row(&self) -> usize {
-        self.from.row()
-    }
-
-    fn col(&self) -> usize {
-        self.from.col()
+    fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
+        let o = self.board.occupancy() & mask;
+        let r = self.from.bb();
+        let line = (o.wrapping_sub(r.wrapping_mul(2)))
+            ^ (o.reverse_bits().wrapping_sub(r.reverse_bits().wrapping_mul(2))).reverse_bits();
+        line & mask
     }
 }
 
@@ -386,5 +343,32 @@ mod test {
         let actual = gen_squares(&board, Pos::new(0, 0));
         print_board(&board, &actual);
         assert_moves(vec![], actual);
+    }
+
+    #[test]
+    fn emit_castling() {
+        let mut board = Board::default();
+        Bits::unset(&mut board.white[Piece::N], Pos::new(0, 6));
+        Bits::unset(&mut board.white[Piece::N], Pos::new(0, 1));
+        Bits::unset(&mut board.white[Piece::B], Pos::new(0, 5));
+        Bits::unset(&mut board.white[Piece::B], Pos::new(0, 2));
+        Bits::unset(&mut board.white[Piece::Q], Pos::new(0, 3));
+        board.next_turn();
+        print_board(&board, &[]);
+
+        let actual = gen_squares(&board, Pos::new(0, 4));
+        assert_moves(vec![6, 2, 3, 5], actual);
+
+        let mut board = Board::default();
+        Bits::unset(&mut board.black[Piece::N], Pos::new(7, 6));
+        Bits::unset(&mut board.black[Piece::N], Pos::new(7, 1));
+        Bits::unset(&mut board.black[Piece::B], Pos::new(7, 5));
+        Bits::unset(&mut board.black[Piece::B], Pos::new(7, 2));
+        Bits::unset(&mut board.black[Piece::Q], Pos::new(7, 3));
+        board.next_turn();
+        print_board(&board, &[]);
+
+        let actual = gen_squares(&board, Pos::new(7, 4));
+        assert_moves(vec![62, 58, 59, 61], actual);
     }
 }

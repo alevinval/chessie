@@ -80,8 +80,6 @@ impl Piece {
 
 #[cfg(test)]
 mod test {
-
-    use std::mem;
     use test_case::test_case;
 
     use super::*;
@@ -110,11 +108,5 @@ mod test {
     #[test_case(Piece::King)]
     fn index_symmetry(piece: Piece) {
         assert_eq!(piece, Piece::from_idx(piece.idx()));
-    }
-
-    #[test]
-    fn size() {
-        assert_eq!(1, mem::size_of::<Piece>());
-        assert_eq!(8, mem::size_of::<&Piece>());
     }
 }

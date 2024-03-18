@@ -75,54 +75,62 @@ mod test {
     use super::*;
 
     #[test_case((0, 0), 0x1)]
-    #[test_case((1, 0), 0x100)]
     #[test_case((0, 3), 0x8)]
+    #[test_case((1, 0), 0x100)]
     #[test_case((1, 3), 0x800)]
+    #[test_case((7, 7), 0x8000000000000000)]
     fn bb<P: Into<Pos>>(input: P, expected: BitBoard) {
         assert_eq!(expected, input.into().bb());
     }
 
-    #[test]
-    fn sq() {
-        assert_eq!(0, Pos::new(0, 0).sq());
-        assert_eq!(3, Pos::new(0, 3).sq());
-        assert_eq!(8, Pos::new(1, 0).sq());
-        assert_eq!(11, Pos::new(1, 3).sq());
+    #[test_case((0, 0), 0)]
+    #[test_case((0, 3), 3)]
+    #[test_case((1, 0), 8)]
+    #[test_case((1, 3), 11)]
+    #[test_case((7, 7), 63)]
+    fn sq<P: Into<Pos>>(input: P, expected: Sq) {
+        assert_eq!(expected, input.into().sq());
     }
 
-    #[test]
-    fn row() {
-        assert_eq!(0, Pos::new(0, 0).row());
-        assert_eq!(0, Pos::new(0, 3).row());
-        assert_eq!(1, Pos::new(1, 0).row());
-        assert_eq!(1, Pos::new(1, 5).row());
+    #[test_case((0, 0), 0)]
+    #[test_case((0, 3), 0)]
+    #[test_case((1, 0), 1)]
+    #[test_case((1, 3), 1)]
+    #[test_case((7, 7), 7)]
+    fn row<P: Into<Pos>>(input: P, expected: usize) {
+        assert_eq!(expected, input.into().row());
     }
 
-    #[test]
-    fn col() {
-        assert_eq!(0, Pos::new(5, 0).col());
-        assert_eq!(3, Pos::new(6, 3).col());
-        assert_eq!(7, Pos::new(3, 7).col());
-        assert_eq!(5, Pos::new(1, 5).col());
+    #[test_case((0, 0), 0)]
+    #[test_case((0, 3), 3)]
+    #[test_case((1, 0), 0)]
+    #[test_case((1, 3), 3)]
+    #[test_case((7, 7), 7)]
+    fn col<P: Into<Pos>>(input: P, expected: usize) {
+        assert_eq!(expected, input.into().col());
     }
 
-    #[test]
-    fn is_central() {
-        let mut sut = Pos::new(4, 4);
-        assert!(sut.is_central());
-        sut = Pos::new(3, 4);
-        assert!(sut.is_central());
-        sut = Pos::new(3, 3);
-        assert!(sut.is_central());
-        sut = Pos::new(4, 3);
-        assert!(sut.is_central());
+    #[test_case((0, 0), false)]
+    #[test_case((0, 3), false)]
+    #[test_case((1, 0), false)]
+    #[test_case((1, 3), false)]
+    #[test_case((7, 7), false)]
+    #[test_case((4, 4), true)]
+    #[test_case((4, 3), true)]
+    #[test_case((3, 3), true)]
+    #[test_case((3, 4), true)]
+    fn is_central<P: Into<Pos>>(input: P, expected: bool) {
+        assert_eq!(expected, input.into().is_central());
+    }
 
-        sut = Pos::new(5, 3);
-        assert!(!sut.is_central());
-        sut = Pos::new(2, 3);
-        assert!(!sut.is_central());
-        sut = Pos::new(4, 5);
-        assert!(!sut.is_central());
+    #[test_case((2, 2), Dir::Up, (3, 2))]
+    #[test_case((2, 2), Dir::Down, (1, 2))]
+    #[test_case((2, 2), Dir::Right, (2, 3))]
+    #[test_case((2, 2), Dir::Left, (2, 1))]
+    #[test_case((2, 2), Dir::Custom(-2, -2), (0, 0))]
+    #[test_case((2, 2), Dir::Custom(2, 3), (4, 5))]
+    fn to<P: Into<Pos>>(input: P, dir: Dir, expected: P) {
+        assert_eq!(expected.into(), input.into().to(dir));
     }
 
     #[test]

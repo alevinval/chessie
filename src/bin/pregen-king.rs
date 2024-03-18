@@ -29,7 +29,7 @@ pub fn precompute_king() -> [BitBoard; 64] {
             pattern &= Magic::NOT_A_FILE;
         }
 
-        g.slides_from_magic(pattern);
+        g.emit(pattern);
 
         let moves = g.moves();
         moves.iter().map(|m| m.to()).for_each(|dst| Bits::set(gen_bb, dst));

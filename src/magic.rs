@@ -4,11 +4,21 @@ pub struct Magic();
 
 #[allow(clippy::unreadable_literal)]
 impl Magic {
-    pub const NOT_A_FILE: u64 = 0xfefefefefefefefe;
-    pub const NOT_H_FILE: u64 = 0x7f7f7f7f7f7f7f7f;
+    pub const NOT_A_FILE: BitBoard = 0xfefefefefefefefe;
+    pub const NOT_H_FILE: BitBoard = 0x7f7f7f7f7f7f7f7f;
 
-    pub const RANK_3: u64 = 0xff0000;
-    pub const RANK_6: u64 = 0xff0000000000;
+    pub const RANK_3: BitBoard = 0xff0000;
+    pub const RANK_6: BitBoard = 0xff0000000000;
+
+    pub const WHITE_LEFT_CASTLE: BitBoard = 0xf;
+    pub const WHITE_RIGHT_CASTLE: BitBoard = 0xe0;
+    pub const BLACK_LEFT_CASTLE: BitBoard = 0xf00000000000000;
+    pub const BLACK_RIGHT_CASTLE: BitBoard = 0xe000000000000000;
+
+    pub const A1: BitBoard = 0x1;
+    pub const H1: BitBoard = 0x80;
+    pub const A8: BitBoard = 0x100000000000000;
+    pub const H8: BitBoard = 0x8000000000000000;
 
     #[allow(clippy::unreadable_literal)]
     pub const KNIGHT_MOVES: [BitBoard; 64] = [
@@ -317,7 +327,18 @@ mod test {
     fn print_magics() {
         print_bitboard(Magic::NOT_A_FILE);
         print_bitboard(Magic::NOT_H_FILE);
+
         print_bitboard(Magic::RANK_3);
         print_bitboard(Magic::RANK_6);
+
+        print_bitboard(Magic::WHITE_LEFT_CASTLE);
+        print_bitboard(Magic::WHITE_RIGHT_CASTLE);
+        print_bitboard(Magic::BLACK_LEFT_CASTLE);
+        print_bitboard(Magic::BLACK_RIGHT_CASTLE);
+
+        print_bitboard(Magic::A1);
+        print_bitboard(Magic::A8);
+        print_bitboard(Magic::H1);
+        print_bitboard(Magic::H8);
     }
 }

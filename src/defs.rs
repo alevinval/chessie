@@ -25,18 +25,17 @@ impl Dir {
 #[cfg(test)]
 mod test {
     use crate::Pos;
+    use test_case::test_case;
 
     use super::*;
 
-    #[test]
-    fn dir_apply() {
-        let sut = Pos::new(4, 4).sq();
-
-        assert_eq!(Pos::new(5, 4).sq(), Dir::Up.apply(sut));
-        assert_eq!(Pos::new(3, 4).sq(), Dir::Down.apply(sut));
-        assert_eq!(Pos::new(4, 5).sq(), Dir::Right.apply(sut));
-        assert_eq!(Pos::new(4, 3).sq(), Dir::Left.apply(sut));
-        assert_eq!(Pos::new(7, 0).sq(), Dir::Custom(3, -4).apply(sut));
-        assert_eq!(Pos::new(3, 5).sq(), Dir::Custom(-1, 1).apply(sut));
+    #[test_case((2, 2), Dir::Up, (3, 2))]
+    #[test_case((2, 2), Dir::Down, (1, 2))]
+    #[test_case((2, 2), Dir::Right, (2, 3))]
+    #[test_case((2, 2), Dir::Left, (2, 1))]
+    #[test_case((2, 2), Dir::Custom(-2, -2), (0, 0))]
+    #[test_case((2, 2), Dir::Custom(2, 3), (4, 5))]
+    fn apply<P: Into<Pos>>(input: P, dir: Dir, expected: P) {
+        assert_eq!(expected.into().sq(), dir.apply(input.into().sq()));
     }
 }

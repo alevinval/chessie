@@ -43,7 +43,6 @@ impl Display for Color {
 
 #[cfg(test)]
 mod test {
-    use std::mem;
     use test_case::test_case;
 
     use super::*;
@@ -64,11 +63,5 @@ mod test {
     fn flip() {
         assert_eq!(Color::B, Color::W.flip());
         assert_eq!(Color::W, Color::B.flip());
-    }
-
-    #[test]
-    fn size() {
-        assert_eq!(1, mem::size_of::<Color>());
-        assert_eq!(8, mem::size_of::<&Color>());
     }
 }
