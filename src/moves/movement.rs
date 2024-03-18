@@ -46,7 +46,7 @@ impl Move {
     pub(crate) fn apply(self, board: &Board) -> Board {
         let mut next = board.clone();
         self.inner_apply(&mut next);
-        next.state_mut().advance();
+        next.advance();
         next
     }
 

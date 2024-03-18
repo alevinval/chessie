@@ -27,7 +27,7 @@ impl GameState {
         }
     }
 
-    pub(crate) fn advance(&mut self) {
+    pub(super) fn advance(&mut self) {
         self.mover = self.mover.flip();
         self.n += 1;
     }
