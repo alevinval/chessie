@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::defs::{BitBoard, Dir, Sq};
+use crate::defs::{BitBoard, Sq};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct Pos(Sq);
@@ -27,15 +27,15 @@ impl Pos {
     }
 
     #[must_use]
+    pub(crate) const fn sq(self) -> Sq {
+        self.0
+    }
+
+    #[must_use]
     #[allow(dead_code)]
     pub(crate) const fn is_central(self) -> bool {
         let (row, col) = (self.row(), self.col());
         row >= 3 && col >= 3 && row <= 4 && col <= 4
-    }
-
-    #[must_use]
-    pub(crate) const fn to(self, d: Dir) -> Self {
-        Self(d.apply(self.0))
     }
 }
 
@@ -108,16 +108,6 @@ mod test {
     #[test_case((3, 4), true)]
     fn is_central<P: Into<Pos>>(input: P, expected: bool) {
         assert_eq!(expected, input.into().is_central());
-    }
-
-    #[test_case((2, 2), Dir::Up(1), (3, 2))]
-    #[test_case((2, 2), Dir::Down(1), (1, 2))]
-    #[test_case((2, 2), Dir::Right(1), (2, 3))]
-    #[test_case((2, 2), Dir::Left(1), (2, 1))]
-    #[test_case((2, 2), Dir::Custom(-2, -2), (0, 0))]
-    #[test_case((2, 2), Dir::Custom(2, 3), (4, 5))]
-    fn to<P: Into<Pos>>(input: P, dir: Dir, expected: P) {
-        assert_eq!(expected.into(), input.into().to(dir));
     }
 
     #[test]
