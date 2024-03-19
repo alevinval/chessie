@@ -1,9 +1,6 @@
 use std::iter::zip;
 
-use crate::{
-    board::Board,
-    pos::{Dir, Pos},
-};
+use crate::{board::Board, defs::Dir, pos::Pos};
 
 use super::{
     placement::{Placement, StopCondition},

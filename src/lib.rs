@@ -8,6 +8,7 @@ pub use pos::Pos;
 
 mod board;
 mod color;
+mod defs;
 mod eval;
 mod moves;
 mod pieces;

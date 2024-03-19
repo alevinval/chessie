@@ -4,8 +4,8 @@ mod placement;
 
 use crate::{
     board::Board,
+    defs::Dir,
     pieces::{BitBoard, Piece},
-    pos::Dir,
     print_board, Color, Pos,
 };
 

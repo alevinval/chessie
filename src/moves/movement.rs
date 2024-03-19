@@ -5,8 +5,6 @@ use crate::{
     Color,
 };
 
-use super::MoveGen;
-
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
     Takes { from: Pos, to: Pos },

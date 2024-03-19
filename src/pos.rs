@@ -1,13 +1,6 @@
 use std::fmt::Display;
 
-#[derive(Debug, Copy, Clone)]
-pub enum Dir {
-    Up(u8),
-    Down(u8),
-    Right(u8),
-    Left(u8),
-    Custom(i8, i8),
-}
+use crate::defs::Dir;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Pos(u8, u8);
