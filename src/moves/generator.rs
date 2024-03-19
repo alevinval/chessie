@@ -20,12 +20,7 @@ pub struct Generator<'board> {
 
 impl<'board> Generator<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P, check_legal: bool) -> Self {
-        Generator {
-            board,
-            from: from.into(),
-            moves: vec![],
-            check_legal,
-        }
+        Generator { board, from: from.into(), moves: vec![], check_legal }
     }
 
     pub fn row(&self) -> u8 {
@@ -69,18 +64,12 @@ impl<'board> Generator<'board> {
     pub fn pawn_promo(&mut self, d: Dir) {
         let to = self.from.to(d);
 
-        self.board
-            .pieces()
-            .iter()
-            .filter(|bitboard| !bitboard.piece().is_king())
-            .for_each(|bitboard| {
-                let promo = Move::PawnPromo {
-                    from: self.from,
-                    to,
-                    piece: bitboard.piece(),
-                };
+        self.board.pieces().iter().filter(|bitboard| !bitboard.piece().is_king()).for_each(
+            |bitboard| {
+                let promo = Move::PawnPromo { from: self.from, to, piece: bitboard.piece() };
                 self.emit_move(promo);
-            });
+            },
+        );
     }
 
     pub fn left(&mut self, stop_at: StopCondition) {
@@ -210,17 +199,11 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3), false);
 
         assert_eq!(
-            Placement::Empty {
-                from: (1, 3).into(),
-                to: (2, 3).into()
-            },
+            Placement::Empty { from: (1, 3).into(), to: (2, 3).into() },
             sut.dir(Dir::Up(1), empty_placement)
         );
 
-        let expected: Vec<Move> = vec![Move::Slide {
-            from: (1, 3).into(),
-            to: (2, 3).into(),
-        }];
+        let expected: Vec<Move> = vec![Move::Slide { from: (1, 3).into(), to: (2, 3).into() }];
         assert_eq!(expected, sut.moves());
     }
 
@@ -230,17 +213,11 @@ mod test {
         let mut sut = Generator::new(&board, (1, 3), false);
 
         assert_eq!(
-            Placement::Takes {
-                from: (1, 3).into(),
-                to: (2, 3).into()
-            },
+            Placement::Takes { from: (1, 3).into(), to: (2, 3).into() },
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = vec![Move::Takes {
-            from: (1, 3).into(),
-            to: (2, 3).into(),
-        }];
+        let expected = vec![Move::Takes { from: (1, 3).into(), to: (2, 3).into() }];
         assert_eq!(expected, sut.moves());
     }
 

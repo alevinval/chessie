@@ -26,20 +26,13 @@ impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
         let bitboard = board.pieces().at(from).unwrap_or_else(|| {
-            board
-                .pieces_for(board.mover().opposite())
-                .at(from)
-                .unwrap_or_else(|| {
-                    print_board(board, &[]);
-                    unreachable!("cannot generate moves for empty position {from:?}")
-                })
+            board.pieces_for(board.mover().opposite()).at(from).unwrap_or_else(|| {
+                print_board(board, &[]);
+                unreachable!("cannot generate moves for empty position {from:?}")
+            })
         });
 
-        Self {
-            board,
-            bitboard,
-            from,
-        }
+        Self { board, bitboard, from }
     }
 
     pub fn generate(self, check_legal: bool) -> Vec<Move> {
@@ -78,18 +71,14 @@ impl<'board> MoveGen<'board> {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
-                    gen.emit_move(Move::RightCastle {
-                        mover: self.board.mover(),
-                    });
+                    gen.emit_move(Move::RightCastle { mover: self.board.mover() });
                 }
             }
             if !lrm {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
-                    gen.emit_move(Move::LeftCastle {
-                        mover: self.board.mover(),
-                    });
+                    gen.emit_move(Move::LeftCastle { mover: self.board.mover() });
                 }
             }
         }

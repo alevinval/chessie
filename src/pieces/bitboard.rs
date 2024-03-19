@@ -22,11 +22,7 @@ impl BitBoard {
             Piece::Queen(_) => 0b0000_1000,
             Piece::King(_, _) => 0b000_10000,
         };
-        value <<= 8 * if piece.is_pawn() {
-            color.pawn_row()
-        } else {
-            color.piece_row()
-        };
+        value <<= 8 * if piece.is_pawn() { color.pawn_row() } else { color.piece_row() };
 
         let cnt = match piece {
             Piece::Pawn(_) => 8,
@@ -120,32 +116,16 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard {
-            piece: Piece::Pawn(W),
-            value: 0,
-            cnt: 0,
-        };
+        let sut = BitBoard { piece: Piece::Pawn(W), value: 0, cnt: 0 };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard {
-            piece: Piece::Pawn(W),
-            value: 1,
-            cnt: 0,
-        };
+        let sut = BitBoard { piece: Piece::Pawn(W), value: 1, cnt: 0 };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard {
-            piece: Piece::Pawn(W),
-            value: 0,
-            cnt: 0,
-        };
+        let sut = BitBoard { piece: Piece::Pawn(W), value: 0, cnt: 0 };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
-        let sut = BitBoard {
-            piece: Piece::Pawn(W),
-            value: TARGET.into(),
-            cnt: 0,
-        };
+        let sut = BitBoard { piece: Piece::Pawn(W), value: TARGET.into(), cnt: 0 };
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
 
@@ -175,11 +155,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard {
-            piece: Piece::Pawn(W),
-            value: u64::MAX,
-            cnt: 0,
-        };
+        let sut = BitBoard { piece: Piece::Pawn(W), value: u64::MAX, cnt: 0 };
         let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");

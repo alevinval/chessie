@@ -47,10 +47,7 @@ impl Pos {
     }
 
     fn assert_bounds(self) -> Self {
-        debug_assert!(
-            self.0 < 8 && self.1 < 8,
-            "position {self} outside of bounds"
-        );
+        debug_assert!(self.0 < 8 && self.1 < 8, "position {self} outside of bounds");
         self
     }
 }

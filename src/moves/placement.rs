@@ -15,10 +15,7 @@ impl Placement {
     }
 
     pub fn placed(&self) -> bool {
-        matches!(
-            self,
-            Self::Takes { from: _, to: _ } | Self::Empty { from: _, to: _ }
-        )
+        matches!(self, Self::Takes { from: _, to: _ } | Self::Empty { from: _, to: _ })
     }
 
     pub fn movement(&self) -> Option<Move> {
@@ -33,9 +30,7 @@ impl Placement {
 pub type StopCondition = fn(&Board, Pos, Pos) -> Placement;
 
 pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
-    board
-        .at(to)
-        .map_or(Placement::Empty { from, to }, |_| Placement::Invalid)
+    board.at(to).map_or(Placement::Empty { from, to }, |_| Placement::Invalid)
 }
 
 pub fn takes(board: &Board, from: Pos, to: Pos) -> Placement {

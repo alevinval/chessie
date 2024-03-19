@@ -66,15 +66,8 @@ impl Pieces {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &BitBoard> {
-        [
-            &self.pawns,
-            &self.knights,
-            &self.bishops,
-            &self.rooks,
-            &self.queen,
-            &self.king,
-        ]
-        .into_iter()
+        [&self.pawns, &self.knights, &self.bishops, &self.rooks, &self.queen, &self.king]
+            .into_iter()
     }
 }
 

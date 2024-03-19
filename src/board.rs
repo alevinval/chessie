@@ -94,10 +94,7 @@ impl Board {
         let king = self.pieces_for(color).king.iter_pos().next();
 
         match king {
-            Some(king) => self
-                .pseudo_movements(color.opposite())
-                .iter()
-                .any(|m| m.to() == king),
+            Some(king) => self.pseudo_movements(color.opposite()).iter().any(|m| m.to() == king),
             None => true,
         }
     }
@@ -105,12 +102,7 @@ impl Board {
 
 impl Default for Board {
     fn default() -> Self {
-        Self {
-            mover: Color::W,
-            white: Pieces::new(Color::W),
-            black: Pieces::new(Color::B),
-            n: 0,
-        }
+        Self { mover: Color::W, white: Pieces::new(Color::W), black: Pieces::new(Color::B), n: 0 }
     }
 }
 
@@ -171,20 +163,14 @@ mod test {
     fn mut_at_white() {
         let pos = (0, 0);
 
-        assert_eq!(
-            Board::default().at(pos).unwrap(),
-            Board::default().at_mut(pos).unwrap()
-        );
+        assert_eq!(Board::default().at(pos).unwrap(), Board::default().at_mut(pos).unwrap());
     }
 
     #[test]
     fn mut_at_black() {
         let pos = (7, 7);
 
-        assert_eq!(
-            Board::default().at(pos).unwrap(),
-            Board::default().at_mut(pos).unwrap()
-        );
+        assert_eq!(Board::default().at(pos).unwrap(), Board::default().at_mut(pos).unwrap());
     }
 
     #[test]
