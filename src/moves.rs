@@ -26,7 +26,7 @@ impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
         let bitboard = board.pieces().at(from).unwrap_or_else(|| {
-            board.pieces_for(board.mover().opposite()).at(from).unwrap_or_else(|| {
+            board.pieces_for(board.mover().flip()).at(from).unwrap_or_else(|| {
                 print_board(board, &[]);
                 unreachable!("cannot generate moves for empty position {from:?}")
             })

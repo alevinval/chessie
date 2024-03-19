@@ -45,7 +45,7 @@ impl Board {
     }
 
     pub fn next_turn(&mut self) {
-        self.mover = self.mover.opposite();
+        self.mover = self.mover.flip();
         self.n += 1;
     }
 
@@ -94,7 +94,7 @@ impl Board {
         let king = self.pieces_for(color).king.iter_pos().next();
 
         match king {
-            Some(king) => self.pseudo_movements(color.opposite()).iter().any(|m| m.to() == king),
+            Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == king),
             None => true,
         }
     }

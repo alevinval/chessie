@@ -22,7 +22,7 @@ impl Color {
     }
 
     #[must_use]
-    pub const fn opposite(self) -> Self {
+    pub const fn flip(self) -> Self {
         match self {
             Color::B => Color::W,
             Color::W => Color::B,
@@ -64,8 +64,8 @@ mod test {
 
     #[test]
     fn opposite() {
-        assert_eq!(B, W.opposite());
-        assert_eq!(W, B.opposite());
+        assert_eq!(B, W.flip());
+        assert_eq!(W, B.flip());
     }
 
     #[test]

@@ -96,7 +96,7 @@ pub fn auto_play(moves: usize, depth: usize) {
             print_board(&board, &[movement.from()]);
         } else {
             if board.in_check(board.mover()) {
-                println!("{:?} wins by checkmate", board.mover().opposite());
+                println!("{:?} wins by checkmate", board.mover().flip());
                 return;
             }
             println!("stalemate");

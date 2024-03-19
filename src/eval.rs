@@ -21,7 +21,7 @@ impl Scorer {
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
         if board.pieces_for(maxer).king.is_empty() {
             return f64::NEG_INFINITY;
-        } else if board.pieces_for(maxer.opposite()).king.is_empty() {
+        } else if board.pieces_for(maxer.flip()).king.is_empty() {
             return f64::INFINITY;
         }
 
