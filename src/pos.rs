@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::defs::Dir;
+use crate::defs::{Dir, Sq};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Pos(u8, u8);
@@ -9,6 +9,11 @@ impl Pos {
     #[cfg(test)]
     pub const fn new(row: u8, col: u8) -> Self {
         Self(row, col)
+    }
+
+    #[must_use]
+    pub const fn sq(self) -> Sq {
+        self.0 * 8 + self.1
     }
 
     #[must_use]
