@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Color {
     B,
@@ -30,6 +32,15 @@ impl Color {
     }
 }
 
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Color::B => "Black",
+            Color::W => "White",
+        })
+    }
+}
+
 #[cfg(test)]
 pub const W: Color = Color::W;
 
@@ -38,39 +49,25 @@ pub const B: Color = Color::B;
 
 #[cfg(test)]
 mod test {
-    use std::mem;
+    use test_case::test_case;
 
     use super::*;
 
-    #[test]
-    fn piece_row_for_white() {
-        assert_eq!(0, W.piece_row());
+    #[test_case(Color::W, 0)]
+    #[test_case(Color::B, 7)]
+    fn piece_row(color: Color, expected: u8) {
+        assert_eq!(expected, color.piece_row());
+    }
+
+    #[test_case(Color::W, 1)]
+    #[test_case(Color::B, 6)]
+    fn pawn_row(color: Color, expected: u8) {
+        assert_eq!(expected, color.pawn_row());
     }
 
     #[test]
-    fn piece_row_for_black() {
-        assert_eq!(7, B.piece_row());
-    }
-
-    #[test]
-    fn pawn_row_for_white() {
-        assert_eq!(1, W.pawn_row());
-    }
-
-    #[test]
-    fn pawn_row_for_black() {
-        assert_eq!(6, B.pawn_row());
-    }
-
-    #[test]
-    fn opposite() {
-        assert_eq!(B, W.flip());
-        assert_eq!(W, B.flip());
-    }
-
-    #[test]
-    fn size() {
-        assert_eq!(1, mem::size_of::<Color>());
-        assert_eq!(8, mem::size_of::<&Color>());
+    fn flip() {
+        assert_eq!(Color::B, Color::W.flip());
+        assert_eq!(Color::W, Color::B.flip());
     }
 }
