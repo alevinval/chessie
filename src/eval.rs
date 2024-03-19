@@ -36,7 +36,7 @@ impl Scorer {
             Color::B => black - white,
             Color::W => white - black,
         };
-        score + offset
+        score / 100.0 + offset
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
@@ -56,11 +56,11 @@ impl Scorer {
 
     fn score_piece(piece: Piece) -> f64 {
         match piece {
-            Piece::Pawn(_) => 1.0,
-            Piece::Rook(_, _, _) => 5.0,
-            Piece::Knight(_) => 2.8,
-            Piece::Bishop(_) => 3.0,
-            Piece::Queen(_) => 9.0,
+            Piece::Pawn(_) => 100.0,
+            Piece::Rook(_, _, _) => 500.0,
+            Piece::Knight(_) => 280.0,
+            Piece::Bishop(_) => 300.0,
+            Piece::Queen(_) => 900.0,
             Piece::King(_, _) => 0.0,
         }
     }
