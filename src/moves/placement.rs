@@ -34,9 +34,9 @@ pub fn is_empty(board: &Board, from: Pos, to: Pos) -> Placement {
 }
 
 pub fn takes(board: &Board, from: Pos, to: Pos) -> Placement {
-    board.at(from).map_or(Placement::Invalid, |ps_from| {
-        board.at(to).map_or(Placement::Invalid, |ps_to| {
-            if ps_from.color() == ps_to.color() {
+    board.at(from).map_or(Placement::Invalid, |(color_from, _, _)| {
+        board.at(to).map_or(Placement::Invalid, |(color_to, _, _)| {
+            if color_from == color_to {
                 Placement::Invalid
             } else {
                 Placement::Takes { from, to }

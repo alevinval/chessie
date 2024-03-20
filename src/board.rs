@@ -58,12 +58,18 @@ impl Board {
         }
     }
 
-    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<BitBoard> {
+    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, Piece, BitBoard)> {
         let pos = pos.into();
         self.white
             .into_iter()
-            .find(|b| b.has_piece(pos))
-            .or_else(|| self.black.into_iter().find(|b| b.has_piece(pos)))
+            .position(|bb| bb.has_piece(pos))
+            .map(|i| (Color::W, Piece::from_idx(i), self.white[i]))
+            .or_else(|| {
+                self.black
+                    .into_iter()
+                    .position(|bb| bb.has_piece(pos))
+                    .map(|i| (Color::B, Piece::from_idx(i), self.black[i]))
+            })
     }
 
     pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
@@ -183,11 +189,11 @@ mod test {
     fn at_white_king() {
         let sut = Board::default();
         let king = sut.at((0, 4));
-
         assert!(king.is_some());
 
-        if let Some(king) = king {
-            assert_eq!(Piece::King, king.piece());
+        if let Some((color, piece, _bb)) = king {
+            assert_eq!(Color::W, color);
+            assert_eq!(Piece::King, piece);
         }
     }
 
@@ -198,8 +204,9 @@ mod test {
 
         assert!(king.is_some());
 
-        if let Some(king) = king {
-            assert_eq!(Piece::King, king.piece());
+        if let Some((color, piece, _bb)) = king {
+            assert_eq!(Color::B, color);
+            assert_eq!(Piece::King, piece);
         }
     }
 
@@ -207,14 +214,14 @@ mod test {
     fn mut_at_white() {
         let pos = (0, 0);
 
-        assert_eq!(Board::default().at(pos).unwrap(), *Board::default().at_mut(pos).unwrap());
+        assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap());
     }
 
     #[test]
     fn mut_at_black() {
         let pos = (7, 7);
 
-        assert_eq!(Board::default().at(pos).unwrap(), *Board::default().at_mut(pos).unwrap());
+        assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap());
     }
 
     #[test]
