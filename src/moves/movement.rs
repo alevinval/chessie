@@ -1,9 +1,4 @@
-use crate::{
-    board::Board,
-    pieces::{BitBoard, Piece},
-    pos::Pos,
-    Color,
-};
+use crate::{bitboard::BitBoard, board::Board, piece::Piece, pos::Pos, Color};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
@@ -98,11 +93,11 @@ impl Move {
 
         let pieces = board.pieces_mut();
         match piece {
-            Piece::Pawn(_) => &mut pieces.pawns,
-            Piece::Rook(_, _, _) => &mut pieces.rooks,
-            Piece::Knight(_) => &mut pieces.knights,
-            Piece::Bishop(_) => &mut pieces.bishops,
-            Piece::Queen(_) => &mut pieces.queen,
+            Piece::Pawn(_) => &mut pieces[Piece::P],
+            Piece::Rook(_, _, _) => &mut pieces[Piece::R],
+            Piece::Knight(_) => &mut pieces[Piece::N],
+            Piece::Bishop(_) => &mut pieces[Piece::B],
+            Piece::Queen(_) => &mut pieces[Piece::Q],
             Piece::King(_, _) => unreachable!("cannot promote pawn to king"),
         }
         .set(pos);

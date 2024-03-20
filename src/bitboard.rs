@@ -1,8 +1,8 @@
 use either::Either;
 
-use crate::pos::Pos;
+use crate::{piece::Piece, pos::Pos};
 
-use super::{Color, Piece};
+use super::Color;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct BitBoard {

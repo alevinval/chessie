@@ -1,13 +1,14 @@
+use crate::bitboard::BitBoard;
 use crate::moves::{Move, MoveGen};
-use crate::pieces::{BitBoard, Pieces};
+use crate::piece::Piece;
 use crate::pos::Pos;
 use crate::Color;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Board {
     mover: Color,
-    white: Pieces,
-    black: Pieces,
+    white: [BitBoard; 6],
+    black: [BitBoard; 6],
     n: usize,
 }
 
@@ -16,32 +17,38 @@ impl Board {
         self.mover
     }
 
-    pub fn pieces(&self) -> &Pieces {
+    pub fn pieces(&self) -> &[BitBoard; 6] {
         self.pieces_for(self.mover)
     }
 
-    pub fn pieces_for(&self, color: Color) -> &Pieces {
+    pub fn pieces_for(&self, color: Color) -> &[BitBoard; 6] {
         match color {
             Color::B => &self.black,
             Color::W => &self.white,
         }
     }
 
-    pub fn pieces_mut(&mut self) -> &mut Pieces {
+    pub fn pieces_mut(&mut self) -> &mut [BitBoard; 6] {
         match self.mover {
             Color::B => &mut self.black,
             Color::W => &mut self.white,
         }
     }
 
-    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<&BitBoard> {
+    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<BitBoard> {
         let pos = pos.into();
-        self.white.at(pos).or_else(|| self.black.at(pos))
+        self.white
+            .into_iter()
+            .find(|b| b.has_piece(pos))
+            .or_else(|| self.black.into_iter().find(|b| b.has_piece(pos)))
     }
 
     pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
         let pos = pos.into();
-        self.white.at_mut(pos).or_else(|| self.black.at_mut(pos))
+        self.white
+            .iter_mut()
+            .find(|b| b.has_piece(pos))
+            .or_else(|| self.black.iter_mut().find(|b| b.has_piece(pos)))
     }
 
     pub fn next_turn(&mut self) {
@@ -91,18 +98,34 @@ impl Board {
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.pieces_for(color).king.iter_pos().next();
+        let king = self.pieces_for(color)[Piece::K].iter_pos().next();
 
         match king {
             Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == king),
             None => true,
         }
     }
+
+    fn gen_pieces(color: Color) -> [BitBoard; 6] {
+        [
+            Piece::Pawn(color).into(),
+            Piece::Knight(color).into(),
+            Piece::Bishop(color).into(),
+            Piece::Rook(color, false, false).into(),
+            Piece::Queen(color).into(),
+            Piece::King(color, false).into(),
+        ]
+    }
 }
 
 impl Default for Board {
     fn default() -> Self {
-        Self { mover: Color::W, white: Pieces::new(Color::W), black: Pieces::new(Color::B), n: 0 }
+        Self {
+            mover: Color::W,
+            white: Board::gen_pieces(Color::W),
+            black: Board::gen_pieces(Color::B),
+            n: 0,
+        }
     }
 }
 
@@ -110,8 +133,6 @@ impl Default for Board {
 mod test {
 
     use std::mem;
-
-    use crate::pieces::Piece;
 
     use super::*;
 
@@ -163,14 +184,14 @@ mod test {
     fn mut_at_white() {
         let pos = (0, 0);
 
-        assert_eq!(Board::default().at(pos).unwrap(), Board::default().at_mut(pos).unwrap());
+        assert_eq!(Board::default().at(pos).unwrap(), *Board::default().at_mut(pos).unwrap());
     }
 
     #[test]
     fn mut_at_black() {
         let pos = (7, 7);
 
-        assert_eq!(Board::default().at(pos).unwrap(), Board::default().at_mut(pos).unwrap());
+        assert_eq!(Board::default().at(pos).unwrap(), *Board::default().at_mut(pos).unwrap());
     }
 
     #[test]

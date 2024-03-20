@@ -1,10 +1,6 @@
 use rand::Rng;
 
-use crate::{
-    board::Board,
-    pieces::{BitBoard, Piece},
-    Color,
-};
+use crate::{bitboard::BitBoard, board::Board, piece::Piece, Color};
 
 #[derive(Default)]
 pub struct Scorer {}
@@ -19,9 +15,9 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
-        if board.pieces_for(maxer).king.is_empty() {
+        if board.pieces_for(maxer)[Piece::K].is_empty() {
             return f64::NEG_INFINITY;
-        } else if board.pieces_for(maxer.flip()).king.is_empty() {
+        } else if board.pieces_for(maxer.flip())[Piece::K].is_empty() {
             return f64::INFINITY;
         }
 

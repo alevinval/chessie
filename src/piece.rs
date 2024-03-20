@@ -12,7 +12,16 @@ pub enum Piece {
     King(Color, bool),
 }
 
+pub type Idx = usize;
+
 impl Piece {
+    pub const P: Idx = 0;
+    pub const N: Idx = 1;
+    pub const B: Idx = 2;
+    pub const R: Idx = 3;
+    pub const Q: Idx = 4;
+    pub const K: Idx = 5;
+
     pub const fn color(self) -> Color {
         match self {
             Piece::Pawn(c)
@@ -32,7 +41,7 @@ impl Piece {
         matches!(self, Piece::Pawn(_))
     }
 
-    pub fn as_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Piece::Pawn(c) => match c {
                 Color::B => "♟",
