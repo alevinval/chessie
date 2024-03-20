@@ -171,7 +171,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(7, mem::size_of::<Move>());
+        assert_eq!(5, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }
