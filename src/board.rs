@@ -40,15 +40,22 @@ impl Board {
         }
     }
 
-    pub fn pieces(&self) -> &[BitBoard; 6] {
-        self.pieces_for(self.mover)
+    #[must_use]
+    pub fn get_piece(&self, color: Color, piece: Piece) -> BitBoard {
+        match color {
+            Color::B => self.black[piece.idx()],
+            Color::W => self.white[piece.idx()],
+        }
     }
 
-    pub fn pieces_for(&self, color: Color) -> &[BitBoard; 6] {
+    pub fn pieces_iter(&self, color: Color) -> impl Iterator<Item = (Piece, BitBoard)> + '_ {
         match color {
-            Color::B => &self.black,
-            Color::W => &self.white,
+            Color::B => self.black,
+            Color::W => self.white,
         }
+        .into_iter()
+        .enumerate()
+        .map(|(i, bb)| (Piece::from_idx(i), bb))
     }
 
     pub fn pieces_mut(&mut self) -> &mut [BitBoard; 6] {
@@ -97,18 +104,22 @@ impl Board {
 
     #[must_use]
     pub fn movements(&self, color: Color) -> Vec<Move> {
-        self.pieces_for(color)
-            .iter()
-            .flat_map(BitBoard::iter_pos)
+        self.pieces_iter(color)
+            .flat_map(|(_, bb)| {
+                let pos: Vec<_> = bb.iter_pos().collect();
+                pos
+            })
             .flat_map(|p| MoveGen::new(self, p).generate(true))
             .collect()
     }
 
     #[must_use]
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
-        self.pieces_for(color)
-            .iter()
-            .flat_map(BitBoard::iter_pos)
+        self.pieces_iter(color)
+            .flat_map(|(_, bb)| {
+                let pos: Vec<_> = bb.iter_pos().collect();
+                pos
+            })
             .flat_map(|p| MoveGen::new(self, p).generate(false))
             .collect()
     }
@@ -116,24 +127,22 @@ impl Board {
     #[must_use]
     pub fn piece_count(&self) -> usize {
         let w: usize = self
-            .pieces_for(Color::W)
-            .iter()
-            .filter(|bb| bb.piece() != Piece::Pawn)
-            .map(|bb| bb.iter_pos().count())
+            .pieces_iter(Color::W)
+            .filter(|(p, _)| *p != Piece::Pawn)
+            .map(|(_, bb)| bb.iter_pos().count())
             .sum();
 
         let b: usize = self
-            .pieces_for(Color::B)
-            .iter()
-            .filter(|bb| bb.piece() != Piece::Pawn)
-            .map(|bb| bb.iter_pos().count())
+            .pieces_iter(Color::B)
+            .filter(|(p, _)| *p != Piece::Pawn)
+            .map(|(_, bb)| bb.iter_pos().count())
             .sum();
 
         w + b
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.pieces_for(color)[Piece::K].iter_pos().next();
+        let king = self.get_piece(color, Piece::King).iter_pos().next();
 
         match king {
             Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == king),
@@ -177,18 +186,6 @@ mod test {
     fn mover() {
         let sut = Board::default();
         assert_eq!(Color::W, sut.mover());
-    }
-
-    #[test]
-    fn pieces() {
-        let sut = Board::default();
-        assert_eq!(&sut.white, sut.pieces());
-    }
-
-    #[test]
-    fn pieces_for() {
-        let sut = Board::default();
-        assert_eq!(&sut.black, sut.pieces_for(Color::B));
     }
 
     #[test]

@@ -117,7 +117,7 @@ pub fn minmax(
     maxer: bool,
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
-    if depth == 0 || board.pieces()[Piece::K].is_empty() {
+    if depth == 0 || board.get_piece(board.mover(), Piece::King).is_empty() {
         let eval = Scorer::eval(board, maxer_color, false);
         return (None, eval, if eval.is_infinite() { Some(board.n()) } else { None });
     }

@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-use crate::{board::Board, defs::Dir, piece::Piece, pos::Pos};
+use crate::{board::Board, defs::Dir, piece::Piece, pos::Pos, Color};
 
 use super::{
     placement::{Placement, StopCondition},
@@ -10,14 +10,20 @@ use super::{
 #[derive(Debug)]
 pub struct Generator<'board> {
     board: &'board Board,
+    color: Color,
     from: Pos,
     moves: Vec<Move>,
     check_legal: bool,
 }
 
 impl<'board> Generator<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P, check_legal: bool) -> Self {
-        Generator { board, from: from.into(), moves: vec![], check_legal }
+    pub fn new<P: Into<Pos>>(
+        board: &'board Board,
+        color: Color,
+        from: P,
+        check_legal: bool,
+    ) -> Self {
+        Generator { board, color, from: from.into(), moves: vec![], check_legal }
     }
 
     pub fn row(&self) -> u8 {
@@ -61,9 +67,9 @@ impl<'board> Generator<'board> {
     pub fn pawn_promo(&mut self, d: Dir) {
         let to = self.from.to(d);
 
-        self.board.pieces().iter().filter(|bitboard| bitboard.piece() != Piece::King).for_each(
-            |bitboard| {
-                let promo = Move::PawnPromo { from: self.from, to, piece: bitboard.piece() };
+        self.board.pieces_iter(self.color).filter(|(p, _)| *p != Piece::King).for_each(
+            |(piece, _)| {
+                let promo = Move::PawnPromo { from: self.from, to, piece };
                 self.emit_move(promo);
             },
         );
@@ -134,7 +140,7 @@ impl<'board> Generator<'board> {
 
     fn is_legal(&self, movement: Move) -> bool {
         let next = movement.apply(self.board);
-        !next.in_check(self.board.mover())
+        !next.in_check(self.color)
     }
 }
 
@@ -176,7 +182,7 @@ mod test {
     #[test]
     fn generator_row_and_col() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3), false);
+        let sut = Generator::new(&board, Color::W, (1, 3), false);
 
         assert_eq!(1, sut.row());
         assert_eq!(3, sut.col());
@@ -185,7 +191,7 @@ mod test {
     #[test]
     fn generator_default_bitboard() {
         let board = Board::default();
-        let sut = Generator::new(&board, (1, 3), false);
+        let sut = Generator::new(&board, Color::W, (1, 3), false);
 
         assert!(sut.moves().is_empty());
     }
@@ -193,7 +199,7 @@ mod test {
     #[test]
     fn generator_from_direction_empty_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), false);
+        let mut sut = Generator::new(&board, Color::W, (1, 3), false);
 
         assert_eq!(
             Placement::Empty { from: (1, 3).into(), to: (2, 3).into() },
@@ -207,7 +213,7 @@ mod test {
     #[test]
     fn generator_from_direction_takes_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), false);
+        let mut sut = Generator::new(&board, Color::W, (1, 3), false);
 
         assert_eq!(
             Placement::Takes { from: (1, 3).into(), to: (2, 3).into() },
@@ -221,7 +227,7 @@ mod test {
     #[test]
     fn generator_from_direction_invalid_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, (1, 3), false);
+        let mut sut = Generator::new(&board, Color::W, (1, 3), false);
 
         assert_eq!(Placement::Invalid, sut.dir(Dir::Up(1), invalid_placement));
 

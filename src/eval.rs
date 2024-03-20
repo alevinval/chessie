@@ -15,9 +15,9 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
-        if board.pieces_for(maxer)[Piece::K].is_empty() {
+        if board.get_piece(maxer, Piece::King).is_empty() {
             return f64::NEG_INFINITY;
-        } else if board.pieces_for(maxer.flip())[Piece::K].is_empty() {
+        } else if board.get_piece(maxer.flip(), Piece::King).is_empty() {
             return f64::INFINITY;
         }
 
@@ -32,7 +32,8 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
-        let material_score: f64 = board.pieces_for(color).iter().map(Self::score_bitboard).sum();
+        let material_score: f64 =
+            board.pieces_iter(color).map(|(_, bb)| Self::score_bitboard(&bb)).sum();
 
         if debug {
             println!("{color:?}");
