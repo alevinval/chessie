@@ -3,9 +3,9 @@ use super::Color;
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Piece {
     Pawn,
-    Rook,
     Knight,
     Bishop,
+    Rook,
     Queen,
     King,
 }
@@ -19,6 +19,31 @@ impl Piece {
     pub const R: Idx = 3;
     pub const Q: Idx = 4;
     pub const K: Idx = 5;
+
+    #[must_use]
+    pub const fn from_idx(idx: Idx) -> Self {
+        match idx {
+            Self::P => Self::Pawn,
+            Self::N => Self::Knight,
+            Self::B => Self::Bishop,
+            Self::R => Self::Rook,
+            Self::Q => Self::Queen,
+            Self::K => Self::King,
+            _ => unreachable!(),
+        }
+    }
+
+    #[must_use]
+    pub const fn idx(self) -> usize {
+        match self {
+            Self::Bishop => Self::B,
+            Self::King => Self::K,
+            Self::Knight => Self::N,
+            Self::Pawn => Self::P,
+            Self::Queen => Self::Q,
+            Self::Rook => Self::R,
+        }
+    }
 
     #[must_use]
     pub const fn as_str(self, c: Color) -> &'static str {
@@ -71,5 +96,15 @@ mod test {
     #[test_case(Piece::King, Color::B, "♚")]
     fn as_str(piece: Piece, color: Color, expected: &str) {
         assert_eq!(expected, piece.as_str(color));
+    }
+
+    #[test_case(Piece::Pawn)]
+    #[test_case(Piece::Bishop)]
+    #[test_case(Piece::Knight)]
+    #[test_case(Piece::Rook)]
+    #[test_case(Piece::Queen)]
+    #[test_case(Piece::King)]
+    fn index_symmetry(piece: Piece) {
+        assert_eq!(piece, Piece::from_idx(piece.idx()));
     }
 }
