@@ -22,7 +22,7 @@ fn print_board(board: &Board, highlights: &[Pos]) {
         for col in 0..8 {
             let pos: Pos = (row, col).into();
             let mark = highlights.iter().find(|p| **p == pos).map(|_| "•");
-            let piece = board.at(pos).map_or(" ", |set| set.piece().as_str());
+            let piece = board.at(pos).map_or(" ", |set| set.piece().as_str(set.color()));
             print!("| {} ", mark.unwrap_or(piece));
         }
         println!("| {row}");

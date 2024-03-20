@@ -42,12 +42,6 @@ impl Display for Color {
 }
 
 #[cfg(test)]
-pub const W: Color = Color::W;
-
-#[cfg(test)]
-pub const B: Color = Color::B;
-
-#[cfg(test)]
 mod test {
     use test_case::test_case;
 

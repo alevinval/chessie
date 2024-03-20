@@ -106,12 +106,12 @@ impl Move {
 
         let pieces = board.pieces_mut();
         match piece {
-            Piece::Pawn(_) => &mut pieces[Piece::P],
-            Piece::Rook(_) => &mut pieces[Piece::R],
-            Piece::Knight(_) => &mut pieces[Piece::N],
-            Piece::Bishop(_) => &mut pieces[Piece::B],
-            Piece::Queen(_) => &mut pieces[Piece::Q],
-            Piece::King(_) => unreachable!("cannot promote pawn to king"),
+            Piece::Pawn => &mut pieces[Piece::P],
+            Piece::Rook => &mut pieces[Piece::R],
+            Piece::Knight => &mut pieces[Piece::N],
+            Piece::Bishop => &mut pieces[Piece::B],
+            Piece::Queen => &mut pieces[Piece::Q],
+            Piece::King => unreachable!("cannot promote pawn to king"),
         }
         .set(pos);
     }
@@ -136,12 +136,12 @@ impl Move {
                 unreachable!("must have a piece in order to move {:?} {:?}", self, from)
             });
             let piece = bb.piece();
-            if let Piece::King(_) = piece {
+            if let Piece::King = piece {
                 board.set_castling(color, Castling::None);
                 return;
             }
 
-            if let Piece::Rook(_) = bb.piece() {
+            if let Piece::Rook = bb.piece() {
                 board.set_castling(
                     bb.color(),
                     Castling::Some(left || from.col() == 0, right || from.col() == 7),
@@ -167,7 +167,7 @@ mod test {
     #[test]
     fn to() {
         assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to());
-        assert_eq!(TO, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn(Color::W) }.to());
+        assert_eq!(TO, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.to());
         assert_eq!(Pos::new(0, 2), Move::LeftCastle { mover: Color::W }.to());
         assert_eq!(Pos::new(7, 2), Move::LeftCastle { mover: Color::B }.to());
         assert_eq!(Pos::new(0, 6), Move::RightCastle { mover: Color::W }.to());
@@ -177,10 +177,7 @@ mod test {
     #[test]
     fn from() {
         assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from());
-        assert_eq!(
-            FROM,
-            Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn(Color::W) }.from()
-        );
+        assert_eq!(FROM, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.from());
         assert_eq!(Pos::new(0, 4), Move::LeftCastle { mover: Color::W }.from());
         assert_eq!(Pos::new(7, 4), Move::LeftCastle { mover: Color::B }.from());
         assert_eq!(Pos::new(0, 4), Move::RightCastle { mover: Color::W }.from());
@@ -189,7 +186,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(4, mem::size_of::<Move>());
+        assert_eq!(3, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }

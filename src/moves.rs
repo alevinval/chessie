@@ -37,18 +37,18 @@ impl<'board> MoveGen<'board> {
     pub fn generate(self, check_legal: bool) -> Vec<Move> {
         let mut gen = Generator::new(self.board, self.from, check_legal);
         match self.bitboard.piece() {
-            Piece::Pawn(color) => match color {
+            Piece::Pawn => match self.bitboard.color() {
                 Color::B => black_pawn(&mut gen),
                 Color::W => white_pawn(&mut gen),
             },
-            Piece::Rook(_) => gen.cross(empty_or_take),
-            Piece::Bishop(_) => gen.diagonals(empty_or_take),
-            Piece::Queen(_) => {
+            Piece::Rook => gen.cross(empty_or_take),
+            Piece::Bishop => gen.diagonals(empty_or_take),
+            Piece::Queen => {
                 gen.diagonals(empty_or_take);
                 gen.cross(empty_or_take);
             }
-            Piece::Knight(_) => knight(&mut gen),
-            Piece::King(_) => {
+            Piece::Knight => knight(&mut gen),
+            Piece::King => {
                 king(&mut gen);
                 self.king_castle(&mut gen);
             }
@@ -58,7 +58,7 @@ impl<'board> MoveGen<'board> {
 
     fn king_castle(&self, gen: &mut Generator) {
         let pieces = self.board.pieces();
-        let castling = self.board.castling(self.bitboard.piece().color());
+        let castling = self.board.castling(self.bitboard.color());
 
         if let Castling::Some(left, right) = castling {
             let pos = pieces[Piece::K].iter_pos().next().expect("should be there");

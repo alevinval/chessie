@@ -7,30 +7,30 @@ use super::Color;
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct BitBoard {
     piece: Piece,
+    color: Color,
     value: u64,
     cnt: u8,
 }
 
 impl BitBoard {
-    pub const fn new(piece: Piece) -> Self {
-        let color = piece.color();
+    pub const fn new(piece: Piece, color: Color) -> Self {
         let mut value = match piece {
-            Piece::Pawn(_) => 0b1111_1111,
-            Piece::Rook(_) => 0b1000_0001,
-            Piece::Knight(_) => 0b0100_0010,
-            Piece::Bishop(_) => 0b0010_0100,
-            Piece::Queen(_) => 0b0000_1000,
-            Piece::King(_) => 0b0001_0000,
+            Piece::Pawn => 0b1111_1111,
+            Piece::Rook => 0b1000_0001,
+            Piece::Knight => 0b0100_0010,
+            Piece::Bishop => 0b0010_0100,
+            Piece::Queen => 0b0000_1000,
+            Piece::King => 0b0001_0000,
         };
         value <<= 8 * if piece.is_pawn() { color.pawn_row() } else { color.piece_row() };
 
         let cnt = match piece {
-            Piece::Pawn(_) => 8,
-            Piece::Rook(_) | Piece::Knight(_) | Piece::Bishop(_) => 2,
-            Piece::Queen(_) | Piece::King(_) => 1,
+            Piece::Pawn => 8,
+            Piece::Rook | Piece::Knight | Piece::Bishop => 2,
+            Piece::Queen | Piece::King => 1,
         };
 
-        Self { piece, value, cnt }
+        Self { piece, color, value, cnt }
     }
 
     pub fn piece(&self) -> Piece {
@@ -38,7 +38,7 @@ impl BitBoard {
     }
 
     pub fn color(&self) -> Color {
-        self.piece.color()
+        self.color
     }
 
     pub fn is_empty(&self) -> bool {
@@ -72,7 +72,7 @@ impl BitBoard {
     }
 
     pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
-        let rows = match self.piece.color() {
+        let rows = match self.color {
             Color::B => Either::Left((0..8).rev()),
             Color::W => Either::Right(0..8),
         };
@@ -96,18 +96,10 @@ impl From<Pos> for u64 {
     }
 }
 
-impl From<Piece> for BitBoard {
-    fn from(piece: Piece) -> Self {
-        Self::new(piece)
-    }
-}
-
 #[cfg(test)]
 mod test {
 
     use std::mem;
-
-    use crate::color::W;
 
     use super::*;
 
@@ -116,25 +108,25 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard { piece: Piece::Pawn(W), value: 0, cnt: 0 };
+        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: 0, cnt: 0 };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard { piece: Piece::Pawn(W), value: 1, cnt: 0 };
+        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: 1, cnt: 0 };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard { piece: Piece::Pawn(W), value: 0, cnt: 0 };
+        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: 0, cnt: 0 };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
-        let sut = BitBoard { piece: Piece::Pawn(W), value: TARGET.into(), cnt: 0 };
+        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: TARGET.into(), cnt: 0 };
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
 
     #[test]
-    fn mov() {
+    fn slide() {
         let from: Pos = (1, 1).into();
         let to: Pos = (2, 2).into();
 
-        let mut sut: BitBoard = Piece::Pawn(W).into();
+        let mut sut = BitBoard::new(Piece::Pawn, Color::W);
         assert!(!sut.has_piece(to));
 
         sut.slide(from, to);
@@ -146,7 +138,7 @@ mod test {
     #[test]
     fn unset() {
         let pos: Pos = (1, 1).into();
-        let mut sut: BitBoard = Piece::Pawn(W).into();
+        let mut sut = BitBoard::new(Piece::Pawn, Color::W);
         assert!(sut.has_piece(pos));
 
         sut.unset(pos);
@@ -155,7 +147,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard { piece: Piece::Pawn(W), value: u64::MAX, cnt: 0 };
+        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: u64::MAX, cnt: 0 };
         let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");

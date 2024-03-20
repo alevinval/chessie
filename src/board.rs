@@ -131,12 +131,12 @@ impl Board {
 
     fn gen_pieces(color: Color) -> [BitBoard; 6] {
         [
-            Piece::Pawn(color).into(),
-            Piece::Knight(color).into(),
-            Piece::Bishop(color).into(),
-            Piece::Rook(color).into(),
-            Piece::Queen(color).into(),
-            Piece::King(color).into(),
+            BitBoard::new(Piece::Pawn, color),
+            BitBoard::new(Piece::Knight, color),
+            BitBoard::new(Piece::Bishop, color),
+            BitBoard::new(Piece::Rook, color),
+            BitBoard::new(Piece::Queen, color),
+            BitBoard::new(Piece::King, color),
         ]
     }
 }
@@ -187,8 +187,7 @@ mod test {
         assert!(king.is_some());
 
         if let Some(king) = king {
-            assert_eq!(Color::W, king.color());
-            assert_eq!(Piece::King(Color::W), king.piece());
+            assert_eq!(Piece::King, king.piece());
         }
     }
 
@@ -200,8 +199,7 @@ mod test {
         assert!(king.is_some());
 
         if let Some(king) = king {
-            assert_eq!(Color::B, king.color());
-            assert_eq!(Piece::King(Color::B), king.piece());
+            assert_eq!(Piece::King, king.piece());
         }
     }
 

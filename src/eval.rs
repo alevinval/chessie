@@ -44,12 +44,12 @@ impl Scorer {
 
     fn score_piece(piece: Piece) -> f64 {
         match piece {
-            Piece::Pawn(_) => 100.0,
-            Piece::Rook(_) => 500.0,
-            Piece::Knight(_) => 280.0,
-            Piece::Bishop(_) => 300.0,
-            Piece::Queen(_) => 900.0,
-            Piece::King(_) => 0.0,
+            Piece::Pawn => 100.0,
+            Piece::Rook => 500.0,
+            Piece::Knight => 280.0,
+            Piece::Bishop => 300.0,
+            Piece::Queen => 900.0,
+            Piece::King => 0.0,
         }
     }
 
