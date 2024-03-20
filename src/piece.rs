@@ -5,11 +5,11 @@ use super::Color;
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Piece {
     Pawn(Color),
-    Rook(Color, bool, bool),
+    Rook(Color),
     Knight(Color),
     Bishop(Color),
     Queen(Color),
-    King(Color, bool),
+    King(Color),
 }
 
 pub type Idx = usize;
@@ -25,16 +25,16 @@ impl Piece {
     pub const fn color(self) -> Color {
         match self {
             Piece::Pawn(c)
-            | Piece::Rook(c, _, _)
+            | Piece::Rook(c)
             | Piece::Knight(c)
             | Piece::Bishop(c)
             | Piece::Queen(c)
-            | Piece::King(c, _) => c,
+            | Piece::King(c) => c,
         }
     }
 
     pub const fn is_king(self) -> bool {
-        matches!(self, Piece::King(_, _))
+        matches!(self, Piece::King(_))
     }
 
     pub const fn is_pawn(self) -> bool {
@@ -47,7 +47,7 @@ impl Piece {
                 Color::B => "♟",
                 Color::W => "♙",
             },
-            Piece::Rook(c, _, _) => match c {
+            Piece::Rook(c) => match c {
                 Color::B => "♜",
                 Color::W => "♖",
             },
@@ -63,7 +63,7 @@ impl Piece {
                 Color::B => "♛",
                 Color::W => "♕",
             },
-            Piece::King(c, _) => match c {
+            Piece::King(c) => match c {
                 Color::B => "♚",
                 Color::W => "♔",
             },
@@ -95,7 +95,7 @@ mod test {
 
     #[test]
     fn is_king() {
-        let sut = Piece::King(B, false);
+        let sut = Piece::King(B);
         assert!(sut.is_king());
         assert!(!sut.is_pawn());
     }
@@ -120,19 +120,19 @@ mod test {
         assert_eq!("♘", Piece::Knight(W).as_str());
         assert_eq!("♞", Piece::Knight(B).as_str());
 
-        assert_eq!("♖", Piece::Rook(W, false, false).as_str());
-        assert_eq!("♜", Piece::Rook(B, false, false).as_str());
+        assert_eq!("♖", Piece::Rook(W).as_str());
+        assert_eq!("♜", Piece::Rook(B).as_str());
 
         assert_eq!("♕", Piece::Queen(W).as_str());
         assert_eq!("♛", Piece::Queen(B).as_str());
 
-        assert_eq!("♔", Piece::King(W, false).as_str());
-        assert_eq!("♚", Piece::King(B, false).as_str());
+        assert_eq!("♔", Piece::King(W).as_str());
+        assert_eq!("♚", Piece::King(B).as_str());
     }
 
     #[test]
     fn size() {
-        assert_eq!(3, mem::size_of::<Piece>());
+        assert_eq!(2, mem::size_of::<Piece>());
         assert_eq!(8, mem::size_of::<&Piece>());
     }
 }

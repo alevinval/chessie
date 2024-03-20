@@ -16,18 +16,18 @@ impl BitBoard {
         let color = piece.color();
         let mut value = match piece {
             Piece::Pawn(_) => 0b1111_1111,
-            Piece::Rook(_, _, _) => 0b1000_0001,
+            Piece::Rook(_) => 0b1000_0001,
             Piece::Knight(_) => 0b0100_0010,
             Piece::Bishop(_) => 0b0010_0100,
             Piece::Queen(_) => 0b0000_1000,
-            Piece::King(_, _) => 0b000_10000,
+            Piece::King(_) => 0b0001_0000,
         };
         value <<= 8 * if piece.is_pawn() { color.pawn_row() } else { color.piece_row() };
 
         let cnt = match piece {
             Piece::Pawn(_) => 8,
-            Piece::Rook(_, _, _) | Piece::Knight(_) | Piece::Bishop(_) => 2,
-            Piece::Queen(_) | Piece::King(_, _) => 1,
+            Piece::Rook(_) | Piece::Knight(_) | Piece::Bishop(_) => 2,
+            Piece::Queen(_) | Piece::King(_) => 1,
         };
 
         Self { piece, value, cnt }

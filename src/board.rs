@@ -4,17 +4,40 @@ use crate::piece::Piece;
 use crate::pos::Pos;
 use crate::Color;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Castling {
+    None,
+    Some(bool, bool),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Board {
     mover: Color,
     white: [BitBoard; 6],
     black: [BitBoard; 6],
+    white_castling: Castling,
+    black_castling: Castling,
     n: usize,
 }
 
 impl Board {
     pub fn mover(&self) -> Color {
         self.mover
+    }
+
+    #[must_use]
+    pub const fn castling(&self, color: Color) -> Castling {
+        match color {
+            Color::B => self.black_castling,
+            Color::W => self.white_castling,
+        }
+    }
+
+    pub fn set_castling(&mut self, color: Color, rights: Castling) {
+        match color {
+            Color::B => self.black_castling = rights,
+            Color::W => self.white_castling = rights,
+        }
     }
 
     pub fn pieces(&self) -> &[BitBoard; 6] {
@@ -111,9 +134,9 @@ impl Board {
             Piece::Pawn(color).into(),
             Piece::Knight(color).into(),
             Piece::Bishop(color).into(),
-            Piece::Rook(color, false, false).into(),
+            Piece::Rook(color).into(),
             Piece::Queen(color).into(),
-            Piece::King(color, false).into(),
+            Piece::King(color).into(),
         ]
     }
 }
@@ -124,6 +147,8 @@ impl Default for Board {
             mover: Color::W,
             white: Board::gen_pieces(Color::W),
             black: Board::gen_pieces(Color::B),
+            white_castling: Castling::Some(true, true),
+            black_castling: Castling::Some(true, true),
             n: 0,
         }
     }
@@ -163,7 +188,7 @@ mod test {
 
         if let Some(king) = king {
             assert_eq!(Color::W, king.color());
-            assert_eq!(Piece::King(Color::W, false), king.piece());
+            assert_eq!(Piece::King(Color::W), king.piece());
         }
     }
 
@@ -176,7 +201,7 @@ mod test {
 
         if let Some(king) = king {
             assert_eq!(Color::B, king.color());
-            assert_eq!(Piece::King(Color::B, false), king.piece());
+            assert_eq!(Piece::King(Color::B), king.piece());
         }
     }
 

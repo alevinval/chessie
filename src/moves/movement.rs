@@ -1,4 +1,9 @@
-use crate::{bitboard::BitBoard, board::Board, piece::Piece, pos::Pos, Color};
+use crate::{
+    board::{Board, Castling},
+    piece::Piece,
+    pos::Pos,
+    Color,
+};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
@@ -48,9 +53,11 @@ impl Move {
         match self {
             Move::Takes { from, to } => {
                 Self::clear_dst(board, to);
+                self.update_castling(board, from);
                 self.apply_move(board, from, to);
             }
             Move::Slide { from, to } => {
+                self.update_castling(board, from);
                 self.apply_move(board, from, to);
             }
             Move::PawnPromo { from, to, piece } => {
@@ -58,26 +65,32 @@ impl Move {
                 self.apply_move(board, from, to);
                 Self::promo(board, to, piece);
             }
-            Move::LeftCastle { mover } => match mover {
-                Color::B => {
-                    self.apply_move(board, (7, 4), (7, 2));
-                    self.apply_move(board, (7, 0), (7, 3));
+            Move::LeftCastle { mover } => {
+                Self::disable_castling(board);
+                match mover {
+                    Color::B => {
+                        self.apply_move(board, (7, 4), (7, 2));
+                        self.apply_move(board, (7, 0), (7, 3));
+                    }
+                    Color::W => {
+                        self.apply_move(board, (0, 4), (0, 2));
+                        self.apply_move(board, (0, 0), (0, 3));
+                    }
                 }
-                Color::W => {
-                    self.apply_move(board, (0, 4), (0, 2));
-                    self.apply_move(board, (0, 0), (0, 3));
+            }
+            Move::RightCastle { mover } => {
+                Self::disable_castling(board);
+                match mover {
+                    Color::B => {
+                        self.apply_move(board, (7, 4), (7, 6));
+                        self.apply_move(board, (7, 7), (7, 5));
+                    }
+                    Color::W => {
+                        self.apply_move(board, (0, 4), (0, 6));
+                        self.apply_move(board, (0, 7), (0, 5));
+                    }
                 }
-            },
-            Move::RightCastle { mover } => match mover {
-                Color::B => {
-                    self.apply_move(board, (7, 4), (7, 6));
-                    self.apply_move(board, (7, 7), (7, 5));
-                }
-                Color::W => {
-                    self.apply_move(board, (0, 4), (0, 6));
-                    self.apply_move(board, (0, 7), (0, 5));
-                }
-            },
+            }
         }
     }
 
@@ -94,41 +107,51 @@ impl Move {
         let pieces = board.pieces_mut();
         match piece {
             Piece::Pawn(_) => &mut pieces[Piece::P],
-            Piece::Rook(_, _, _) => &mut pieces[Piece::R],
+            Piece::Rook(_) => &mut pieces[Piece::R],
             Piece::Knight(_) => &mut pieces[Piece::N],
             Piece::Bishop(_) => &mut pieces[Piece::B],
             Piece::Queen(_) => &mut pieces[Piece::Q],
-            Piece::King(_, _) => unreachable!("cannot promote pawn to king"),
+            Piece::King(_) => unreachable!("cannot promote pawn to king"),
         }
         .set(pos);
     }
 
     fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
         let from = from.into();
-        match board.at_mut(from) {
-            Some(bb) => {
-                bb.slide(from, to.into());
-                self.flag_piece_movement(bb);
+        let bb = board.at_mut(from).unwrap_or_else(|| {
+            unreachable!("must have a piece in order to move {:?} {:?}", self, from)
+        });
+        bb.slide(from, to.into());
+    }
+
+    fn update_castling(self, board: &mut Board, from: Pos) {
+        let color = board.mover();
+        if let Castling::Some(left, right) = board.castling(color) {
+            if !left && !right {
+                Self::disable_castling(board);
+                return;
             }
-            None => {
-                unreachable!("cannot move square without piece {from:?}");
+
+            let bb = board.at(from).unwrap_or_else(|| {
+                unreachable!("must have a piece in order to move {:?} {:?}", self, from)
+            });
+            let piece = bb.piece();
+            if let Piece::King(_) = piece {
+                board.set_castling(color, Castling::None);
+                return;
+            }
+
+            if let Piece::Rook(_) = bb.piece() {
+                board.set_castling(
+                    bb.color(),
+                    Castling::Some(left || from.col() == 0, right || from.col() == 7),
+                );
             }
         }
     }
 
-    fn flag_piece_movement(self, bb: &mut BitBoard) {
-        bb.update_piece(match bb.piece() {
-            Piece::Rook(c, left, right) => match self {
-                Move::Slide { from, to: _ } | Move::Takes { from, to: _ } => {
-                    Piece::Rook(c, left || from.col() == 0, right || from.col() == 7)
-                }
-                Move::LeftCastle { mover } => Piece::Rook(mover, true, right),
-                Move::RightCastle { mover } => Piece::Rook(mover, left, true),
-                Move::PawnPromo { from: _, to: _, piece: _ } => unreachable!(),
-            },
-            Piece::King(c, _) => Piece::King(c, true),
-            piece => piece,
-        });
+    fn disable_castling(board: &mut Board) {
+        board.set_castling(board.mover(), Castling::None);
     }
 }
 
@@ -166,7 +189,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(5, mem::size_of::<Move>());
+        assert_eq!(4, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }

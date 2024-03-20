@@ -2,7 +2,13 @@ mod generator;
 mod movement;
 mod placement;
 
-use crate::{bitboard::BitBoard, board::Board, defs::Dir, piece::Piece, print_board, Color, Pos};
+use crate::{
+    bitboard::BitBoard,
+    board::{Board, Castling},
+    defs::Dir,
+    piece::Piece,
+    print_board, Color, Pos,
+};
 
 pub use self::movement::Move;
 
@@ -35,14 +41,14 @@ impl<'board> MoveGen<'board> {
                 Color::B => black_pawn(&mut gen),
                 Color::W => white_pawn(&mut gen),
             },
-            Piece::Rook(_, _, _) => gen.cross(empty_or_take),
+            Piece::Rook(_) => gen.cross(empty_or_take),
             Piece::Bishop(_) => gen.diagonals(empty_or_take),
             Piece::Queen(_) => {
                 gen.diagonals(empty_or_take);
                 gen.cross(empty_or_take);
             }
             Piece::Knight(_) => knight(&mut gen),
-            Piece::King(_, _) => {
+            Piece::King(_) => {
                 king(&mut gen);
                 self.king_castle(&mut gen);
             }
@@ -52,22 +58,19 @@ impl<'board> MoveGen<'board> {
 
     fn king_castle(&self, gen: &mut Generator) {
         let pieces = self.board.pieces();
-        if let Piece::King(_, has_moved) = pieces[Piece::K].piece() {
-            if has_moved {
-                return;
-            }
-        }
+        let castling = self.board.castling(self.bitboard.piece().color());
 
-        if let Piece::Rook(_, lrm, rrm) = pieces[Piece::R].piece() {
+        if let Castling::Some(left, right) = castling {
             let pos = pieces[Piece::K].iter_pos().next().expect("should be there");
-            if !rrm {
+
+            if right {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.right(is_empty);
                 if subgen.moves().len() == 2 {
                     gen.emit_move(Move::RightCastle { mover: self.board.mover() });
                 }
             }
-            if !lrm {
+            if left {
                 let mut subgen = Generator::new(self.board, pos, false);
                 subgen.left(is_empty);
                 if subgen.moves().len() == 3 {
