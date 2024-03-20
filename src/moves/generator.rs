@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-use crate::{board::Board, defs::Dir, pos::Pos};
+use crate::{board::Board, defs::Dir, piece::Piece, pos::Pos};
 
 use super::{
     placement::{Placement, StopCondition},
@@ -61,7 +61,7 @@ impl<'board> Generator<'board> {
     pub fn pawn_promo(&mut self, d: Dir) {
         let to = self.from.to(d);
 
-        self.board.pieces().iter().filter(|bitboard| !bitboard.piece().is_king()).for_each(
+        self.board.pieces().iter().filter(|bitboard| bitboard.piece() != Piece::King).for_each(
             |bitboard| {
                 let promo = Move::PawnPromo { from: self.from, to, piece: bitboard.piece() };
                 self.emit_move(promo);

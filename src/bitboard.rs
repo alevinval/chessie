@@ -22,7 +22,8 @@ impl BitBoard {
             Piece::Queen => 0b0000_1000,
             Piece::King => 0b0001_0000,
         };
-        value <<= 8 * if piece.is_pawn() { color.pawn_row() } else { color.piece_row() };
+        value <<=
+            8 * if matches!(piece, Piece::Pawn) { color.pawn_row() } else { color.piece_row() };
 
         let cnt = match piece {
             Piece::Pawn => 8,

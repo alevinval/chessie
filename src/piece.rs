@@ -20,14 +20,6 @@ impl Piece {
     pub const Q: Idx = 4;
     pub const K: Idx = 5;
 
-    pub const fn is_king(self) -> bool {
-        matches!(self, Piece::King)
-    }
-
-    pub const fn is_pawn(self) -> bool {
-        matches!(self, Piece::Pawn)
-    }
-
     #[must_use]
     pub const fn as_str(self, c: Color) -> &'static str {
         match self {

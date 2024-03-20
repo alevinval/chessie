@@ -106,14 +106,14 @@ impl Board {
         let w: usize = self
             .pieces_for(Color::W)
             .iter()
-            .filter(|bb| !bb.piece().is_pawn())
+            .filter(|bb| bb.piece() != Piece::Pawn)
             .map(|bb| bb.iter_pos().count())
             .sum();
 
         let b: usize = self
             .pieces_for(Color::B)
             .iter()
-            .filter(|bb| !bb.piece().is_pawn())
+            .filter(|bb| bb.piece() != Piece::Pawn)
             .map(|bb| bb.iter_pos().count())
             .sum();
 
