@@ -72,12 +72,18 @@ impl Board {
             })
     }
 
-    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<&mut BitBoard> {
+    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, Piece, &mut BitBoard)> {
         let pos = pos.into();
         self.white
-            .iter_mut()
-            .find(|b| b.has_piece(pos))
-            .or_else(|| self.black.iter_mut().find(|b| b.has_piece(pos)))
+            .iter()
+            .position(|bb| bb.has_piece(pos))
+            .map(|i| (Color::W, Piece::from_idx(i), &mut self.white[i]))
+            .or_else(|| {
+                self.black
+                    .into_iter()
+                    .position(|bb| bb.has_piece(pos))
+                    .map(|i| (Color::B, Piece::from_idx(i), &mut self.black[i]))
+            })
     }
 
     pub fn next_turn(&mut self) {
@@ -214,14 +220,14 @@ mod test {
     fn mut_at_white() {
         let pos = (0, 0);
 
-        assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap());
+        assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap().2);
     }
 
     #[test]
     fn mut_at_black() {
         let pos = (7, 7);
 
-        assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap());
+        assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap().2);
     }
 
     #[test]

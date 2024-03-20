@@ -95,8 +95,8 @@ impl Move {
     }
 
     fn clear_dst(board: &mut Board, to: Pos) {
-        if let Some(dst) = board.at_mut(to) {
-            dst.unset(to);
+        if let Some((_, _, bb)) = board.at_mut(to) {
+            bb.unset(to);
         }
     }
 
@@ -118,7 +118,7 @@ impl Move {
 
     fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
         let from = from.into();
-        let bb = board.at_mut(from).unwrap_or_else(|| {
+        let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
         bb.slide(from, to.into());
