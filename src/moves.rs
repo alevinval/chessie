@@ -3,7 +3,6 @@ mod movement;
 mod placement;
 
 use crate::{
-    bitboard::BitBoard,
     board::{Board, Castling},
     defs::Dir,
     piece::Piece,
@@ -20,25 +19,25 @@ use self::{
 pub struct MoveGen<'board> {
     board: &'board Board,
     color: Color,
-    bitboard: BitBoard,
+    piece: Piece,
     from: Pos,
 }
 
 impl<'board> MoveGen<'board> {
     pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
-        let (color, _, bitboard) = board.at(from).unwrap_or_else(|| {
+        let (color, piece, _) = board.at(from).unwrap_or_else(|| {
             print_board(board, &[]);
             unreachable!("cannot generate moves for empty position {from:?}")
         });
 
-        Self { board, color, bitboard, from }
+        Self { board, color, piece, from }
     }
 
     pub fn generate(self, check_legal: bool) -> Vec<Move> {
         let mut gen = Generator::new(self.board, self.color, self.from, check_legal);
-        match self.bitboard.piece() {
-            Piece::Pawn => match self.bitboard.color() {
+        match self.piece {
+            Piece::Pawn => match self.color {
                 Color::B => black_pawn(&mut gen),
                 Color::W => white_pawn(&mut gen),
             },
@@ -58,13 +57,13 @@ impl<'board> MoveGen<'board> {
     }
 
     fn king_castle(&self, gen: &mut Generator) {
-        let castling = self.board.castling(self.bitboard.color());
+        let castling = self.board.castling(self.color);
 
         if let Castling::Some(left, right) = castling {
             let pos = self
                 .board
                 .get_piece(self.color, Piece::King)
-                .iter_pos()
+                .iter_pos(self.color)
                 .next()
                 .expect("should be there");
 

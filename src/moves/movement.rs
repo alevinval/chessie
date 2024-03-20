@@ -132,7 +132,7 @@ impl Move {
                 return;
             }
 
-            let (_, piece, bb) = board.at(from).unwrap_or_else(|| {
+            let (_, piece, _) = board.at(from).unwrap_or_else(|| {
                 unreachable!("must have a piece in order to move {:?} {:?}", self, from)
             });
             if let Piece::King = piece {
@@ -142,7 +142,7 @@ impl Move {
 
             if let Piece::Rook = piece {
                 board.set_castling(
-                    bb.color(),
+                    color,
                     Castling::Some(left || from.col() == 0, right || from.col() == 7),
                 );
             }

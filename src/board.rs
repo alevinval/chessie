@@ -106,7 +106,7 @@ impl Board {
     pub fn movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let pos: Vec<_> = bb.iter_pos().collect();
+                let pos: Vec<_> = bb.iter_pos(color).collect();
                 pos
             })
             .flat_map(|p| MoveGen::new(self, p).generate(true))
@@ -117,7 +117,7 @@ impl Board {
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| {
-                let pos: Vec<_> = bb.iter_pos().collect();
+                let pos: Vec<_> = bb.iter_pos(color).collect();
                 pos
             })
             .flat_map(|p| MoveGen::new(self, p).generate(false))
@@ -129,20 +129,20 @@ impl Board {
         let w: usize = self
             .pieces_iter(Color::W)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.iter_pos().count())
+            .map(|(_, bb)| bb.iter_pos(Color::W).count())
             .sum();
 
         let b: usize = self
             .pieces_iter(Color::B)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.iter_pos().count())
+            .map(|(_, bb)| bb.iter_pos(Color::B).count())
             .sum();
 
         w + b
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.get_piece(color, Piece::King).iter_pos().next();
+        let king = self.get_piece(color, Piece::King).iter_pos(color).next();
 
         match king {
             Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == king),

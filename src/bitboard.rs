@@ -6,8 +6,6 @@ use super::Color;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct BitBoard {
-    piece: Piece,
-    color: Color,
     value: u64,
     cnt: u8,
 }
@@ -31,15 +29,7 @@ impl BitBoard {
             Piece::Queen | Piece::King => 1,
         };
 
-        Self { piece, color, value, cnt }
-    }
-
-    pub fn piece(&self) -> Piece {
-        self.piece
-    }
-
-    pub fn color(&self) -> Color {
-        self.color
+        Self { value, cnt }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -64,16 +54,12 @@ impl BitBoard {
         self.cnt -= 1;
     }
 
-    pub fn update_piece(&mut self, piece: Piece) {
-        self.piece = piece;
-    }
-
     pub fn get_le_bytes(&self) -> [u8; 8] {
         u64::to_le_bytes(self.value)
     }
 
-    pub fn iter_pos(&self) -> impl Iterator<Item = Pos> + '_ {
-        let rows = match self.color {
+    pub fn iter_pos(&self, color: Color) -> impl Iterator<Item = Pos> + '_ {
+        let rows = match color {
             Color::B => Either::Left((0..8).rev()),
             Color::W => Either::Right(0..8),
         };
@@ -109,16 +95,16 @@ mod test {
 
     #[test]
     fn has_piece() {
-        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: 0, cnt: 0 };
+        let sut = BitBoard { value: 0, cnt: 0 };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: 1, cnt: 0 };
+        let sut = BitBoard { value: 1, cnt: 0 };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: 0, cnt: 0 };
+        let sut = BitBoard { value: 0, cnt: 0 };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
-        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: TARGET.into(), cnt: 0 };
+        let sut = BitBoard { value: TARGET.into(), cnt: 0 };
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
 
@@ -148,7 +134,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard { piece: Piece::Pawn, color: Color::W, value: u64::MAX, cnt: 0 };
+        let sut = BitBoard { value: u64::MAX, cnt: 0 };
         let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");
