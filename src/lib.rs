@@ -1,5 +1,6 @@
 use std::io;
 
+use bitboard::BitBoard;
 use board::Board;
 pub use color::Color;
 use eval::Scorer;
@@ -15,6 +16,21 @@ mod eval;
 mod moves;
 mod piece;
 mod pos;
+
+pub fn print_bitboard(bb: BitBoard) {
+    println!("[bitboard=0x{:x}]", bb.value());
+    for row in (0..8).rev() {
+        println!("+---+---+---+---+---+---+---+---+");
+        for col in 0..8 {
+            let pos: Pos = (row, col).into();
+            let piece = if bb.has_piece(pos) { "@" } else { " " };
+            print!("| {piece} ");
+        }
+        println!("| {}", row + 1);
+    }
+    println!("+---+---+---+---+---+---+---+---+");
+    println!("  0   2   3   4   5   6   7   8  ");
+}
 
 fn print_board(board: &Board, highlights: &[Pos]) {
     println!("[move={} mover={} highlights={highlights:?}]", board.n(), board.mover());
