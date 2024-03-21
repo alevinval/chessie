@@ -226,7 +226,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(208, mem::size_of::<Board>());
+        assert_eq!(112, mem::size_of::<Board>());
         assert_eq!(8, mem::size_of::<&Board>());
     }
 }

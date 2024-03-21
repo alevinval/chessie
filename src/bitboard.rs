@@ -7,7 +7,6 @@ use super::Color;
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct BitBoard {
     value: u64,
-    cnt: u8,
 }
 
 impl BitBoard {
@@ -23,16 +22,26 @@ impl BitBoard {
         value <<=
             8 * if matches!(piece, Piece::Pawn) { color.pawn_row() } else { color.piece_row() };
 
-        let cnt = match piece {
-            Piece::Pawn => 8,
-            Piece::Rook | Piece::Knight | Piece::Bishop => 2,
-            Piece::Queen | Piece::King => 1,
-        };
-
-        Self { value, cnt }
+        Self { value }
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn count(&self) -> usize {
+        let mut v = self.value;
+        let mut count = 0;
+        while v != 0 {
+            count += 1;
+            v &= v - 1;
+        }
+        count
+    }
+
+    #[must_use]
+    pub const fn value(&self) -> u64 {
+        self.value
+    }
+
+    pub const fn is_empty(&self) -> bool {
         self.value == 0
     }
 
@@ -46,12 +55,10 @@ impl BitBoard {
 
     pub fn set<P: Into<u64>>(&mut self, pos: P) {
         self.value |= pos.into();
-        self.cnt += 1;
     }
 
     pub fn unset<P: Into<u64>>(&mut self, pos: P) {
         self.value &= !pos.into();
-        self.cnt -= 1;
     }
 
     pub fn get_le_bytes(&self) -> [u8; 8] {
@@ -73,7 +80,7 @@ impl BitBoard {
                 }
             })
         })
-        .take(self.cnt as usize)
+        .take(self.count())
     }
 }
 
@@ -88,23 +95,32 @@ mod test {
 
     use std::mem;
 
+    use crate::print_bitboard;
+
     use super::*;
 
     static ORIGIN: Pos = Pos::new(0, 0);
     static TARGET: Pos = Pos::new(3, 3);
 
     #[test]
+    fn count() {
+        let sut = BitBoard { value: 0x800c00000a007000 };
+        print_bitboard(sut);
+        assert_eq!(8, sut.count());
+    }
+
+    #[test]
     fn has_piece() {
-        let sut = BitBoard { value: 0, cnt: 0 };
+        let sut = BitBoard { value: 0 };
         assert!(!sut.has_piece(ORIGIN), "{ORIGIN:?} should not have piece");
 
-        let sut = BitBoard { value: 1, cnt: 0 };
+        let sut = BitBoard { value: 1 };
         assert!(sut.has_piece(ORIGIN), "{ORIGIN:?} should have piece");
 
-        let sut = BitBoard { value: 0, cnt: 0 };
+        let sut = BitBoard { value: 0 };
         assert!(!sut.has_piece(TARGET), "{TARGET:?} should not have piece");
 
-        let sut = BitBoard { value: TARGET.into(), cnt: 0 };
+        let sut = BitBoard { value: TARGET.into() };
         assert!(sut.has_piece(TARGET), "{TARGET:?} should have piece");
     }
 
@@ -134,7 +150,7 @@ mod test {
 
     #[test]
     fn to_le_bytes() {
-        let sut = BitBoard { value: u64::MAX, cnt: 0 };
+        let sut = BitBoard { value: u64::MAX };
         let actual = sut.get_le_bytes();
         assert!(8 == actual.len());
         assert!(actual.iter().all(|n| *n == 255), "should all be max u8");
@@ -142,7 +158,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(16, mem::size_of::<BitBoard>());
+        assert_eq!(8, mem::size_of::<BitBoard>());
         assert_eq!(8, mem::size_of::<&BitBoard>());
     }
 }
