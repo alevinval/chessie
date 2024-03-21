@@ -15,38 +15,45 @@ pub enum Move {
 }
 
 impl Move {
-    pub fn apply(self, board: &Board) -> Board {
-        let mut next = board.clone();
-        self.inner_apply(&mut next);
-        next.next_turn();
-        next
-    }
-
-    pub fn to(self) -> Pos {
+    #[must_use]
+    pub const fn to(self) -> Pos {
         match self {
             Move::Takes { from: _, to }
             | Move::Slide { from: _, to }
             | Move::PawnPromo { from: _, to, piece: _ } => to,
-            Move::LeftCastle { mover } => (mover.piece_row(), 2).into(),
-            Move::RightCastle { mover } => (mover.piece_row(), 6).into(),
+            Move::LeftCastle { mover } => Pos::new(mover.piece_row(), 2),
+            Move::RightCastle { mover } => Pos::new(mover.piece_row(), 6),
         }
     }
 
-    pub fn from(self) -> Pos {
+    #[must_use]
+    pub const fn from(self) -> Pos {
         match self {
             Move::Takes { from, to: _ }
             | Move::Slide { from, to: _ }
             | Move::PawnPromo { from, to: _, piece: _ } => from,
             Move::LeftCastle { mover } | Move::RightCastle { mover } => {
-                (mover.piece_row(), 4).into()
+                Pos::new(mover.piece_row(), 4)
             }
         }
     }
 
-    pub fn priority(self) -> f64 {
+    #[must_use]
+    pub const fn priority(self) -> f64 {
         match self {
-            _ => 0.0,
+            Move::Takes { from: _, to: _ } => 5.0,
+            Move::Slide { from: _, to: _ } => 1.0,
+            Move::PawnPromo { from: _, to: _, piece: _ } => 10.0,
+            Move::LeftCastle { mover: _ } => 6.0,
+            Move::RightCastle { mover: _ } => 7.0,
         }
+    }
+
+    pub fn apply(self, board: &Board) -> Board {
+        let mut next = board.clone();
+        self.inner_apply(&mut next);
+        next.next_turn();
+        next
     }
 
     fn inner_apply(self, board: &mut Board) {
