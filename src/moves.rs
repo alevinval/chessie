@@ -63,7 +63,7 @@ impl<'board> MoveGen<'board> {
             let pos = self
                 .board
                 .get_piece(self.color, Piece::King)
-                .iter_pos(self.color)
+                .pos(self.color)
                 .next()
                 .expect("should be there");
 
