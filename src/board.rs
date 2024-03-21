@@ -104,24 +104,12 @@ impl Board {
 
     #[must_use]
     pub fn movements(&self, color: Color) -> Vec<Move> {
-        self.pieces_iter(color)
-            .flat_map(|(_, bb)| {
-                let pos: Vec<_> = bb.iter_pos(color).collect();
-                pos
-            })
-            .flat_map(|p| MoveGen::new(self, p).generate(true))
-            .collect()
+        self.generate_movements(color, true)
     }
 
     #[must_use]
     pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
-        self.pieces_iter(color)
-            .flat_map(|(_, bb)| {
-                let pos: Vec<_> = bb.iter_pos(color).collect();
-                pos
-            })
-            .flat_map(|p| MoveGen::new(self, p).generate(false))
-            .collect()
+        self.generate_movements(color, false)
     }
 
     #[must_use]
@@ -148,6 +136,13 @@ impl Board {
             Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == king),
             None => true,
         }
+    }
+
+    fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
+        self.pieces_iter(color)
+            .flat_map(|(_, bb)| bb.iter_pos(color))
+            .flat_map(|p| MoveGen::new(self, p).generate(legal_only))
+            .collect()
     }
 
     fn gen_pieces(color: Color) -> [BitBoard; 6] {

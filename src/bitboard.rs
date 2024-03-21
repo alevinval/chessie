@@ -58,7 +58,7 @@ impl BitBoard {
         u64::to_le_bytes(self.value)
     }
 
-    pub fn iter_pos(&self, color: Color) -> impl Iterator<Item = Pos> + '_ {
+    pub fn iter_pos(self, color: Color) -> impl Iterator<Item = Pos> {
         let rows = match color {
             Color::B => Either::Left((0..8).rev()),
             Color::W => Either::Right(0..8),
