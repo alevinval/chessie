@@ -17,6 +17,7 @@ mod piece;
 mod pos;
 
 fn print_board(board: &Board, highlights: &[Pos]) {
+    println!("[move={} mover={} highlights={highlights:?}]", board.n(), board.mover());
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {

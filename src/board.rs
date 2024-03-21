@@ -21,8 +21,14 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn mover(&self) -> Color {
+    #[must_use]
+    pub const fn mover(&self) -> Color {
         self.mover
+    }
+
+    #[must_use]
+    pub const fn n(&self) -> usize {
+        self.n
     }
 
     #[must_use]
@@ -96,10 +102,6 @@ impl Board {
     pub fn next_turn(&mut self) {
         self.mover = self.mover.flip();
         self.n += 1;
-    }
-
-    pub fn n(&self) -> usize {
-        self.n
     }
 
     #[must_use]
