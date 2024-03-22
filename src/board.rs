@@ -39,6 +39,13 @@ impl Board {
         }
     }
 
+    pub fn add_piece(&mut self, pos: Pos, piece: Piece) {
+        match self.mover {
+            Color::B => self.black[piece.idx()].set(pos),
+            Color::W => self.white[piece.idx()].set(pos),
+        }
+    }
+
     pub fn set_castling(&mut self, color: Color, rights: Castling) {
         match color {
             Color::B => self.black_castling = rights,
@@ -62,13 +69,6 @@ impl Board {
         .into_iter()
         .enumerate()
         .map(|(i, bb)| (Piece::from_idx(i), bb))
-    }
-
-    pub fn pieces_mut(&mut self) -> &mut [BitBoard; 6] {
-        match self.mover {
-            Color::B => &mut self.black,
-            Color::W => &mut self.white,
-        }
     }
 
     pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, Piece, BitBoard)> {

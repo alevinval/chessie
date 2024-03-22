@@ -13,6 +13,8 @@ pub enum Piece {
 pub type Idx = usize;
 
 impl Piece {
+    pub const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
+
     pub const P: Idx = 0;
     pub const N: Idx = 1;
     pub const B: Idx = 2;

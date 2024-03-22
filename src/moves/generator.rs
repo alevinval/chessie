@@ -67,12 +67,9 @@ impl<'board> Generator<'board> {
     pub fn pawn_promo(&mut self, d: Dir) {
         let to = self.from.to(d);
 
-        self.board.pieces_iter(self.color).filter(|(p, _)| *p != Piece::King).for_each(
-            |(piece, _)| {
-                let promo = Move::PawnPromo { from: self.from, to, piece };
-                self.emit_move(promo);
-            },
-        );
+        for piece in Piece::PROMO {
+            self.emit_move(Move::PawnPromo { from: self.from, to, piece });
+        }
     }
 
     pub fn left(&mut self, stop_at: StopCondition) {

@@ -49,6 +49,7 @@ impl Move {
         }
     }
 
+    #[must_use]
     pub fn apply(self, board: &Board) -> Board {
         let mut next = board.clone();
         self.inner_apply(&mut next);
@@ -110,17 +111,7 @@ impl Move {
     fn promo<P: Into<Pos>>(board: &mut Board, pos: P, piece: Piece) {
         let pos = pos.into();
         Self::clear_dst(board, pos);
-
-        let pieces = board.pieces_mut();
-        match piece {
-            Piece::Pawn => &mut pieces[Piece::P],
-            Piece::Rook => &mut pieces[Piece::R],
-            Piece::Knight => &mut pieces[Piece::N],
-            Piece::Bishop => &mut pieces[Piece::B],
-            Piece::Queen => &mut pieces[Piece::Q],
-            Piece::King => unreachable!("cannot promote pawn to king"),
-        }
-        .set(pos);
+        board.add_piece(pos, piece);
     }
 
     fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
