@@ -85,6 +85,10 @@ impl BitBoard {
         })
         .take(self.count())
     }
+
+    pub fn first_pos(self, color: Color) -> Option<Pos> {
+        self.pos(color).next()
+    }
 }
 
 impl From<Pos> for u64 {
@@ -118,6 +122,13 @@ mod test {
             vec![12, 13, 14, 25, 27, 50, 51, 63].into_iter().map(|sq| Pos::from(sq)).collect();
 
         assert_eq!(expected, positions);
+    }
+
+    #[test]
+    fn first_pos() {
+        let sut = BitBoard::new(0x800c00000a007000);
+        let first = sut.first_pos(Color::W);
+        assert_eq!(Some(12.into()), first);
     }
 
     #[test]

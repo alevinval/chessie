@@ -132,11 +132,10 @@ impl Board {
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        let king = self.get_piece(color, Piece::King).pos(color).next();
-
-        match king {
-            Some(king) => self.pseudo_movements(color.flip()).iter().any(|m| m.to() == king),
-            None => true,
+        if let Some(pos) = self.get_piece(color, Piece::King).first_pos(color) {
+            self.pseudo_movements(color.flip()).iter().any(|m| m.to() == pos)
+        } else {
+            true
         }
     }
 
