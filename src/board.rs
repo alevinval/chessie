@@ -119,20 +119,20 @@ impl Board {
         let w: usize = self
             .pieces_iter(Color::W)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.pos(Color::W).count())
+            .map(|(_, bb)| bb.pos().len())
             .sum();
 
         let b: usize = self
             .pieces_iter(Color::B)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.pos(Color::B).count())
+            .map(|(_, bb)| bb.pos().len())
             .sum();
 
         w + b
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        if let Some(pos) = self.get_piece(color, Piece::King).first_pos(color) {
+        if let Some(pos) = self.get_piece(color, Piece::King).first_pos() {
             self.pseudo_movements(color.flip()).iter().any(|m| m.to() == pos)
         } else {
             true
@@ -141,7 +141,7 @@ impl Board {
 
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
         self.pieces_iter(color)
-            .flat_map(|(_, bb)| bb.pos(color))
+            .flat_map(|(_, bb)| bb.pos())
             .flat_map(|p| MoveGen::new(self, p).generate(legal_only))
             .collect()
     }

@@ -32,10 +32,8 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
-        let material_score: f64 = board
-            .pieces_iter(color)
-            .map(|(piece, bb)| Self::score_bitboard(color, piece, bb))
-            .sum();
+        let material_score: f64 =
+            board.pieces_iter(color).map(|(piece, bb)| Self::score_bitboard(piece, bb)).sum();
 
         if debug {
             println!("{color:?}");
@@ -56,7 +54,7 @@ impl Scorer {
         }
     }
 
-    fn score_bitboard(color: Color, piece: Piece, bitboard: BitBoard) -> f64 {
-        bitboard.pos(color).count() as f64 * Self::score_piece(piece)
+    fn score_bitboard(piece: Piece, bitboard: BitBoard) -> f64 {
+        bitboard.pos().len() as f64 * Self::score_piece(piece)
     }
 }

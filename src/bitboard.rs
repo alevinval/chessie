@@ -1,6 +1,8 @@
-use either::Either;
-
-use crate::{defs, piece::Piece, pos::Pos};
+use crate::{
+    defs::{self, Sq},
+    piece::Piece,
+    pos::Pos,
+};
 
 use super::Color;
 
@@ -68,26 +70,27 @@ impl BitBoard {
         self.bb &= !pos.into();
     }
 
-    pub fn pos(self, color: Color) -> impl Iterator<Item = Pos> {
-        let rows = match color {
-            Color::B => Either::Left((0..8).rev()),
-            Color::W => Either::Right(0..8),
-        };
-        rows.flat_map(move |row| {
-            let ro = row * 8;
-            (0..8).filter_map(move |col| {
-                if self.bb & (1 << (ro + col)) > 0 {
-                    Some((row, col).into())
-                } else {
-                    None
-                }
-            })
-        })
-        .take(self.count())
+    pub fn pos(self) -> Vec<Pos> {
+        let mut acc: Vec<Pos> = vec![];
+        let mut square: Sq = 0;
+        let mut bb = self.bb;
+        while bb > 0 {
+            let mut shift = bb.trailing_zeros() as u8;
+            if shift == 0 {
+                acc.push(square.into());
+                shift = 1;
+            }
+            bb >>= shift;
+            square += shift;
+        }
+        acc
     }
 
-    pub fn first_pos(self, color: Color) -> Option<Pos> {
-        self.pos(color).next()
+    pub fn first_pos(self) -> Option<Pos> {
+        if self.bb == 0 {
+            return None;
+        }
+        Some((self.bb.trailing_zeros() as Sq).into())
     }
 }
 
@@ -117,17 +120,15 @@ mod test {
     #[test]
     fn pos() {
         let sut = BitBoard::new(0x800c00000a007000);
-        let positions: Vec<_> = sut.pos(Color::W).collect();
         let expected: Vec<_> =
             vec![12, 13, 14, 25, 27, 50, 51, 63].into_iter().map(|sq| Pos::from(sq)).collect();
-
-        assert_eq!(expected, positions);
+        assert_eq!(expected, sut.pos());
     }
 
     #[test]
     fn first_pos() {
         let sut = BitBoard::new(0x800c00000a007000);
-        let first = sut.first_pos(Color::W);
+        let first = sut.first_pos();
         assert_eq!(Some(12.into()), first);
     }
 
