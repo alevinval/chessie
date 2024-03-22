@@ -77,12 +77,12 @@ impl Move {
                 Self::disable_castling(board);
                 match mover {
                     Color::B => {
-                        self.apply_move(board, (7, 4), (7, 2));
-                        self.apply_move(board, (7, 0), (7, 3));
+                        self.apply_move(board, Pos::new(7, 4), Pos::new(7, 2));
+                        self.apply_move(board, Pos::new(7, 0), Pos::new(7, 3));
                     }
                     Color::W => {
-                        self.apply_move(board, (0, 4), (0, 2));
-                        self.apply_move(board, (0, 0), (0, 3));
+                        self.apply_move(board, Pos::new(0, 4), Pos::new(0, 2));
+                        self.apply_move(board, Pos::new(0, 0), Pos::new(0, 3));
                     }
                 }
             }
@@ -90,12 +90,12 @@ impl Move {
                 Self::disable_castling(board);
                 match mover {
                     Color::B => {
-                        self.apply_move(board, (7, 4), (7, 6));
-                        self.apply_move(board, (7, 7), (7, 5));
+                        self.apply_move(board, Pos::new(7, 4), Pos::new(7, 6));
+                        self.apply_move(board, Pos::new(7, 7), Pos::new(7, 5));
                     }
                     Color::W => {
-                        self.apply_move(board, (0, 4), (0, 6));
-                        self.apply_move(board, (0, 7), (0, 5));
+                        self.apply_move(board, Pos::new(0, 4), Pos::new(0, 6));
+                        self.apply_move(board, Pos::new(0, 7), Pos::new(0, 5));
                     }
                 }
             }
@@ -108,14 +108,12 @@ impl Move {
         }
     }
 
-    fn promo<P: Into<Pos>>(board: &mut Board, pos: P, piece: Piece) {
-        let pos = pos.into();
+    fn promo(board: &mut Board, pos: Pos, piece: Piece) {
         Self::clear_dst(board, pos);
         board.add_piece(pos, piece);
     }
 
-    fn apply_move<P: Into<Pos>>(self, board: &mut Board, from: P, to: P) {
-        let from = from.into();
+    fn apply_move(self, board: &mut Board, from: Pos, to: Pos) {
         let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
