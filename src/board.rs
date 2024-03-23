@@ -119,13 +119,13 @@ impl Board {
         let w: usize = self
             .pieces_iter(Color::W)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.pos().len())
+            .map(|(_, bb)| bb.count())
             .sum();
 
         let b: usize = self
             .pieces_iter(Color::B)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.pos().len())
+            .map(|(_, bb)| bb.count())
             .sum();
 
         w + b
@@ -221,6 +221,12 @@ mod test {
         let pos = (7, 7);
 
         assert_eq!(Board::default().at(pos).unwrap().2, *Board::default().at_mut(pos).unwrap().2);
+    }
+
+    #[test]
+    fn piece_count() {
+        let sut = Board::default();
+        assert_eq!(16, sut.piece_count());
     }
 
     #[test]

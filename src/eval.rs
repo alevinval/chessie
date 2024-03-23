@@ -55,6 +55,6 @@ impl Scorer {
     }
 
     fn score_bitboard(piece: Piece, bitboard: BitBoard) -> f64 {
-        bitboard.pos().len() as f64 * Self::score_piece(piece)
+        bitboard.count() as f64 * Self::score_piece(piece)
     }
 }
