@@ -61,29 +61,29 @@ impl Move {
     fn inner_apply(self, board: &mut Board) {
         match self {
             Move::Takes { from, to } => {
-                Self::clear_dst(board, to);
+                Self::clear(board, to);
                 self.update_castling(board, from);
-                self.apply_move(board, from, to);
+                self.slide(board, from, to);
             }
             Move::Slide { from, to } => {
                 self.update_castling(board, from);
-                self.apply_move(board, from, to);
+                self.slide(board, from, to);
             }
             Move::PawnPromo { from, to, piece } => {
-                Self::clear_dst(board, to);
-                self.apply_move(board, from, to);
-                Self::promo(board, to, piece);
+                Self::clear(board, from);
+                Self::clear(board, to);
+                board.add_piece(to, piece);
             }
             Move::LeftCastle { mover } => {
                 Self::disable_castling(board);
                 match mover {
                     Color::B => {
-                        self.apply_move(board, Pos::new(7, 4), Pos::new(7, 2));
-                        self.apply_move(board, Pos::new(7, 0), Pos::new(7, 3));
+                        self.slide(board, Pos::new(7, 4), Pos::new(7, 2));
+                        self.slide(board, Pos::new(7, 0), Pos::new(7, 3));
                     }
                     Color::W => {
-                        self.apply_move(board, Pos::new(0, 4), Pos::new(0, 2));
-                        self.apply_move(board, Pos::new(0, 0), Pos::new(0, 3));
+                        self.slide(board, Pos::new(0, 4), Pos::new(0, 2));
+                        self.slide(board, Pos::new(0, 0), Pos::new(0, 3));
                     }
                 }
             }
@@ -91,30 +91,25 @@ impl Move {
                 Self::disable_castling(board);
                 match mover {
                     Color::B => {
-                        self.apply_move(board, Pos::new(7, 4), Pos::new(7, 6));
-                        self.apply_move(board, Pos::new(7, 7), Pos::new(7, 5));
+                        self.slide(board, Pos::new(7, 4), Pos::new(7, 6));
+                        self.slide(board, Pos::new(7, 7), Pos::new(7, 5));
                     }
                     Color::W => {
-                        self.apply_move(board, Pos::new(0, 4), Pos::new(0, 6));
-                        self.apply_move(board, Pos::new(0, 7), Pos::new(0, 5));
+                        self.slide(board, Pos::new(0, 4), Pos::new(0, 6));
+                        self.slide(board, Pos::new(0, 7), Pos::new(0, 5));
                     }
                 }
             }
         }
     }
 
-    fn clear_dst(board: &mut Board, to: Pos) {
-        if let Some((_, _, bb)) = board.at_mut(to) {
-            Bits::unset(bb, to);
+    fn clear(board: &mut Board, pos: Pos) {
+        if let Some((_, _, bb)) = board.at_mut(pos) {
+            Bits::unset(bb, pos);
         }
     }
 
-    fn promo(board: &mut Board, pos: Pos, piece: Piece) {
-        Self::clear_dst(board, pos);
-        board.add_piece(pos, piece);
-    }
-
-    fn apply_move(self, board: &mut Board, from: Pos, to: Pos) {
+    fn slide(self, board: &mut Board, from: Pos, to: Pos) {
         let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
@@ -132,6 +127,7 @@ impl Move {
             let (_, piece, _) = board.at(from).unwrap_or_else(|| {
                 unreachable!("must have a piece in order to move {:?} {:?}", self, from)
             });
+
             if let Piece::King = piece {
                 board.set_castling(color, Castling::None);
                 return;
