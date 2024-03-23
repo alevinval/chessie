@@ -117,7 +117,7 @@ impl Move {
         let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
-        bb.slide(from, to.into());
+        bb.slide(from, to);
     }
 
     fn update_castling(self, board: &mut Board, from: Pos) {

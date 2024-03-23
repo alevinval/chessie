@@ -121,7 +121,7 @@ mod test {
     fn pos() {
         let sut = BitBoard::new(0x800c00000a007000);
         let expected: Vec<_> =
-            vec![12, 13, 14, 25, 27, 50, 51, 63].into_iter().map(|sq| Pos::from(sq)).collect();
+            vec![12, 13, 14, 25, 27, 50, 51, 63].into_iter().map(Pos::from).collect();
         assert_eq!(expected, sut.pos());
     }
 
