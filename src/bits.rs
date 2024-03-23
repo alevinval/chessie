@@ -73,6 +73,46 @@ impl Bits {
         }
         Some((bb.trailing_zeros() as Sq).into())
     }
+
+    #[must_use]
+    pub(crate) const fn north(bb: BitBoard) -> BitBoard {
+        bb << 8
+    }
+
+    #[must_use]
+    pub(crate) const fn northeast(bb: BitBoard) -> BitBoard {
+        bb << 9
+    }
+
+    #[must_use]
+    pub(crate) const fn northwest(bb: BitBoard) -> BitBoard {
+        bb << 7
+    }
+
+    #[must_use]
+    pub(crate) const fn south(bb: BitBoard) -> BitBoard {
+        bb >> 8
+    }
+
+    #[must_use]
+    pub(crate) const fn southeast(bb: BitBoard) -> BitBoard {
+        bb >> 7
+    }
+
+    #[must_use]
+    pub(crate) const fn southwest(bb: BitBoard) -> BitBoard {
+        bb >> 9
+    }
+
+    #[must_use]
+    pub(crate) const fn west(bb: BitBoard) -> BitBoard {
+        bb >> 1
+    }
+
+    #[must_use]
+    pub(crate) const fn east(bb: BitBoard) -> BitBoard {
+        bb << 1
+    }
 }
 
 #[cfg(test)]
@@ -137,5 +177,93 @@ mod test {
 
         Bits::unset(&mut sut, pos);
         assert!(!Bits::has_piece(sut, pos));
+    }
+
+    #[test]
+    fn north() {
+        let input: BitBoard = 0x1;
+        print_bitboard(input);
+
+        let actual = Bits::north(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x100, actual);
+    }
+
+    #[test]
+    fn northwest() {
+        let input: BitBoard = 0xe00;
+        print_bitboard(input);
+
+        let actual = Bits::northwest(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x70000, actual);
+    }
+
+    #[test]
+    fn northeast() {
+        let input: BitBoard = 0x1;
+        print_bitboard(input);
+
+        let actual = Bits::northeast(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x200, actual);
+    }
+
+    #[test]
+    fn south() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::south(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x400, actual);
+    }
+
+    #[test]
+    fn southwest() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::southwest(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x200, actual);
+    }
+
+    #[test]
+    fn southeast() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::southeast(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x800, actual);
+    }
+
+    #[test]
+    fn east() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::east(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x80000, actual);
+    }
+
+    #[test]
+    fn west() {
+        let input: BitBoard = 0x40000;
+        print_bitboard(input);
+
+        let actual = Bits::west(input);
+        print_bitboard(actual);
+
+        assert_eq!(0x20000, actual);
     }
 }
