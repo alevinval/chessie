@@ -1,9 +1,11 @@
-use crate::bits::Bits;
-use crate::defs::BitBoard;
-use crate::moves::{Move, MoveGen};
-use crate::piece::Piece;
-use crate::pos::Pos;
-use crate::Color;
+use crate::{
+    bits::Bits,
+    defs::BitBoard,
+    moves::{Move, MoveGen},
+    piece::Piece,
+    pos::Pos,
+    Color,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Castling {

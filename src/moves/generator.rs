@@ -1,11 +1,10 @@
 use std::iter::zip;
 
-use crate::{board::Board, defs::Dir, piece::Piece, pos::Pos, Color};
-
 use super::{
     placement::{Placement, StopCondition},
     Move,
 };
+use crate::{board::Board, defs::Dir, piece::Piece, pos::Pos, Color};
 
 #[derive(Debug)]
 pub struct Generator<'board> {

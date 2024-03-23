@@ -1,10 +1,9 @@
+use super::Color;
 use crate::{
     defs::{BitBoard, Sq},
     piece::Piece,
     pos::Pos,
 };
-
-use super::Color;
 
 pub(crate) struct Bits();
 
@@ -118,9 +117,8 @@ impl Bits {
 #[cfg(test)]
 mod test {
 
-    use crate::{print_bitboard, Pos};
-
     use super::*;
+    use crate::{print_bitboard, Pos};
 
     static ORIGIN: Pos = Pos::new(0, 0);
     static TARGET: Pos = Pos::new(3, 3);

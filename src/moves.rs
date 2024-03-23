@@ -2,19 +2,17 @@ mod generator;
 mod movement;
 mod placement;
 
+pub use self::movement::Move;
+use self::{
+    generator::Generator,
+    placement::{empty_or_take, is_empty, takes},
+};
 use crate::{
     bits::Bits,
     board::{Board, Castling},
     defs::Dir,
     piece::Piece,
     print_board, Color, Pos,
-};
-
-pub use self::movement::Move;
-
-use self::{
-    generator::Generator,
-    placement::{empty_or_take, is_empty, takes},
 };
 
 pub struct MoveGen<'board> {

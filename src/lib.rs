@@ -95,8 +95,6 @@ pub fn auto_play(moves: usize, depth: usize) {
             3
         } else if pc < 10 {
             2
-        } else if pc < 16 {
-            1
         } else {
             1
         };

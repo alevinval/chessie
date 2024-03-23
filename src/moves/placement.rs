@@ -1,6 +1,5 @@
-use crate::{board::Board, pos::Pos};
-
 use super::Move;
+use crate::{board::Board, pos::Pos};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Placement {
