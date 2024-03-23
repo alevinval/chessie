@@ -3,6 +3,7 @@ mod movement;
 mod placement;
 
 use crate::{
+    bits::Bits,
     board::{Board, Castling},
     defs::Dir,
     piece::Piece,
@@ -60,8 +61,8 @@ impl<'board> MoveGen<'board> {
         let castling = self.board.castling(self.color);
 
         if let Castling::Some(left, right) = castling {
-            let pos =
-                self.board.get_piece(self.color, Piece::King).first_pos().expect("should be there");
+            let pos = Bits::first_pos(self.board.get_piece(self.color, Piece::King))
+                .expect("should be there");
 
             if right {
                 let mut subgen = Generator::new(self.board, self.color, pos, false);

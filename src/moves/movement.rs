@@ -1,4 +1,5 @@
 use crate::{
+    bits::Bits,
     board::{Board, Castling},
     piece::Piece,
     pos::Pos,
@@ -104,7 +105,7 @@ impl Move {
 
     fn clear_dst(board: &mut Board, to: Pos) {
         if let Some((_, _, bb)) = board.at_mut(to) {
-            bb.unset(to);
+            Bits::unset(bb, to);
         }
     }
 
@@ -117,7 +118,7 @@ impl Move {
         let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
-        bb.slide(from, to);
+        Bits::slide(bb, from, to);
     }
 
     fn update_castling(self, board: &mut Board, from: Pos) {

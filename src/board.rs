@@ -1,4 +1,5 @@
-use crate::bitboard::BitBoard;
+use crate::bits::Bits;
+use crate::defs::BitBoard;
 use crate::moves::{Move, MoveGen};
 use crate::piece::Piece;
 use crate::pos::Pos;
@@ -41,8 +42,8 @@ impl Board {
 
     pub fn add_piece(&mut self, pos: Pos, piece: Piece) {
         match self.mover {
-            Color::B => self.black[piece.idx()].set(pos),
-            Color::W => self.white[piece.idx()].set(pos),
+            Color::B => Bits::set(&mut self.black[piece.idx()], pos),
+            Color::W => Bits::set(&mut self.white[piece.idx()], pos),
         }
     }
 
@@ -75,12 +76,12 @@ impl Board {
         let pos = pos.into();
         self.white
             .into_iter()
-            .position(|bb| bb.has_piece(pos))
+            .position(|bb| Bits::has_piece(bb, pos))
             .map(|i| (Color::W, Piece::from_idx(i), self.white[i]))
             .or_else(|| {
                 self.black
                     .into_iter()
-                    .position(|bb| bb.has_piece(pos))
+                    .position(|bb| Bits::has_piece(bb, pos))
                     .map(|i| (Color::B, Piece::from_idx(i), self.black[i]))
             })
     }
@@ -88,13 +89,13 @@ impl Board {
     pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, Piece, &mut BitBoard)> {
         let pos = pos.into();
         self.white
-            .iter()
-            .position(|bb| bb.has_piece(pos))
+            .into_iter()
+            .position(|bb| Bits::has_piece(bb, pos))
             .map(|i| (Color::W, Piece::from_idx(i), &mut self.white[i]))
             .or_else(|| {
                 self.black
                     .into_iter()
-                    .position(|bb| bb.has_piece(pos))
+                    .position(|bb| Bits::has_piece(bb, pos))
                     .map(|i| (Color::B, Piece::from_idx(i), &mut self.black[i]))
             })
     }
@@ -119,20 +120,20 @@ impl Board {
         let w: usize = self
             .pieces_iter(Color::W)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.count())
+            .map(|(_, bb)| Bits::count(bb))
             .sum();
 
         let b: usize = self
             .pieces_iter(Color::B)
             .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| bb.count())
+            .map(|(_, bb)| Bits::count(bb))
             .sum();
 
         w + b
     }
 
     pub fn in_check(&self, color: Color) -> bool {
-        if let Some(pos) = self.get_piece(color, Piece::King).first_pos() {
+        if let Some(pos) = Bits::first_pos(self.get_piece(color, Piece::King)) {
             self.pseudo_movements(color.flip()).iter().any(|m| m.to() == pos)
         } else {
             true
@@ -141,19 +142,19 @@ impl Board {
 
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
         self.pieces_iter(color)
-            .flat_map(|(_, bb)| bb.pos())
+            .flat_map(|(_, bb)| Bits::pos(bb))
             .flat_map(|p| MoveGen::new(self, p).generate(legal_only))
             .collect()
     }
 
     fn gen_pieces(color: Color) -> [BitBoard; 6] {
         [
-            BitBoard::init(Piece::Pawn, color),
-            BitBoard::init(Piece::Knight, color),
-            BitBoard::init(Piece::Bishop, color),
-            BitBoard::init(Piece::Rook, color),
-            BitBoard::init(Piece::Queen, color),
-            BitBoard::init(Piece::King, color),
+            Bits::init(Piece::Pawn, color),
+            Bits::init(Piece::Knight, color),
+            Bits::init(Piece::Bishop, color),
+            Bits::init(Piece::Rook, color),
+            Bits::init(Piece::Queen, color),
+            Bits::init(Piece::King, color),
         ]
     }
 }

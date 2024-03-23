@@ -55,6 +55,12 @@ impl From<(u8, u8)> for Pos {
     }
 }
 
+impl From<Pos> for BitBoard {
+    fn from(val: Pos) -> Self {
+        val.bb()
+    }
+}
+
 impl Display for Pos {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("({},{})", self.row(), self.col()))

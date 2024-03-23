@@ -1,14 +1,15 @@
 use std::io;
 
-use bitboard::BitBoard;
+use bits::Bits;
 use board::Board;
-pub use color::Color;
+use color::Color;
+use defs::BitBoard;
 use eval::Scorer;
 use moves::Move;
 use piece::Piece;
-pub use pos::Pos;
+use pos::Pos;
 
-mod bitboard;
+mod bits;
 mod board;
 mod color;
 mod defs;
@@ -18,12 +19,12 @@ mod piece;
 mod pos;
 
 pub fn print_bitboard(bb: BitBoard) {
-    println!("[bitboard=0x{:x}]", bb.value());
+    println!("[bitboard=0x{bb:x}]");
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
             let pos: Pos = (row, col).into();
-            let piece = if bb.has_piece(pos) { "@" } else { " " };
+            let piece = if Bits::has_piece(bb, pos) { "@" } else { " " };
             print!("| {piece} ");
         }
         println!("| {}", row + 1);
@@ -134,7 +135,7 @@ pub fn minmax(
     maxer: bool,
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
-    if depth == 0 || board.get_piece(board.mover(), Piece::King).is_empty() {
+    if depth == 0 || board.get_piece(board.mover(), Piece::King) == 0 {
         let eval = Scorer::eval(board, maxer_color, false);
         return (None, eval, if eval.is_infinite() { Some(board.n()) } else { None });
     }
