@@ -3,14 +3,15 @@ use rand::Rng;
 use crate::{bits::Bits, board::Board, defs::BitBoard, piece::Piece, Color};
 
 #[derive(Default)]
-pub struct Scorer {}
+pub(crate) struct Scorer {}
 
 impl Scorer {
-    pub fn eval(board: &Board, maxer: Color, jitter: bool) -> f64 {
+    pub(crate) fn eval(board: &Board, maxer: Color, jitter: bool) -> f64 {
         Self::inner_eval(board, maxer, false, jitter)
     }
 
-    pub fn debug_eval(board: &Board, maxer: Color) -> f64 {
+    #[allow(dead_code)]
+    pub(crate) fn debug_eval(board: &Board, maxer: Color) -> f64 {
         Self::inner_eval(board, maxer, true, false)
     }
 

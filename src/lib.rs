@@ -18,7 +18,8 @@ mod moves;
 mod piece;
 mod pos;
 
-pub fn print_bitboard(bb: BitBoard) {
+#[allow(dead_code)]
+fn print_bitboard(bb: BitBoard) {
     println!("[bitboard=0x{bb:x}]");
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
@@ -27,10 +28,10 @@ pub fn print_bitboard(bb: BitBoard) {
             let piece = if Bits::has_piece(bb, pos) { "@" } else { " " };
             print!("| {piece} ");
         }
-        println!("| {}", row + 1);
+        println!("| {row}");
     }
     println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   2   3   4   5   6   7   8  ");
+    println!("  0   1   2   3   4   5   6   7  ");
 }
 
 fn print_board(board: &Board, highlights: &[Pos]) {
@@ -127,7 +128,7 @@ pub fn auto_play(moves: usize, depth: usize) {
 }
 
 #[must_use]
-pub fn minmax(
+fn minmax(
     board: &Board,
     depth: usize,
     mut alpha: f64,

@@ -1,14 +1,14 @@
 use std::fmt::Display;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub enum Color {
+pub(crate) enum Color {
     B,
     W,
 }
 
 impl Color {
     #[must_use]
-    pub const fn piece_row(self) -> u8 {
+    pub(crate) const fn piece_row(self) -> u8 {
         match self {
             Color::B => 7,
             Color::W => 0,
@@ -16,7 +16,7 @@ impl Color {
     }
 
     #[must_use]
-    pub const fn pawn_row(self) -> u8 {
+    pub(crate) const fn pawn_row(self) -> u8 {
         match self {
             Color::B => 6,
             Color::W => 1,
@@ -24,7 +24,7 @@ impl Color {
     }
 
     #[must_use]
-    pub const fn flip(self) -> Self {
+    pub(crate) const fn flip(self) -> Self {
         match self {
             Color::B => Color::W,
             Color::W => Color::B,

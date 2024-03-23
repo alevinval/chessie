@@ -6,11 +6,11 @@ use crate::{
 
 use super::Color;
 
-pub struct Bits();
+pub(crate) struct Bits();
 
 impl Bits {
     #[must_use]
-    pub const fn init(piece: Piece, color: Color) -> BitBoard {
+    pub(crate) const fn init(piece: Piece, color: Color) -> BitBoard {
         let bb = match piece {
             Piece::Pawn => 0b1111_1111,
             Piece::Rook => 0b1000_0001,
@@ -24,7 +24,7 @@ impl Bits {
     }
 
     #[must_use]
-    pub const fn count(mut bb: BitBoard) -> usize {
+    pub(crate) const fn count(mut bb: BitBoard) -> usize {
         let mut count = 0;
         while bb != 0 {
             count += 1;
@@ -34,24 +34,24 @@ impl Bits {
     }
 
     #[must_use]
-    pub fn has_piece(bb: BitBoard, pos: Pos) -> bool {
+    pub(crate) fn has_piece(bb: BitBoard, pos: Pos) -> bool {
         bb & pos.bb() != 0
     }
 
-    pub fn slide(bb: &mut BitBoard, from: Pos, to: Pos) {
+    pub(crate) fn slide(bb: &mut BitBoard, from: Pos, to: Pos) {
         *bb ^= from.bb() | to.bb();
     }
 
-    pub fn set(bb: &mut BitBoard, pos: Pos) {
+    pub(crate) fn set(bb: &mut BitBoard, pos: Pos) {
         *bb |= pos.bb();
     }
 
-    pub fn unset(bb: &mut BitBoard, pos: Pos) {
+    pub(crate) fn unset(bb: &mut BitBoard, pos: Pos) {
         *bb &= !pos.bb();
     }
 
     #[must_use]
-    pub fn pos(mut bb: BitBoard) -> Vec<Pos> {
+    pub(crate) fn pos(mut bb: BitBoard) -> Vec<Pos> {
         let mut acc: Vec<Pos> = vec![];
         let mut square: Sq = 0;
         while bb > 0 {
@@ -67,7 +67,7 @@ impl Bits {
     }
 
     #[must_use]
-    pub fn first_pos(bb: BitBoard) -> Option<Pos> {
+    pub(crate) fn first_pos(bb: BitBoard) -> Option<Pos> {
         if bb == 0 {
             return None;
         }

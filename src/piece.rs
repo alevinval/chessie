@@ -1,7 +1,7 @@
 use super::Color;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub enum Piece {
+pub(crate) enum Piece {
     Pawn,
     Knight,
     Bishop,
@@ -10,20 +10,20 @@ pub enum Piece {
     King,
 }
 
-pub type Idx = usize;
+pub(crate) type Idx = usize;
 
 impl Piece {
-    pub const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
+    pub(crate) const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
 
-    pub const P: Idx = 0;
-    pub const N: Idx = 1;
-    pub const B: Idx = 2;
-    pub const R: Idx = 3;
-    pub const Q: Idx = 4;
-    pub const K: Idx = 5;
+    pub(crate) const P: Idx = 0;
+    pub(crate) const N: Idx = 1;
+    pub(crate) const B: Idx = 2;
+    pub(crate) const R: Idx = 3;
+    pub(crate) const Q: Idx = 4;
+    pub(crate) const K: Idx = 5;
 
     #[must_use]
-    pub const fn from_idx(idx: Idx) -> Self {
+    pub(crate) const fn from_idx(idx: Idx) -> Self {
         match idx {
             Self::P => Self::Pawn,
             Self::N => Self::Knight,
@@ -36,7 +36,7 @@ impl Piece {
     }
 
     #[must_use]
-    pub const fn idx(self) -> usize {
+    pub(crate) const fn idx(self) -> usize {
         match self {
             Self::Bishop => Self::B,
             Self::King => Self::K,
@@ -48,7 +48,7 @@ impl Piece {
     }
 
     #[must_use]
-    pub const fn as_str(self, c: Color) -> &'static str {
+    pub(crate) const fn as_str(self, c: Color) -> &'static str {
         match self {
             Self::Bishop => match c {
                 Color::B => "♝",

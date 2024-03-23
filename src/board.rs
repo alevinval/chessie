@@ -6,13 +6,13 @@ use crate::pos::Pos;
 use crate::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Castling {
+pub(crate) enum Castling {
     None,
     Some(bool, bool),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Board {
+pub(crate) struct Board {
     mover: Color,
     white: [BitBoard; 6],
     black: [BitBoard; 6],
@@ -23,31 +23,31 @@ pub struct Board {
 
 impl Board {
     #[must_use]
-    pub const fn mover(&self) -> Color {
+    pub(crate) const fn mover(&self) -> Color {
         self.mover
     }
 
     #[must_use]
-    pub const fn n(&self) -> usize {
+    pub(crate) const fn n(&self) -> usize {
         self.n
     }
 
     #[must_use]
-    pub const fn castling(&self, color: Color) -> Castling {
+    pub(crate) const fn castling(&self, color: Color) -> Castling {
         match color {
             Color::B => self.black_castling,
             Color::W => self.white_castling,
         }
     }
 
-    pub fn add_piece(&mut self, pos: Pos, piece: Piece) {
+    pub(crate) fn add_piece(&mut self, pos: Pos, piece: Piece) {
         match self.mover {
             Color::B => Bits::set(&mut self.black[piece.idx()], pos),
             Color::W => Bits::set(&mut self.white[piece.idx()], pos),
         }
     }
 
-    pub fn set_castling(&mut self, color: Color, rights: Castling) {
+    pub(crate) fn set_castling(&mut self, color: Color, rights: Castling) {
         match color {
             Color::B => self.black_castling = rights,
             Color::W => self.white_castling = rights,
@@ -55,14 +55,14 @@ impl Board {
     }
 
     #[must_use]
-    pub fn get_piece(&self, color: Color, piece: Piece) -> BitBoard {
+    pub(crate) fn get_piece(&self, color: Color, piece: Piece) -> BitBoard {
         match color {
             Color::B => self.black[piece.idx()],
             Color::W => self.white[piece.idx()],
         }
     }
 
-    pub fn pieces_iter(&self, color: Color) -> impl Iterator<Item = (Piece, BitBoard)> + '_ {
+    pub(crate) fn pieces_iter(&self, color: Color) -> impl Iterator<Item = (Piece, BitBoard)> + '_ {
         match color {
             Color::B => self.black,
             Color::W => self.white,
@@ -72,7 +72,7 @@ impl Board {
         .map(|(i, bb)| (Piece::from_idx(i), bb))
     }
 
-    pub fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, Piece, BitBoard)> {
+    pub(crate) fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, Piece, BitBoard)> {
         let pos = pos.into();
         self.white
             .into_iter()
@@ -86,7 +86,7 @@ impl Board {
             })
     }
 
-    pub fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, Piece, &mut BitBoard)> {
+    pub(crate) fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, Piece, &mut BitBoard)> {
         let pos = pos.into();
         self.white
             .into_iter()
@@ -100,23 +100,23 @@ impl Board {
             })
     }
 
-    pub fn next_turn(&mut self) {
+    pub(crate) fn next_turn(&mut self) {
         self.mover = self.mover.flip();
         self.n += 1;
     }
 
     #[must_use]
-    pub fn movements(&self, color: Color) -> Vec<Move> {
+    pub(crate) fn movements(&self, color: Color) -> Vec<Move> {
         self.generate_movements(color, true)
     }
 
     #[must_use]
-    pub fn pseudo_movements(&self, color: Color) -> Vec<Move> {
+    pub(crate) fn pseudo_movements(&self, color: Color) -> Vec<Move> {
         self.generate_movements(color, false)
     }
 
     #[must_use]
-    pub fn piece_count(&self) -> usize {
+    pub(crate) fn piece_count(&self) -> usize {
         let w: usize = self
             .pieces_iter(Color::W)
             .filter(|(p, _)| *p != Piece::Pawn)
@@ -132,7 +132,7 @@ impl Board {
         w + b
     }
 
-    pub fn in_check(&self, color: Color) -> bool {
+    pub(crate) fn in_check(&self, color: Color) -> bool {
         if let Some(pos) = Bits::first_pos(self.get_piece(color, Piece::King)) {
             self.pseudo_movements(color.flip()).iter().any(|m| m.to() == pos)
         } else {

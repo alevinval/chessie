@@ -1,7 +1,7 @@
-pub type Sq = u8;
-pub type BitBoard = u64;
+pub(crate) type Sq = u8;
+pub(crate) type BitBoard = u64;
 
-pub enum Dir {
+pub(crate) enum Dir {
     Up(u8),
     Down(u8),
     Right(u8),
@@ -11,7 +11,7 @@ pub enum Dir {
 
 impl Dir {
     #[must_use]
-    pub const fn apply(self, sq: Sq) -> Sq {
+    pub(crate) const fn apply(self, sq: Sq) -> Sq {
         match self {
             Dir::Up(n) => sq + 8 * n,
             Dir::Down(n) => sq - 8 * n,
@@ -27,15 +27,14 @@ mod test {
     use test_case::test_case;
 
     use super::*;
-    use crate::Pos;
 
-    #[test_case((2, 2), Dir::Up(1), (3, 2))]
-    #[test_case((2, 2), Dir::Down(1), (1, 2))]
-    #[test_case((2, 2), Dir::Right(1), (2, 3))]
-    #[test_case((2, 2), Dir::Left(1), (2, 1))]
-    #[test_case((2, 2), Dir::Custom(-2, -2), (0, 0))]
-    #[test_case((2, 2), Dir::Custom(2, 3), (4, 5))]
-    fn apply<P: Into<Pos>>(input: P, dir: Dir, expected: P) {
-        assert_eq!(expected.into().sq(), dir.apply(input.into().sq()));
+    #[test_case(10, Dir::Up(1), 18)]
+    #[test_case(10, Dir::Down(1), 2)]
+    #[test_case(10, Dir::Right(1), 11)]
+    #[test_case(10, Dir::Left(1), 9)]
+    #[test_case(20, Dir::Custom(-2, -2), 2)]
+    #[test_case(10, Dir::Custom(2, 3), 29)]
+    fn apply(input: Sq, dir: Dir, expected: Sq) {
+        assert_eq!(expected, dir.apply(input));
     }
 }
