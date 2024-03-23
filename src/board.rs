@@ -140,6 +140,13 @@ impl Board {
         }
     }
 
+    pub(crate) fn clear(&mut self) {
+        self.white.iter_mut().for_each(|bb| *bb = 0);
+        self.black.iter_mut().for_each(|bb| *bb = 0);
+        self.white_castling = Castling::None;
+        self.black_castling = Castling::None;
+    }
+
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
         self.pieces_iter(color)
             .flat_map(|(_, bb)| Bits::pos(bb))
