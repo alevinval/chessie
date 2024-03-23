@@ -14,9 +14,11 @@ mod board;
 mod color;
 mod defs;
 mod eval;
+mod magic;
 mod moves;
 mod piece;
 mod pos;
+pub mod precompute;
 
 #[allow(dead_code)]
 fn print_bitboard(bb: BitBoard) {

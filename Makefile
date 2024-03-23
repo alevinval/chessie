@@ -15,3 +15,7 @@ cover:
 .PHONY: run
 run:
 	time cargo run --release --bin main
+
+.PHONY: pregen
+pregen:
+	time cargo run --release --bin pregen
