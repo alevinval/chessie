@@ -7,52 +7,32 @@ use crate::{
     Color,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Castling {
-    None,
-    Some(bool, bool),
-}
+use self::state::GameState;
+
+mod state;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Board {
-    mover: Color,
     white: [BitBoard; 6],
     black: [BitBoard; 6],
-    white_castling: Castling,
-    black_castling: Castling,
-    n: usize,
+    state: GameState,
 }
 
 impl Board {
     #[must_use]
-    pub(crate) const fn mover(&self) -> Color {
-        self.mover
+    pub(crate) const fn state(&self) -> &GameState {
+        &self.state
     }
 
     #[must_use]
-    pub(crate) const fn n(&self) -> usize {
-        self.n
-    }
-
-    #[must_use]
-    pub(crate) const fn castling(&self, color: Color) -> Castling {
-        match color {
-            Color::B => self.black_castling,
-            Color::W => self.white_castling,
-        }
+    pub(crate) fn state_mut(&mut self) -> &mut GameState {
+        &mut self.state
     }
 
     pub(crate) fn add(&mut self, pos: Pos, piece: Piece) {
-        match self.mover {
+        match self.state.mover() {
             Color::B => Bits::set(&mut self.black[piece.idx()], pos),
             Color::W => Bits::set(&mut self.white[piece.idx()], pos),
-        }
-    }
-
-    pub(crate) fn set_castling(&mut self, color: Color, rights: Castling) {
-        match color {
-            Color::B => self.black_castling = rights,
-            Color::W => self.white_castling = rights,
         }
     }
 
@@ -100,11 +80,6 @@ impl Board {
                     .position(|bb| Bits::has_piece(bb, pos))
                     .map(|i| (Color::B, Piece::from_idx(i), &mut self.black[i]))
             })
-    }
-
-    pub(crate) fn next_turn(&mut self) {
-        self.mover = self.mover.flip();
-        self.n += 1;
     }
 
     #[must_use]
@@ -161,12 +136,9 @@ impl Board {
 impl Default for Board {
     fn default() -> Self {
         Self {
-            mover: Color::W,
             white: Board::init_pieces(Color::W),
             black: Board::init_pieces(Color::B),
-            white_castling: Castling::Some(true, true),
-            black_castling: Castling::Some(true, true),
-            n: 0,
+            state: GameState::default(),
         }
     }
 }
@@ -177,12 +149,6 @@ mod test {
     use std::mem;
 
     use super::*;
-
-    #[test]
-    fn mover() {
-        let sut = Board::default();
-        assert_eq!(Color::W, sut.mover());
-    }
 
     #[test]
     fn at_white_king() {

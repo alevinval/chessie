@@ -9,8 +9,8 @@ use self::{
 };
 use crate::{
     bits::Bits,
-    board::{Board, Castling},
-    defs::Dir,
+    board::Board,
+    defs::{Castling, Dir},
     piece::Piece,
     print_board, Color, Pos,
 };
@@ -56,7 +56,7 @@ impl<'board> MoveGen<'board> {
     }
 
     fn king_castle(&self, gen: &mut Generator) {
-        let castling = self.board.castling(self.color);
+        let castling = self.board.state().castling(self.color);
 
         if let Castling::Some(left, right) = castling {
             let pos =

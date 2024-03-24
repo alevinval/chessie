@@ -1,10 +1,4 @@
-use crate::{
-    bits::Bits,
-    board::{Board, Castling},
-    piece::Piece,
-    pos::Pos,
-    Color,
-};
+use crate::{bits::Bits, board::Board, defs::Castling, piece::Piece, pos::Pos, Color};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Move {
@@ -54,7 +48,7 @@ impl Move {
     pub fn apply(self, board: &Board) -> Board {
         let mut next = board.clone();
         self.inner_apply(&mut next);
-        next.next_turn();
+        next.state_mut().advance();
         next
     }
 
@@ -75,7 +69,7 @@ impl Move {
                 board.add(to, piece);
             }
             Move::LeftCastle { mover } => {
-                Self::disable_castling(board);
+                board.state_mut().set_castled();
                 match mover {
                     Color::B => {
                         self.slide(board, Pos::new(7, 4), Pos::new(7, 2));
@@ -88,7 +82,7 @@ impl Move {
                 }
             }
             Move::RightCastle { mover } => {
-                Self::disable_castling(board);
+                board.state_mut().set_castled();
                 match mover {
                     Color::B => {
                         self.slide(board, Pos::new(7, 4), Pos::new(7, 6));
@@ -117,10 +111,10 @@ impl Move {
     }
 
     fn update_castling(self, board: &mut Board, from: Pos) {
-        let color = board.mover();
-        if let Castling::Some(left, right) = board.castling(color) {
+        let color = board.state().mover();
+        if let Castling::Some(left, right) = board.state().castling(color) {
             if !left && !right {
-                Self::disable_castling(board);
+                board.state_mut().set_castled();
                 return;
             }
 
@@ -129,21 +123,16 @@ impl Move {
             });
 
             if let Piece::King = piece {
-                board.set_castling(color, Castling::None);
+                board.state_mut().set_castled();
                 return;
             }
 
             if let Piece::Rook = piece {
-                board.set_castling(
-                    color,
-                    Castling::Some(left || from.col() == 0, right || from.col() == 7),
-                );
+                board
+                    .state_mut()
+                    .update_castling(left || from.col() == 0, right || from.col() == 7);
             }
         }
-    }
-
-    fn disable_castling(board: &mut Board) {
-        board.set_castling(board.mover(), Castling::None);
     }
 }
 
