@@ -59,8 +59,8 @@ impl<'board> MoveGen<'board> {
         let castling = self.board.castling(self.color);
 
         if let Castling::Some(left, right) = castling {
-            let pos = Bits::first_pos(self.board.get_piece(self.color, Piece::King))
-                .expect("should be there");
+            let pos =
+                Bits::first_pos(self.board.get(self.color, Piece::King)).expect("should be there");
 
             if right {
                 let mut subgen = Generator::new(self.board, self.color, pos, false);

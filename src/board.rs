@@ -42,7 +42,7 @@ impl Board {
         }
     }
 
-    pub(crate) fn add_piece(&mut self, pos: Pos, piece: Piece) {
+    pub(crate) fn add(&mut self, pos: Pos, piece: Piece) {
         match self.mover {
             Color::B => Bits::set(&mut self.black[piece.idx()], pos),
             Color::W => Bits::set(&mut self.white[piece.idx()], pos),
@@ -57,14 +57,14 @@ impl Board {
     }
 
     #[must_use]
-    pub(crate) fn get_piece(&self, color: Color, piece: Piece) -> BitBoard {
+    pub(crate) fn get(&self, color: Color, piece: Piece) -> BitBoard {
         match color {
             Color::B => self.black[piece.idx()],
             Color::W => self.white[piece.idx()],
         }
     }
 
-    pub(crate) fn pieces_iter(&self, color: Color) -> impl Iterator<Item = (Piece, BitBoard)> + '_ {
+    pub(crate) fn pieces(&self, color: Color) -> impl Iterator<Item = (Piece, BitBoard)> + '_ {
         match color {
             Color::B => self.black,
             Color::W => self.white,
@@ -118,24 +118,16 @@ impl Board {
     }
 
     #[must_use]
-    pub(crate) fn piece_count(&self) -> usize {
-        let w: usize = self
-            .pieces_iter(Color::W)
+    pub(crate) fn count_pieces(&self) -> usize {
+        self.pieces(Color::W)
+            .chain(self.pieces(Color::B))
             .filter(|(p, _)| *p != Piece::Pawn)
             .map(|(_, bb)| Bits::count(bb))
-            .sum();
-
-        let b: usize = self
-            .pieces_iter(Color::B)
-            .filter(|(p, _)| *p != Piece::Pawn)
-            .map(|(_, bb)| Bits::count(bb))
-            .sum();
-
-        w + b
+            .sum()
     }
 
     pub(crate) fn in_check(&self, color: Color) -> bool {
-        if let Some(pos) = Bits::first_pos(self.get_piece(color, Piece::King)) {
+        if let Some(pos) = Bits::first_pos(self.get(color, Piece::King)) {
             self.pseudo_movements(color.flip()).iter().any(|m| m.to() == pos)
         } else {
             true
@@ -145,18 +137,16 @@ impl Board {
     pub(crate) fn clear(&mut self) {
         self.white.iter_mut().for_each(|bb| *bb = 0);
         self.black.iter_mut().for_each(|bb| *bb = 0);
-        self.white_castling = Castling::None;
-        self.black_castling = Castling::None;
     }
 
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
-        self.pieces_iter(color)
+        self.pieces(color)
             .flat_map(|(_, bb)| Bits::pos(bb))
             .flat_map(|p| MoveGen::new(self, p).generate(legal_only))
             .collect()
     }
 
-    fn gen_pieces(color: Color) -> [BitBoard; 6] {
+    fn init_pieces(color: Color) -> [BitBoard; 6] {
         [
             Bits::init(Piece::Pawn, color),
             Bits::init(Piece::Knight, color),
@@ -172,8 +162,8 @@ impl Default for Board {
     fn default() -> Self {
         Self {
             mover: Color::W,
-            white: Board::gen_pieces(Color::W),
-            black: Board::gen_pieces(Color::B),
+            white: Board::init_pieces(Color::W),
+            black: Board::init_pieces(Color::B),
             white_castling: Castling::Some(true, true),
             black_castling: Castling::Some(true, true),
             n: 0,
@@ -234,9 +224,9 @@ mod test {
     }
 
     #[test]
-    fn piece_count() {
+    fn count_pieces() {
         let sut = Board::default();
-        assert_eq!(16, sut.piece_count());
+        assert_eq!(16, sut.count_pieces());
     }
 
     #[test]

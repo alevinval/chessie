@@ -16,9 +16,9 @@ impl Scorer {
     }
 
     fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
-        if board.get_piece(maxer, Piece::King) == 0 {
+        if board.get(maxer, Piece::King) == 0 {
             return f64::NEG_INFINITY;
-        } else if board.get_piece(maxer.flip(), Piece::King) == 0 {
+        } else if board.get(maxer.flip(), Piece::King) == 0 {
             return f64::INFINITY;
         }
 
@@ -34,7 +34,7 @@ impl Scorer {
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
         let material_score: f64 =
-            board.pieces_iter(color).map(|(piece, bb)| Self::score_bitboard(piece, bb)).sum();
+            board.pieces(color).map(|(piece, bb)| Self::score_bitboard(piece, bb)).sum();
 
         if debug {
             println!("{color:?}");

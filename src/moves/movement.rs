@@ -72,7 +72,7 @@ impl Move {
             Move::PawnPromo { from, to, piece } => {
                 Self::clear(board, from);
                 Self::clear(board, to);
-                board.add_piece(to, piece);
+                board.add(to, piece);
             }
             Move::LeftCastle { mover } => {
                 Self::disable_castling(board);

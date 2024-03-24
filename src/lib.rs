@@ -90,7 +90,7 @@ pub fn auto_play(moves: usize, depth: usize) {
     let mut board = Board::default();
 
     for _ in 0..moves {
-        let pc = board.piece_count();
+        let pc = board.count_pieces();
         let bonus = if pc < 6 {
             3
         } else if pc < 10 {
@@ -136,7 +136,7 @@ fn minmax(
     maxer: bool,
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
-    if depth == 0 || board.get_piece(board.mover(), Piece::King) == 0 {
+    if depth == 0 || board.get(board.mover(), Piece::King) == 0 {
         let eval = Scorer::eval(board, maxer_color, false);
         return (None, eval, if eval.is_infinite() { Some(board.n()) } else { None });
     }
