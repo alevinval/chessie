@@ -37,7 +37,8 @@ fn print_bitboard(bb: BitBoard) {
 }
 
 fn print_board(board: &Board, highlights: &[Pos]) {
-    println!("[move={} mover={} highlights={highlights:?}]", board.n(), board.mover());
+    let state = board.state();
+    println!("[move={} mover={} highlights={highlights:?}]", state.n(), state.mover());
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
@@ -98,27 +99,27 @@ pub fn auto_play(moves: usize, depth: usize) {
         } else {
             1
         };
-        let depth = match board.mover() {
+        let depth = match board.state().mover() {
             Color::B => depth,
             Color::W => depth + bonus,
         };
         let (movement, eval, mate) =
-            minmax(&board, depth, -f64::INFINITY, f64::INFINITY, true, board.mover());
+            minmax(&board, depth, -f64::INFINITY, f64::INFINITY, true, board.state().mover());
 
         if let Some(movement) = movement {
             if let Some(mate) = mate {
-                println!("Mate in {}", mate - board.n());
+                println!("Mate in {}", mate - board.state().n());
             }
             println!(
                 "{} => {:?} to play... {movement:?} ({eval}) (depth={depth}",
-                board.n(),
-                board.mover()
+                board.state().n(),
+                board.state().mover()
             );
             board = movement.apply(&board);
             print_board(&board, &[movement.from()]);
         } else {
-            if board.in_check(board.mover()) {
-                println!("{:?} wins by checkmate", board.mover().flip());
+            if board.in_check(board.state().mover()) {
+                println!("{:?} wins by checkmate", board.state().mover().flip());
                 return;
             }
             println!("stalemate");
@@ -136,18 +137,18 @@ fn minmax(
     maxer: bool,
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
-    if depth == 0 || board.get(board.mover(), Piece::King) == 0 {
+    if depth == 0 || board.get(board.state().mover(), Piece::King) == 0 {
         let eval = Scorer::eval(board, maxer_color, false);
-        return (None, eval, if eval.is_infinite() { Some(board.n()) } else { None });
+        return (None, eval, if eval.is_infinite() { Some(board.state().n()) } else { None });
     }
 
-    let mover = board.mover();
+    let mover = board.state().mover();
     let mut movements: Vec<_> = board
         .movements(mover)
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, mover, board.n() < 16) + movement.priority();
+            let eval = Scorer::eval(&next, mover, board.state().n() < 16) + movement.priority();
             (next, movement, eval)
         })
         .collect();
@@ -182,13 +183,13 @@ fn minmax(
         }
     }
 
-    if best_move.is_none() && !maxer && !board.in_check(board.mover()) {
+    if best_move.is_none() && !maxer && !board.in_check(mover) {
         (None, f64::NEG_INFINITY, None)
     } else {
         (
             best_move,
             best_eval,
-            if best_eval.is_infinite() { shortest_mate.or(Some(board.n())) } else { None },
+            if best_eval.is_infinite() { shortest_mate.or(Some(board.state().n())) } else { None },
         )
     }
 }

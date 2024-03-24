@@ -1,5 +1,12 @@
 pub(crate) type Sq = u8;
+
 pub(crate) type BitBoard = u64;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Castling {
+    None,
+    Some(bool, bool),
+}
 
 pub(crate) enum Dir {
     Up(u8),
