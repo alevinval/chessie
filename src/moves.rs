@@ -2,7 +2,7 @@ mod generator;
 mod movement;
 mod placement;
 
-pub use self::movement::Move;
+pub(crate) use self::movement::Move;
 use self::{
     generator::Generator,
     placement::{empty_or_take, is_empty, takes},
@@ -15,7 +15,7 @@ use crate::{
     print_board, Color, Pos,
 };
 
-pub struct MoveGen<'board> {
+pub(crate) struct MoveGen<'board> {
     board: &'board Board,
     color: Color,
     piece: Piece,
@@ -23,7 +23,7 @@ pub struct MoveGen<'board> {
 }
 
 impl<'board> MoveGen<'board> {
-    pub fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
+    pub(crate) fn new<P: Into<Pos>>(board: &'board Board, from: P) -> Self {
         let from = from.into();
         let (color, piece, _) = board.at(from).unwrap_or_else(|| {
             print_board(board, &[]);
@@ -33,7 +33,7 @@ impl<'board> MoveGen<'board> {
         Self { board, color, piece, from }
     }
 
-    pub fn generate(self, check_legal: bool) -> Vec<Move> {
+    pub(crate) fn generate(self, check_legal: bool) -> Vec<Move> {
         let mut gen = Generator::new(self.board, self.color, self.from, check_legal);
         match self.piece {
             Piece::Pawn => match self.color {

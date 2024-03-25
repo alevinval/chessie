@@ -7,7 +7,7 @@ use super::{
 use crate::{board::Board, defs::Dir, piece::Piece, pos::Pos, Color};
 
 #[derive(Debug)]
-pub struct Generator<'board> {
+pub(crate) struct Generator<'board> {
     board: &'board Board,
     color: Color,
     from: Pos,
@@ -16,7 +16,7 @@ pub struct Generator<'board> {
 }
 
 impl<'board> Generator<'board> {
-    pub fn new<P: Into<Pos>>(
+    pub(crate) fn new<P: Into<Pos>>(
         board: &'board Board,
         color: Color,
         from: P,
@@ -25,31 +25,31 @@ impl<'board> Generator<'board> {
         Generator { board, color, from: from.into(), moves: vec![], check_legal }
     }
 
-    pub fn row(&self) -> u8 {
+    pub(crate) fn row(&self) -> u8 {
         self.from.row()
     }
 
-    pub fn col(&self) -> u8 {
+    pub(crate) fn col(&self) -> u8 {
         self.from.col()
     }
 
-    pub fn emit_move(&mut self, m: Move) {
+    pub(crate) fn emit_move(&mut self, m: Move) {
         if !self.check_legal || self.is_legal(m) {
             self.moves.push(m);
         }
     }
 
-    pub fn check_dir(&self, d: Dir, stop_at: StopCondition) -> Placement {
+    pub(crate) fn check_dir(&self, d: Dir, stop_at: StopCondition) -> Placement {
         let to = self.from.to(d);
         stop_at(self.board, self.from, to)
     }
 
-    pub fn dir(&mut self, d: Dir, stop_at: StopCondition) -> Placement {
+    pub(crate) fn dir(&mut self, d: Dir, stop_at: StopCondition) -> Placement {
         let to = self.from.to(d);
         self.pos(to, stop_at)
     }
 
-    pub fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Placement {
+    pub(crate) fn pos<P: Into<Pos>>(&mut self, to: P, stop_at: StopCondition) -> Placement {
         let to = to.into();
         let placement = stop_at(self.board, self.from, to);
 
@@ -59,11 +59,11 @@ impl<'board> Generator<'board> {
         placement
     }
 
-    pub fn moves(self) -> Vec<Move> {
+    pub(crate) fn moves(self) -> Vec<Move> {
         self.moves
     }
 
-    pub fn pawn_promo(&mut self, d: Dir) {
+    pub(crate) fn pawn_promo(&mut self, d: Dir) {
         let to = self.from.to(d);
 
         for piece in Piece::PROMO {
@@ -79,7 +79,7 @@ impl<'board> Generator<'board> {
         }
     }
 
-    pub fn right(&mut self, stop_at: StopCondition) {
+    pub(crate) fn right(&mut self, stop_at: StopCondition) {
         for c in self.col() + 1..8 {
             if self.pos((self.row(), c), stop_at).stop() {
                 break;
@@ -87,7 +87,7 @@ impl<'board> Generator<'board> {
         }
     }
 
-    pub fn cross(&mut self, stop_at: StopCondition) {
+    pub(crate) fn cross(&mut self, stop_at: StopCondition) {
         let (row, col) = (self.row(), self.col());
 
         for r in (0..row).rev() {
@@ -106,7 +106,7 @@ impl<'board> Generator<'board> {
         self.right(stop_at);
     }
 
-    pub fn diagonals(&mut self, stop_at: StopCondition) {
+    pub(crate) fn diagonals(&mut self, stop_at: StopCondition) {
         let (row, col) = (self.row(), self.col());
 
         for pos in zip(row + 1..8, col + 1..8) {

@@ -1,7 +1,7 @@
 use crate::{bits::Bits, board::Board, defs::Castling, piece::Piece, pos::Pos, Color};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum Move {
+pub(crate) enum Move {
     Takes { from: Pos, to: Pos },
     Slide { from: Pos, to: Pos },
     PawnPromo { from: Pos, to: Pos, piece: Piece },
@@ -11,7 +11,7 @@ pub enum Move {
 
 impl Move {
     #[must_use]
-    pub const fn to(self) -> Pos {
+    pub(crate) const fn to(self) -> Pos {
         match self {
             Move::Takes { from: _, to }
             | Move::Slide { from: _, to }
@@ -22,7 +22,7 @@ impl Move {
     }
 
     #[must_use]
-    pub const fn from(self) -> Pos {
+    pub(crate) const fn from(self) -> Pos {
         match self {
             Move::Takes { from, to: _ }
             | Move::Slide { from, to: _ }
@@ -34,7 +34,7 @@ impl Move {
     }
 
     #[must_use]
-    pub const fn priority(self) -> f64 {
+    pub(crate) const fn priority(self) -> f64 {
         match self {
             Move::Takes { from: _, to: _ } => 5.0,
             Move::Slide { from: _, to: _ } => 1.0,
@@ -45,7 +45,7 @@ impl Move {
     }
 
     #[must_use]
-    pub fn apply(self, board: &Board) -> Board {
+    pub(crate) fn apply(self, board: &Board) -> Board {
         let mut next = board.clone();
         self.inner_apply(&mut next);
         next.state_mut().advance();
