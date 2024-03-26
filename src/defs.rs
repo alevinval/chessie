@@ -8,6 +8,12 @@ pub(crate) enum Castling {
     Some(bool, bool),
 }
 
+impl Default for Castling {
+    fn default() -> Self {
+        Self::Some(true, true)
+    }
+}
+
 pub(crate) enum Dir {
     Up(u8),
     Down(u8),
@@ -43,5 +49,10 @@ mod test {
     #[test_case(10, Dir::Custom(2, 3), 29)]
     fn apply(input: Sq, dir: Dir, expected: Sq) {
         assert_eq!(expected, dir.apply(input));
+    }
+
+    #[test]
+    fn castling_default() {
+        assert_eq!(Castling::Some(true, true), Castling::default());
     }
 }

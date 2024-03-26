@@ -52,8 +52,8 @@ impl Default for GameState {
     fn default() -> Self {
         Self {
             mover: Color::W,
-            white_castling: Castling::Some(true, true),
-            black_castling: Castling::Some(true, true),
+            white_castling: Castling::default(),
+            black_castling: Castling::default(),
             n: 0,
         }
     }
