@@ -1,5 +1,5 @@
 use super::Move;
-use crate::{board::Board, pos::Pos};
+use crate::{board::Board, eval::Scorer, pos::Pos};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub(crate) enum Placement {
@@ -17,11 +17,19 @@ impl Placement {
         matches!(self, Self::Takes { from: _, to: _ } | Self::Empty { from: _, to: _ })
     }
 
-    pub(crate) fn movement(&self) -> Option<Move> {
+    pub(crate) fn movement(&self, board: &Board) -> Option<Move> {
         match *self {
             Placement::Invalid => None,
             Placement::Empty { from, to } => Some(Move::Slide { from, to }),
-            Placement::Takes { from, to } => Some(Move::Takes { from, to }),
+            Placement::Takes { from, to } => {
+                let (_, pf, _) = board.at(from).expect("must be there");
+                let (_, pt, _) = board.at(to).expect("must be there");
+                Some(Move::Takes {
+                    from,
+                    to,
+                    value: Scorer::score_piece(pt) - Scorer::score_piece(pf),
+                })
+            }
         }
     }
 }

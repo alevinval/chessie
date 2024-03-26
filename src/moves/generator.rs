@@ -53,7 +53,7 @@ impl<'board> Generator<'board> {
         let to = to.into();
         let placement = stop_at(self.board, self.from, to);
 
-        if let Some(m) = placement.movement() {
+        if let Some(m) = placement.movement(self.board) {
             self.emit_move(m);
         }
         placement
@@ -209,14 +209,14 @@ mod test {
     #[test]
     fn generator_from_direction_takes_placement() {
         let board = Board::default();
-        let mut sut = Generator::new(&board, Color::W, (1, 3), false);
+        let mut sut = Generator::new(&board, Color::W, (0, 3), false);
 
         assert_eq!(
-            Placement::Takes { from: (1, 3).into(), to: (2, 3).into() },
+            Placement::Takes { from: (0, 3).into(), to: (1, 3).into() },
             sut.dir(Dir::Up(1), takes_placement)
         );
 
-        let expected = vec![Move::Takes { from: (1, 3).into(), to: (2, 3).into() }];
+        let expected = vec![Move::Takes { from: (0, 3).into(), to: (1, 3).into(), value: -800.0 }];
         assert_eq!(expected, sut.moves());
     }
 

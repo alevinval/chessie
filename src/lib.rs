@@ -8,6 +8,7 @@ use eval::Scorer;
 use moves::Move;
 use piece::Piece;
 use pos::Pos;
+use rand::Rng;
 
 mod bits;
 mod board;
@@ -148,8 +149,7 @@ fn minmax(
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            let eval = Scorer::eval(&next, mover, board.state().n() < 16) + movement.priority();
-            (next, movement, eval)
+            (next, movement, movement.priority() + rand::thread_rng().gen_range(-0.01..0.01))
         })
         .collect();
     movements.sort_by(|a, b| b.2.total_cmp(&a.2));

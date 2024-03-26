@@ -1,8 +1,8 @@
 use crate::{bits::Bits, board::Board, defs::Castling, piece::Piece, pos::Pos, Color};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Move {
-    Takes { from: Pos, to: Pos },
+    Takes { from: Pos, to: Pos, value: f64 },
     Slide { from: Pos, to: Pos },
     PawnPromo { from: Pos, to: Pos, piece: Piece },
     LeftCastle { mover: Color },
@@ -32,9 +32,9 @@ impl Move {
     }
 
     #[must_use]
-    pub(crate) const fn priority(self) -> f64 {
+    pub(crate) fn priority(self) -> f64 {
         match self {
-            Move::Takes { .. } => 5.0,
+            Move::Takes { value, .. } => 5.0 + value / 100.0,
             Move::Slide { .. } => 1.0,
             Move::PawnPromo { .. } => 10.0,
             Move::LeftCastle { .. } => 6.0,
@@ -52,7 +52,7 @@ impl Move {
 
     fn inner_apply(self, board: &mut Board) {
         match self {
-            Move::Takes { from, to } => {
+            Move::Takes { from, to, .. } => {
                 Self::clear(board, to);
                 self.update_castling(board, from);
                 self.slide(board, from, to);
@@ -165,7 +165,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(3, mem::size_of::<Move>());
+        assert_eq!(16, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }
