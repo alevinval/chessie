@@ -13,9 +13,7 @@ impl Move {
     #[must_use]
     pub(crate) const fn to(self) -> Pos {
         match self {
-            Move::Takes { from: _, to }
-            | Move::Slide { from: _, to }
-            | Move::PawnPromo { from: _, to, piece: _ } => to,
+            Move::Takes { to, .. } | Move::Slide { to, .. } | Move::PawnPromo { to, .. } => to,
             Move::LeftCastle { mover } => Pos::new(mover.piece_row(), 2),
             Move::RightCastle { mover } => Pos::new(mover.piece_row(), 6),
         }
@@ -24,9 +22,9 @@ impl Move {
     #[must_use]
     pub(crate) const fn from(self) -> Pos {
         match self {
-            Move::Takes { from, to: _ }
-            | Move::Slide { from, to: _ }
-            | Move::PawnPromo { from, to: _, piece: _ } => from,
+            Move::Takes { from, .. } | Move::Slide { from, .. } | Move::PawnPromo { from, .. } => {
+                from
+            }
             Move::LeftCastle { mover } | Move::RightCastle { mover } => {
                 Pos::new(mover.piece_row(), 4)
             }
@@ -36,11 +34,11 @@ impl Move {
     #[must_use]
     pub(crate) const fn priority(self) -> f64 {
         match self {
-            Move::Takes { from: _, to: _ } => 5.0,
-            Move::Slide { from: _, to: _ } => 1.0,
-            Move::PawnPromo { from: _, to: _, piece: _ } => 10.0,
-            Move::LeftCastle { mover: _ } => 6.0,
-            Move::RightCastle { mover: _ } => 7.0,
+            Move::Takes { .. } => 5.0,
+            Move::Slide { .. } => 1.0,
+            Move::PawnPromo { .. } => 10.0,
+            Move::LeftCastle { .. } => 6.0,
+            Move::RightCastle { .. } => 7.0,
         }
     }
 
