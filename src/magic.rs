@@ -314,8 +314,9 @@ impl Magic {
 
 #[cfg(test)]
 mod test {
+    use crate::util::print_bitboard;
+
     use super::*;
-    use crate::print_bitboard;
 
     #[test]
     fn print_magics() {

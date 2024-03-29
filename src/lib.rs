@@ -1,14 +1,13 @@
 use std::io;
 
-use bits::Bits;
 use board::Board;
 use color::Color;
-use defs::BitBoard;
 use eval::Scorer;
 use moves::Move;
 use piece::Piece;
 use pos::Pos;
 use rand::Rng;
+use util::print_board;
 
 mod bits;
 mod board;
@@ -20,39 +19,7 @@ mod moves;
 mod piece;
 mod pos;
 pub mod precompute;
-
-#[allow(dead_code)]
-fn print_bitboard(bb: BitBoard) {
-    println!("[bitboard=0x{bb:x}]");
-    for row in (0..8).rev() {
-        println!("+---+---+---+---+---+---+---+---+");
-        for col in 0..8 {
-            let pos: Pos = (row, col).into();
-            let piece = if Bits::has_piece(bb, pos) { "@" } else { " " };
-            print!("| {piece} ");
-        }
-        println!("| {row}");
-    }
-    println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   1   2   3   4   5   6   7  ");
-}
-
-fn print_board(board: &Board, highlights: &[Pos]) {
-    let state = board.state();
-    println!("[move={} mover={} highlights={highlights:?}]", state.n(), state.mover());
-    for row in (0..8).rev() {
-        println!("+---+---+---+---+---+---+---+---+");
-        for col in 0..8 {
-            let pos: Pos = (row, col).into();
-            let mark = highlights.iter().find(|p| **p == pos).map(|_| "•");
-            let piece = board.at(pos).map_or(" ", |(color, piece, _)| piece.as_str(color));
-            print!("| {} ", mark.unwrap_or(piece));
-        }
-        println!("| {row}");
-    }
-    println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   1   2   3   4   5   6   7  ");
-}
+mod util;
 
 fn read_pos() -> Pos {
     let mut line = String::new();

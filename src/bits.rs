@@ -118,7 +118,7 @@ impl Bits {
 mod test {
 
     use super::*;
-    use crate::{print_bitboard, Pos};
+    use crate::{util::print_bitboard, Pos};
 
     static ORIGIN: Pos = Pos::new(0, 0);
     static TARGET: Pos = Pos::new(3, 3);
