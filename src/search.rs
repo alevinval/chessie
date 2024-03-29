@@ -1,5 +1,3 @@
-use rand::Rng;
-
 use crate::{board::Board, color::Color, eval::Scorer, moves::Move, piece::Piece};
 
 #[must_use]
@@ -22,7 +20,7 @@ pub(crate) fn minmax(
         .into_iter()
         .map(|movement| {
             let next = movement.apply(board);
-            (next, movement, movement.priority() + rand::thread_rng().gen_range(-0.01..0.01))
+            (next, movement, movement.priority())
         })
         .collect();
     movements.sort_by(|a, b| b.2.total_cmp(&a.2));
