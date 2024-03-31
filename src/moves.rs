@@ -4,7 +4,7 @@ use crate::{
     bits::Bits,
     board::Board,
     defs::{BitBoard, Castling},
-    eval::Scorer,
+    eval::score_piece,
     magic::Magic,
     piece::Piece,
     print_board, Color, Pos,
@@ -181,7 +181,7 @@ impl<'board> Generator<'board> {
         for to in Bits::pos(bb) {
             let (_, pf, _) = self.board.at(self.from).unwrap();
             let (_, pt, _) = self.board.at(to).unwrap();
-            let value = Scorer::score_piece(pt) - Scorer::score_piece(pf);
+            let value = score_piece(pt) - score_piece(pf);
             self.push_move(Move::Takes { from: self.from, to, value });
         }
     }

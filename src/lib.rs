@@ -2,6 +2,7 @@ use std::io;
 
 use board::Board;
 use color::Color;
+use eval::legacy::LegacyScorer;
 use moves::Move;
 use pos::Pos;
 use search::minmax;
@@ -31,9 +32,9 @@ fn read_pos() -> Pos {
 }
 
 pub fn play() {
+    let legacy_eval = LegacyScorer::eval;
     let mut board = Board::default();
     print_board(&board, &[]);
-
     loop {
         let from = read_pos();
         // print_board(&board, &[board.generate_moves(from).map(|p| )]);
@@ -43,7 +44,8 @@ pub fn play() {
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
-        let (movement, _, _) = minmax(&board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
+        let (movement, _, _) =
+            minmax(legacy_eval, &board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
         if let Some(movement) = movement {
             board = movement.apply(&board);
             print_board(&board, &[]);
@@ -55,6 +57,8 @@ pub fn play() {
 }
 
 pub fn auto_play(moves: usize, depth: usize) {
+    let white_eval = LegacyScorer::eval;
+    let black_eval = LegacyScorer::eval;
     let mut board = Board::default();
 
     for _ in 0..moves {
@@ -70,8 +74,18 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval, mate) =
-            minmax(&board, depth, -f64::INFINITY, f64::INFINITY, true, board.state().mover());
+        let (movement, eval, mate) = minmax(
+            match board.state().mover() {
+                Color::B => black_eval,
+                Color::W => white_eval,
+            },
+            &board,
+            depth,
+            -f64::INFINITY,
+            f64::INFINITY,
+            true,
+            board.state().mover(),
+        );
 
         if let Some(movement) = movement {
             if let Some(mate) = mate {

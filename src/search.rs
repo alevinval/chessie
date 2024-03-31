@@ -1,7 +1,10 @@
-use crate::{board::Board, color::Color, eval::Scorer, moves::Move, piece::Piece};
+use crate::{board::Board, color::Color, moves::Move, piece::Piece};
+
+type EvalFn = fn(board: &Board, maxer: Color) -> f64;
 
 #[must_use]
 pub(crate) fn minmax(
+    eval: EvalFn,
     board: &Board,
     depth: usize,
     mut alpha: f64,
@@ -10,8 +13,8 @@ pub(crate) fn minmax(
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
     if depth == 0 || board.get(board.state().mover(), Piece::King) == 0 {
-        let eval = Scorer::eval(board, maxer_color);
-        return (None, eval, if eval.is_infinite() { Some(board.state().n()) } else { None });
+        let score = eval(board, maxer_color);
+        return (None, score, if score.is_infinite() { Some(board.state().n()) } else { None });
     }
 
     let mut movements = board.movements(board.state().mover());
@@ -22,7 +25,8 @@ pub(crate) fn minmax(
     let mut shortest_mate: Option<usize> = None;
     for movement in movements {
         let child = movement.apply(board);
-        let (_, curr_eval, mate) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
+        let (_, curr_eval, mate) =
+            minmax(eval, &child, depth - 1, alpha, beta, !maxer, maxer_color);
         if let Some(proposal) = mate {
             shortest_mate = shortest_mate.map(|current| current.min(proposal)).or(mate);
         }
