@@ -14,21 +14,14 @@ pub(crate) fn minmax(
         return (None, eval, if eval.is_infinite() { Some(board.state().n()) } else { None });
     }
 
-    let mover = board.state().mover();
-    let mut movements: Vec<_> = board
-        .movements(mover)
-        .into_iter()
-        .map(|movement| {
-            let next = movement.apply(board);
-            (next, movement, movement.priority())
-        })
-        .collect();
-    movements.sort_by(|a, b| b.2.total_cmp(&a.2));
+    let mut movements = board.movements(board.state().mover());
+    movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
 
-    let mut best_move = movements.first().map(|r| r.1);
+    let mut best_move = movements.first().copied();
     let mut best_eval = if maxer { f64::NEG_INFINITY } else { f64::INFINITY };
     let mut shortest_mate: Option<usize> = None;
-    for (child, movement, _) in movements {
+    for movement in movements {
+        let child = movement.apply(board);
         let (_, curr_eval, mate) = minmax(&child, depth - 1, alpha, beta, !maxer, maxer_color);
         if let Some(proposal) = mate {
             shortest_mate = shortest_mate.map(|current| current.min(proposal)).or(mate);
@@ -54,7 +47,7 @@ pub(crate) fn minmax(
         }
     }
 
-    if best_move.is_none() && !maxer && !board.in_check(mover) {
+    if best_move.is_none() && !maxer && !board.in_check(board.state().mover()) {
         (None, f64::NEG_INFINITY, None)
     } else {
         (
