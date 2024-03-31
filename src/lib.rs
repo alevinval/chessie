@@ -2,7 +2,7 @@ use std::io;
 
 use board::Board;
 use color::Color;
-use eval::legacy::LegacyScorer;
+use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
 use pos::Pos;
 use search::minmax;
@@ -57,7 +57,7 @@ pub fn play() {
 }
 
 pub fn auto_play(moves: usize, depth: usize) {
-    let white_eval = LegacyScorer::eval;
+    let white_eval = Scorer::eval;
     let black_eval = LegacyScorer::eval;
     let mut board = Board::default();
 
