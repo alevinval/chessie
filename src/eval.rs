@@ -1,35 +1,32 @@
-use rand::Rng;
-
 use crate::{bits::Bits, board::Board, defs::BitBoard, piece::Piece, Color};
 
 #[derive(Default)]
 pub(crate) struct Scorer {}
 
 impl Scorer {
-    pub(crate) fn eval(board: &Board, maxer: Color, jitter: bool) -> f64 {
-        Self::inner_eval(board, maxer, false, jitter)
+    pub(crate) fn eval(board: &Board, maxer: Color) -> f64 {
+        Self::inner_eval(board, maxer, false)
     }
 
     #[allow(dead_code)]
     pub(crate) fn debug_eval(board: &Board, maxer: Color) -> f64 {
-        Self::inner_eval(board, maxer, true, false)
+        Self::inner_eval(board, maxer, true)
     }
 
-    fn inner_eval(board: &Board, maxer: Color, debug: bool, jitter: bool) -> f64 {
+    fn inner_eval(board: &Board, maxer: Color, debug: bool) -> f64 {
         if board.get(maxer, Piece::King) == 0 {
             return f64::NEG_INFINITY;
         } else if board.get(maxer.flip(), Piece::King) == 0 {
             return f64::INFINITY;
         }
 
-        let offset = if jitter { rand::thread_rng().gen_range(-0.00001..0.00001) } else { 0.0 };
         let white = Scorer::score(board, Color::W, debug);
         let black = Scorer::score(board, Color::B, debug);
         let score = match maxer {
             Color::B => black - white,
             Color::W => white - black,
         };
-        score / 100.0 + offset
+        score / 100.0
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {

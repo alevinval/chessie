@@ -10,7 +10,7 @@ pub(crate) fn minmax(
     maxer_color: Color,
 ) -> (Option<Move>, f64, Option<usize>) {
     if depth == 0 || board.get(board.state().mover(), Piece::King) == 0 {
-        let eval = Scorer::eval(board, maxer_color, false);
+        let eval = Scorer::eval(board, maxer_color);
         return (None, eval, if eval.is_infinite() { Some(board.state().n()) } else { None });
     }
 
