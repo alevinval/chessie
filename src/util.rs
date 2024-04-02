@@ -1,4 +1,4 @@
-use crate::{bits::Bits, board::Board, defs::BitBoard, pos::Pos};
+use crate::{bits::Bits, board::Board, defs::BitBoard, fen, pos::Pos};
 
 #[allow(dead_code)]
 pub(crate) fn print_bitboard(bb: BitBoard) {
@@ -19,6 +19,7 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
 pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
     let state = board.state();
     println!("[move={} mover={} highlights={highlights:?}]", state.n(), state.mover());
+    println!("[{}]", fen::encode(board));
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
