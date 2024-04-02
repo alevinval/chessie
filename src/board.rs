@@ -7,7 +7,7 @@ use crate::{
     Color,
 };
 
-use self::state::GameState;
+pub(crate) use self::state::GameState;
 
 mod state;
 
@@ -45,8 +45,8 @@ impl Board {
         &mut self.state
     }
 
-    pub(crate) fn add(&mut self, pos: Pos, piece: Piece) {
-        match self.state.mover() {
+    pub(crate) fn add(&mut self, color: Color, piece: Piece, pos: Pos) {
+        match color {
             Color::B => Bits::set(&mut self.black[piece.idx()], pos),
             Color::W => Bits::set(&mut self.white[piece.idx()], pos),
         }

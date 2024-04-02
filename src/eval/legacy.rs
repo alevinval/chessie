@@ -43,6 +43,7 @@ impl LegacyScorer {
         material_score
     }
 
+    #[allow(clippy::cast_precision_loss)]
     fn score_bitboard(piece: Piece, bb: BitBoard) -> f64 {
         Bits::count(bb) as f64 * score_piece(piece)
     }

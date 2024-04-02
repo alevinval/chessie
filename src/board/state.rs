@@ -32,6 +32,14 @@ impl GameState {
         self.n += 1;
     }
 
+    pub(crate) fn set_mover(&mut self, mover: Color) {
+        self.mover = mover;
+    }
+
+    pub(crate) fn set_n(&mut self, n: usize) {
+        self.n = n;
+    }
+
     pub(crate) fn set_castled(&mut self) {
         *self.castling_for(self.mover) = Castling::None;
     }
@@ -40,7 +48,7 @@ impl GameState {
         *self.castling_for(self.mover) = Castling::Some(left, right);
     }
 
-    fn castling_for(&mut self, color: Color) -> &mut Castling {
+    pub(crate) fn castling_for(&mut self, color: Color) -> &mut Castling {
         match color {
             Color::B => &mut self.black_castling,
             Color::W => &mut self.white_castling,

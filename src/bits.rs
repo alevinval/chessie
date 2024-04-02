@@ -50,6 +50,7 @@ impl Bits {
     }
 
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn pos(mut bb: BitBoard) -> Vec<Pos> {
         let mut acc: Vec<Pos> = vec![];
         let mut square: Sq = 0;
@@ -66,6 +67,7 @@ impl Bits {
     }
 
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn first_pos(bb: BitBoard) -> Option<Pos> {
         if bb == 0 {
             return None;

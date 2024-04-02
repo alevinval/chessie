@@ -1,6 +1,7 @@
 use crate::{bits::Bits, board::Board, defs::BitBoard, magic::Magic, pos::Pos};
 
 #[must_use]
+#[allow(clippy::cast_possible_truncation)]
 pub fn king() -> [BitBoard; 64] {
     let mut board = Board::default();
     board.clear();
@@ -60,6 +61,7 @@ pub fn col_slider() -> [BitBoard; 8] {
 }
 
 #[must_use]
+#[allow(clippy::cast_possible_truncation)]
 pub fn diag_slider() -> [BitBoard; 64] {
     let mut ans: [BitBoard; 64] = [0; 64];
     for (sq, bb) in ans.iter_mut().enumerate().rev() {
@@ -81,6 +83,7 @@ pub fn diag_slider() -> [BitBoard; 64] {
 }
 
 #[must_use]
+#[allow(clippy::cast_possible_truncation)]
 pub fn antidiag_slider() -> [BitBoard; 64] {
     let mut ans: [BitBoard; 64] = [0; 64];
     for (sq, bb) in ans.iter_mut().enumerate().rev() {

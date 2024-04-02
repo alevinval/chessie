@@ -64,7 +64,7 @@ impl Move {
             Move::PawnPromo { from, to, piece } => {
                 Self::clear(board, from);
                 Self::clear(board, to);
-                board.add(to, piece);
+                board.add(board.state().mover(), piece, to);
             }
             Move::LeftCastle { mover } => {
                 board.state_mut().set_castled();
