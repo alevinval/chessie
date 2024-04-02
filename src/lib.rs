@@ -13,6 +13,7 @@ mod board;
 mod color;
 mod defs;
 mod eval;
+mod fen;
 mod magic;
 mod moves;
 mod piece;
