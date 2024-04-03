@@ -5,7 +5,7 @@ use color::Color;
 use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
 use pos::Pos;
-use search::minmax;
+use search::find_move;
 use util::print_board;
 
 mod bits;
@@ -45,8 +45,7 @@ pub fn play() {
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board, &[]);
 
-        let (movement, _, _) =
-            minmax(legacy_eval, &board, 4, -f64::INFINITY, f64::INFINITY, true, Color::B);
+        let (movement, _, _) = find_move(&board, 4, legacy_eval);
         if let Some(movement) = movement {
             board = movement.apply(&board);
             print_board(&board, &[]);
@@ -75,17 +74,13 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval, mate) = minmax(
+        let (movement, eval, mate) = find_move(
+            &board,
+            depth,
             match board.state().mover() {
                 Color::B => black_eval,
                 Color::W => white_eval,
             },
-            &board,
-            depth,
-            -f64::INFINITY,
-            f64::INFINITY,
-            true,
-            board.state().mover(),
         );
 
         if let Some(movement) = movement {
