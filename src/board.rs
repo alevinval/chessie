@@ -138,7 +138,7 @@ impl Board {
         self.black.iter_mut().for_each(|bb| *bb = 0);
     }
 
-    fn calculate_occupancies(&mut self) {
+    pub(crate) fn calculate_occupancies(&mut self) {
         self.white_side = collapse(self.white);
         self.black_side = collapse(self.black);
         self.occupancy = self.white_side | self.black_side;

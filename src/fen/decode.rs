@@ -27,6 +27,8 @@ pub(crate) fn decode(input: &str) -> Result<Board, FenError> {
     let fullmove = input.next().ok_or(FenError::Invalid)?;
     decode_fullmove(&mut board, fullmove)?;
 
+    board.calculate_occupancies();
+
     Ok(board)
 }
 
