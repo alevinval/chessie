@@ -74,7 +74,7 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, eval, mate) = find_move(
+        let (movement, _, mate) = find_move(
             &board,
             depth,
             match board.state().mover() {
@@ -87,11 +87,6 @@ pub fn auto_play(moves: usize, depth: usize) {
             if let Some(mate) = mate {
                 println!("Mate in {}", mate - board.state().n());
             }
-            println!(
-                "{} => {:?} to play... {movement:?} ({eval}) (depth={depth}",
-                board.state().n(),
-                board.state().mover()
-            );
             board = movement.apply(&board);
             print_board(&board, &[movement.from()]);
         } else {

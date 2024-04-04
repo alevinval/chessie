@@ -1,4 +1,11 @@
-use crate::{bits::Bits, board::Board, defs::BitBoard, fen, pos::Pos};
+use crate::{
+    bits::Bits,
+    board::Board,
+    defs::BitBoard,
+    eval::{legacy::LegacyScorer, Scorer},
+    fen,
+    pos::Pos,
+};
 
 #[allow(dead_code)]
 pub(crate) fn print_bitboard(bb: BitBoard) {
@@ -18,7 +25,13 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
 
 pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
     let state = board.state();
-    println!("[move={} mover={} highlights={highlights:?}]", state.n(), state.mover());
+    let eval = Scorer::eval(board, state.mover());
+    let legacy_eval = LegacyScorer::eval(board, state.mover());
+    println!(
+        "[move={} mover={} highlights={highlights:?} eval={eval:.1} legacy_eval={legacy_eval:.1}]",
+        state.n(),
+        state.mover()
+    );
     println!("[{}]", fen::encode(board));
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
