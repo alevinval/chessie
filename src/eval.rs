@@ -32,6 +32,10 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
+        if board.in_check(color) && board.movements(color).is_empty() {
+            return f64::NEG_INFINITY;
+        }
+
         let material_score: f64 =
             board.pieces(color).map(|(piece, bb)| Self::score_bitboard(piece, bb)).sum();
 
