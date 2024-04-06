@@ -8,24 +8,31 @@ pub(crate) fn find_move(
     depth: usize,
     eval: EvalFn,
 ) -> (Option<Move>, f64, Option<usize>) {
-    alpha_beta(board, depth, eval, board.state().mover(), true, true, -f64::INFINITY, f64::INFINITY)
+    alpha_beta(
+        board,
+        depth,
+        eval,
+        board.state().mover(),
+        true,
+        true,
+        (-f64::INFINITY, f64::INFINITY),
+    )
 }
 
 #[must_use]
 fn alpha_beta(
     board: &Board,
-    depth: usize,
+    ply: usize,
     eval_fn: EvalFn,
     maxer: Color,
     is_root: bool,
     is_maxer: bool,
-    mut alpha: f64,
-    mut beta: f64,
+    (mut alpha, mut beta): (f64, f64),
 ) -> (Option<Move>, f64, Option<usize>) {
     let score = eval_fn(board, maxer);
     if score.is_infinite() {
         return (None, score, Some(board.state().n()));
-    } else if depth == 0 {
+    } else if ply == 0 {
         return (None, score, None);
     }
 
@@ -38,14 +45,14 @@ fn alpha_beta(
     let mut shortest_mate: Option<usize> = None;
     for movement in movements {
         let child = movement.apply(board);
-        let (_, curr_eval, mate) =
-            alpha_beta(&child, depth - 1, eval_fn, maxer, false, !is_maxer, alpha, beta);
+        let (_, child_eval, mate) =
+            alpha_beta(&child, ply - 1, eval_fn, maxer, false, !is_maxer, (alpha, beta));
         if let Some(proposal) = mate {
             shortest_mate = shortest_mate.map(|current| current.min(proposal)).or(mate);
         }
         if is_maxer {
-            if curr_eval > best_eval {
-                best_eval = curr_eval;
+            if child_eval > best_eval {
+                best_eval = child_eval;
                 best_move = Some(movement);
             }
             alpha = alpha.max(best_eval);
@@ -53,8 +60,8 @@ fn alpha_beta(
                 break;
             }
         } else {
-            if curr_eval < best_eval {
-                best_eval = curr_eval;
+            if child_eval < best_eval {
+                best_eval = child_eval;
                 best_move = Some(movement);
             }
             beta = beta.min(best_eval);
