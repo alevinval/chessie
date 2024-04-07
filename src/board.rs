@@ -107,7 +107,9 @@ impl Board {
 
     #[must_use]
     pub(crate) fn movements(&self, color: Color) -> Vec<Move> {
-        self.generate_movements(color, true)
+        let mut movements: Vec<Move> = self.generate_movements(color, true);
+        movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
+        movements
     }
 
     #[must_use]

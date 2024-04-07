@@ -26,10 +26,9 @@ fn negamax(
     }
 
     let mover = board.state().mover();
-    let mut movements = board.movements(mover);
-    movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
-
+    let movements = board.movements(mover);
     let first = movements.first().copied();
+
     let mut best_move = None;
     let mut best_eval = f64::NEG_INFINITY;
     let mut best_mate: Option<usize> = None;
@@ -38,6 +37,7 @@ fn negamax(
         let child = movement.apply(board);
         let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, (-beta, -alpha));
         let eval = -eval;
+
         if let Some(proposal) = mate {
             best_mate = best_mate.map(|curr| curr.min(proposal)).or(mate);
         }
