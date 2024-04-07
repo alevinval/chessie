@@ -8,7 +8,7 @@ pub(crate) fn find_move(
     depth: usize,
     eval_fn: EvalFn,
 ) -> (Option<Move>, f64, Option<usize>) {
-    negamax(board, depth, eval_fn, true, (-f64::INFINITY, f64::INFINITY))
+    negamax(board, depth, eval_fn, (-f64::INFINITY, f64::INFINITY))
 }
 
 #[must_use]
@@ -16,7 +16,6 @@ fn negamax(
     board: &Board,
     ply: usize,
     eval_fn: EvalFn,
-    is_root: bool,
     (mut alpha, beta): (f64, f64),
 ) -> (Option<Move>, f64, Option<usize>) {
     let score = eval_fn(board);
@@ -30,13 +29,14 @@ fn negamax(
     let mut movements = board.movements(mover);
     movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
 
-    let mut best_move = if is_root { movements.first().copied() } else { None };
+    let first = movements.first().copied();
+    let mut best_move = None;
     let mut best_eval = f64::NEG_INFINITY;
     let mut best_mate: Option<usize> = None;
 
     for movement in movements {
         let child = movement.apply(board);
-        let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, false, (-beta, -alpha));
+        let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, (-beta, -alpha));
         let eval = -eval;
         if let Some(proposal) = mate {
             best_mate = best_mate.map(|curr| curr.min(proposal)).or(mate);
@@ -56,7 +56,7 @@ fn negamax(
         return (None, 0.0, best_mate);
     }
 
-    (best_move, best_eval, best_mate)
+    (best_move.or(first), best_eval, best_mate)
 }
 
 #[cfg(test)]
