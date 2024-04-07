@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use core::fmt;
 
 use crate::defs::{BitBoard, Sq};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Pos(Sq);
 
 impl Pos {
@@ -57,8 +57,14 @@ impl From<Pos> for BitBoard {
     }
 }
 
-impl Display for Pos {
+impl fmt::Display for Pos {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("({},{})", self.row(), self.col()))
+    }
+}
+
+impl fmt::Debug for Pos {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!("({},{})", self.row(), self.col()))
     }
 }
