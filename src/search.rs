@@ -32,14 +32,14 @@ fn negamax(
 
     let mut best_move = if is_root { movements.first().copied() } else { None };
     let mut best_eval = f64::NEG_INFINITY;
-    let mut shortest_mate: Option<usize> = None;
+    let mut best_mate: Option<usize> = None;
 
     for movement in movements {
         let child = movement.apply(board);
         let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, false, (-beta, -alpha));
         let eval = -eval;
         if let Some(proposal) = mate {
-            shortest_mate = shortest_mate.map(|current| current.min(proposal)).or(mate);
+            best_mate = best_mate.map(|curr| curr.min(proposal)).or(mate);
         }
         if eval > best_eval {
             best_eval = eval;
@@ -53,10 +53,10 @@ fn negamax(
 
     // Avoid stalemates
     if best_move.is_none() && !board.in_check(mover) {
-        return (None, 0.0, None);
+        return (None, 0.0, best_mate);
     }
 
-    (best_move, best_eval, shortest_mate)
+    (best_move, best_eval, best_mate)
 }
 
 #[cfg(test)]
@@ -81,17 +81,21 @@ mod test {
     #[test]
     fn mate_in_two() {
         let board = fen::decode("8/8/8/2Q5/7p/1k5P/1N6/1K3B2 w - - 0 101").expect("ook");
+        print_board(&board, &[]);
 
-        let (a, _, _) = find_move(&board, 4, Scorer::eval);
+        let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_board(&board, &[a.unwrap().to()]);
-
-        let board = a.unwrap().apply(&board);
-        let (a, _, _) = find_move(&board, 4, Scorer::eval);
-        print_board(&board, &[a.unwrap().to()]);
+        assert_eq!(Some(204), mate);
 
         let board = a.unwrap().apply(&board);
-        let (a, _, _) = find_move(&board, 4, Scorer::eval);
+        let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_board(&board, &[a.unwrap().to()]);
+        assert_eq!(Some(204), mate);
+
+        let board = a.unwrap().apply(&board);
+        let (a, _, mate) = find_move(&board, 4, Scorer::eval);
+        print_board(&board, &[a.unwrap().to()]);
+        assert_eq!(Some(204), mate);
 
         assert_eq!(Some(Move::Slide { from: Pos::new(3, 2), to: Pos::new(2, 2) }), a);
     }
