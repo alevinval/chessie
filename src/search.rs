@@ -1,6 +1,6 @@
-use crate::{board::Board, color::Color, moves::Move};
+use crate::{board::Board, moves::Move};
 
-type EvalFn = fn(board: &Board, maxer: Color) -> f64;
+type EvalFn = fn(board: &Board) -> f64;
 
 #[must_use]
 pub(crate) fn find_move(
@@ -19,7 +19,7 @@ fn negamax(
     is_root: bool,
     (mut alpha, beta): (f64, f64),
 ) -> (Option<Move>, f64, Option<usize>) {
-    let score = eval_fn(board, board.state().mover());
+    let score = eval_fn(board);
     if score.is_infinite() {
         return (None, score, Some(board.state().n()));
     } else if ply == 0 {

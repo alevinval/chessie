@@ -25,8 +25,8 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
 
 pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
     let state = board.state();
-    let eval = Scorer::eval(board, state.mover());
-    let legacy_eval = LegacyScorer::eval(board, state.mover());
+    let eval = Scorer::eval(board);
+    let legacy_eval = LegacyScorer::eval(board);
     println!(
         "[move={} mover={} highlights={highlights:?} eval={eval:.1} legacy_eval={legacy_eval:.1}]",
         state.n(),

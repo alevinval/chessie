@@ -6,33 +6,21 @@ pub mod legacy;
 pub(crate) struct Scorer {}
 
 impl Scorer {
-    pub(crate) fn eval(board: &Board, maxer: Color) -> f64 {
-        Self::inner_eval(board, maxer, false)
+    pub(crate) fn eval(board: &Board) -> f64 {
+        let mover = board.state().mover();
+        Self::score(board, mover, false) - Self::score(board, mover.flip(), false)
     }
 
     #[allow(dead_code)]
-    pub(crate) fn debug_eval(board: &Board, maxer: Color) -> f64 {
-        Self::inner_eval(board, maxer, true)
-    }
-
-    fn inner_eval(board: &Board, maxer: Color, debug: bool) -> f64 {
-        if board.get(maxer, Piece::King) == 0 {
-            return f64::NEG_INFINITY;
-        } else if board.get(maxer.flip(), Piece::King) == 0 {
-            return f64::INFINITY;
-        }
-
-        let white = Self::score(board, Color::W, debug);
-        let black = Self::score(board, Color::B, debug);
-        let score = match maxer {
-            Color::B => black - white,
-            Color::W => white - black,
-        };
-        score / 100.0
+    pub(crate) fn debug_eval(board: &Board) -> f64 {
+        let mover = board.state().mover();
+        Self::score(board, mover, true) - Self::score(board, mover.flip(), true)
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
-        if board.in_check(color) && board.movements(color).is_empty() {
+        if board.get(color, Piece::King) == 0
+            || (board.in_check(color) && board.movements(color).is_empty())
+        {
             return f64::NEG_INFINITY;
         }
 
@@ -44,7 +32,7 @@ impl Scorer {
             println!("  material: {material_score}");
         }
 
-        material_score
+        material_score / 100.0
     }
 
     #[allow(clippy::cast_precision_loss)]
