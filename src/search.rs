@@ -29,8 +29,8 @@ fn negamax(
     let movements = board.movements(mover);
     let first = movements.first().copied();
 
-    let mut best_move = None;
     let mut best_eval = f64::NEG_INFINITY;
+    let mut best_move = None;
     let mut best_mate: Option<usize> = None;
 
     for movement in movements {
@@ -45,7 +45,7 @@ fn negamax(
             best_eval = eval;
             best_move = Some(movement);
         }
-        alpha = alpha.max(best_eval);
+        alpha = alpha.max(eval);
         if alpha >= beta {
             break;
         }
@@ -67,6 +67,7 @@ mod test {
 
     #[test_case("8/8/8/8/2Q4p/k6P/1N6/1K3B2 w - - 0 101", (3, 2), (2,2))]
     #[test_case("8/8/8/2Q5/k6p/3N3P/8/1K3B2 w - - 0 101", (4,2), (3,1))]
+    #[test_case("8/8/8/2Q5/2B4p/2k2p1P/5N2/1K6 w - - 0 101", (1,5), (3,4))]
     fn mate_in_one<P: Into<Pos>>(input: &str, from: P, to: P) {
         let board = fen::decode(input).unwrap();
 
