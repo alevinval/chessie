@@ -73,7 +73,7 @@ fn alpha_beta(
 
     // Avoid stalemates
     if best_move.is_none() && !is_maxer && !board.in_check(mover) {
-        return (None, f64::NEG_INFINITY, None);
+        return (None, 0.0, None);
     }
 
     (best_move, best_eval, shortest_mate)
