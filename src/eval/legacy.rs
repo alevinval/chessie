@@ -1,6 +1,6 @@
 use crate::{bits::Bits, board::Board, color::Color, defs::BitBoard, piece::Piece};
 
-use super::score_piece;
+use super::{score_piece, MATE_SCORE};
 
 #[derive(Default)]
 pub(crate) struct LegacyScorer {}
@@ -21,7 +21,7 @@ impl LegacyScorer {
         if board.get(board.state().mover(), Piece::King) == 0
             || (board.in_check(color) && board.movements(color).is_empty())
         {
-            return f64::NEG_INFINITY;
+            return -MATE_SCORE;
         }
 
         let material_score: f64 =

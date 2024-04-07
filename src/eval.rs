@@ -2,6 +2,8 @@ use crate::{bits::Bits, board::Board, color::Color, defs::BitBoard, piece::Piece
 
 pub mod legacy;
 
+pub const MATE_SCORE: f64 = 1_000_000.0;
+
 #[derive(Default)]
 pub(crate) struct Scorer {}
 
@@ -21,7 +23,7 @@ impl Scorer {
         if board.get(color, Piece::King) == 0
             || (board.in_check(color) && board.movements(color).is_empty())
         {
-            return f64::NEG_INFINITY;
+            return -MATE_SCORE;
         }
 
         let material_score: f64 =

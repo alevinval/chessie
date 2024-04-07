@@ -1,4 +1,4 @@
-use crate::{board::Board, moves::Move};
+use crate::{board::Board, eval::MATE_SCORE, moves::Move};
 
 type EvalFn = fn(board: &Board) -> f64;
 
@@ -19,8 +19,8 @@ fn negamax(
     (mut alpha, beta): (f64, f64),
 ) -> (Option<Move>, f64, Option<usize>) {
     let score = eval_fn(board);
-    if score.is_infinite() {
-        return (None, score, Some(board.state().n()));
+    if score.abs() >= MATE_SCORE {
+        return (None, score + (ply as f64), Some(board.state().n()));
     } else if ply == 0 {
         return (None, score, None);
     }
@@ -29,7 +29,7 @@ fn negamax(
     let movements = board.movements(mover);
     let first = movements.first().copied();
 
-    let mut best_eval = f64::NEG_INFINITY;
+    let mut best_eval = -MATE_SCORE;
     let mut best_move = None;
     let mut best_mate: Option<usize> = None;
 
