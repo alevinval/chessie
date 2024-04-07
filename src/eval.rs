@@ -2,7 +2,7 @@ use crate::{bits::Bits, board::Board, color::Color, defs::BitBoard, piece::Piece
 
 pub mod legacy;
 
-pub const MATE_SCORE: f64 = 1_000_000.0;
+pub const MATE_SCORE: f64 = 100_000_000.0;
 
 #[derive(Default)]
 pub(crate) struct Scorer {}
@@ -34,7 +34,7 @@ impl Scorer {
             println!("  material: {material_score}");
         }
 
-        material_score / 100.0
+        material_score
     }
 
     #[allow(clippy::cast_precision_loss)]

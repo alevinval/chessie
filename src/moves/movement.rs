@@ -34,11 +34,11 @@ impl Move {
     #[must_use]
     pub(crate) fn priority(self) -> f64 {
         match self {
-            Move::Takes { value, .. } => 5.0 + value / 100.0,
             Move::Slide { .. } => 1.0,
-            Move::PawnPromo { .. } => 10.0,
-            Move::LeftCastle { .. } => 6.0,
-            Move::RightCastle { .. } => 7.0,
+            Move::LeftCastle { .. } => 10.0,
+            Move::RightCastle { .. } => 13.0,
+            Move::Takes { value, .. } => 100.0 + value,
+            Move::PawnPromo { .. } => 900.0,
         }
     }
 

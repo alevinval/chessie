@@ -32,7 +32,7 @@ impl LegacyScorer {
             println!("  material: {material_score}");
         }
 
-        material_score / 100.0
+        material_score
     }
 
     #[allow(clippy::cast_precision_loss)]
