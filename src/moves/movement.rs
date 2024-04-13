@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::{bits::Bits, board::Board, defs::Castling, piece::Piece, pos::Pos, Color};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -130,6 +132,18 @@ impl Move {
                     .state_mut()
                     .update_castling(left || from.col() == 0, right || from.col() == 7);
             }
+        }
+    }
+}
+
+impl fmt::Display for Move {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Move::Takes { from, to, .. } => f.write_fmt(format_args!("{from} × {to}")),
+            Move::Slide { from, to } => f.write_fmt(format_args!("{from} → {to}")),
+            Move::PawnPromo { to, piece, .. } => f.write_fmt(format_args!("{to}/{piece}")),
+            Move::LeftCastle { .. } => f.write_fmt(format_args!("O-O-O")),
+            Move::RightCastle { .. } => f.write_fmt(format_args!("O-O")),
         }
     }
 }

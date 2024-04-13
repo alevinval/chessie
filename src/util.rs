@@ -17,10 +17,9 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
             let piece = if Bits::has_piece(bb, pos) { "@" } else { " " };
             print!("| {piece} ");
         }
-        println!("| {row}");
+        println!("| {}", row + 1);
     }
-    println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   1   2   3   4   5   6   7  ");
+    print_cols()
 }
 
 pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
@@ -41,8 +40,12 @@ pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
             let piece = board.at(pos).map_or(" ", |(color, piece, _)| piece.as_str(color));
             print!("| {} ", mark.unwrap_or(piece));
         }
-        println!("| {row}");
+        println!("| {}", row + 1);
     }
+    print_cols()
+}
+
+fn print_cols() {
     println!("+---+---+---+---+---+---+---+---+");
-    println!("  0   1   2   3   4   5   6   7  ");
+    println!("  a   b   c   d   e   f   g   h  ");
 }

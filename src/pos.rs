@@ -59,14 +59,32 @@ impl From<Pos> for BitBoard {
 
 impl fmt::Display for Pos {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("({},{})", self.row(), self.col()))
+        f.write_fmt(format_args!("{}{}", display_col(self.col()), display_row(self.row())))
     }
 }
 
 impl fmt::Debug for Pos {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("({},{})", self.row(), self.col()))
+        fmt::Display::fmt(self, f)
     }
+}
+
+const fn display_col(col: u8) -> char {
+    match col {
+        0 => 'a',
+        1 => 'b',
+        2 => 'c',
+        3 => 'd',
+        4 => 'e',
+        5 => 'f',
+        6 => 'g',
+        7 => 'h',
+        8..=u8::MAX => panic!("column out of bounds"),
+    }
+}
+
+const fn display_row(row: u8) -> u8 {
+    row + 1
 }
 
 #[cfg(test)]
@@ -118,6 +136,6 @@ mod test {
 
     #[test]
     fn display() {
-        assert_eq!("(2,3)", Pos::new(2, 3).to_string())
+        assert_eq!("d3", Pos::new(2, 3).to_string())
     }
 }

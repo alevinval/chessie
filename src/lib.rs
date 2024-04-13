@@ -85,7 +85,9 @@ pub fn auto_play(moves: usize, depth: usize) {
 
         if let Some(movement) = movement {
             if let Some(mate) = mate {
-                println!("Mate in {}", mate - board.state().n());
+                println!("{movement}, mate in {}", mate - board.state().n());
+            } else {
+                println!("{movement}");
             }
             board = movement.apply(&board);
             print_board(&board, &[movement.from()]);
