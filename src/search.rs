@@ -20,7 +20,7 @@ fn negamax(
 ) -> (Option<Move>, f64, Option<usize>) {
     let score = eval_fn(board);
     if score.abs() >= MATE_SCORE {
-        return (None, score + (ply as f64), Some(board.state().n()));
+        return (None, score + (ply as f64), Some(0));
     } else if ply == 0 {
         return (None, score, None);
     }
@@ -38,12 +38,10 @@ fn negamax(
         let child = movement.apply(board);
         let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, (-beta, -alpha));
         let eval = -eval;
-        if let Some(proposal) = mate {
-            best_mate = best_mate.map(|curr| curr.min(proposal)).or(mate);
-        }
         if eval > best_eval {
             best_eval = eval;
             best_move = Some(movement);
+            best_mate = mate;
         }
         alpha = alpha.max(eval);
         if alpha >= beta {
@@ -53,9 +51,16 @@ fn negamax(
 
     // Avoid stalemates
     if best_move.is_none() && !board.in_check(mover) {
-        return (None, 0.0, best_mate);
+        best_eval = 0.0
     }
 
+    best_mate = best_mate.map(|m| m + 1).or_else(|| {
+        if best_eval.abs() >= MATE_SCORE {
+            Some(1)
+        } else {
+            None
+        }
+    });
     (best_move.or(first), best_eval, best_mate)
 }
 
@@ -75,7 +80,7 @@ mod test {
 
         print_board(&board, &[a.unwrap().to()]);
 
-        assert_eq!(Some(202), mate);
+        assert_eq!(Some(1), mate);
         assert_eq!(Some(Move::Slide { from: from.into(), to: to.into() }), a);
     }
 
@@ -86,17 +91,17 @@ mod test {
 
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_board(&board, &[a.unwrap().to()]);
-        assert_eq!(Some(204), mate);
+        assert_eq!(Some(2), mate);
 
         let board = a.unwrap().apply(&board);
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_board(&board, &[a.unwrap().to()]);
-        assert_eq!(Some(204), mate);
+        assert_eq!(Some(1), mate);
 
         let board = a.unwrap().apply(&board);
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_board(&board, &[a.unwrap().to()]);
-        assert_eq!(Some(204), mate);
+        assert_eq!(Some(1), mate);
 
         assert_eq!(Some(Move::Slide { from: Pos::new(3, 2), to: Pos::new(2, 2) }), a);
     }
