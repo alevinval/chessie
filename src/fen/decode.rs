@@ -1,4 +1,4 @@
-use crate::{board::Board, color::Color, defs::Castling, pos::Pos};
+use crate::{board::Board, color::Color, defs::Castling, piece::Piece, pos::Pos};
 
 use super::FenError;
 
@@ -46,7 +46,7 @@ fn decode_ranks(board: &mut Board, input: &str) -> Result<(), FenError> {
             }
             #[allow(clippy::cast_possible_truncation)]
             let pos = Pos::new(row as u8, col);
-            let (color, piece) = super::fen_to_piece(ch)?;
+            let (color, piece) = fen_to_piece(ch)?;
             board.add(color, piece, pos);
             col += 1;
         }
@@ -118,6 +118,22 @@ fn decode_fullmove(board: &mut Board, input: &str) -> Result<(), FenError> {
     let n: usize = input.parse().map_err(|_| FenError::Invalid)?;
     board.state_mut().set_n(n * 2 - 1);
     Ok(())
+}
+
+fn fen_to_piece(ch: char) -> Result<(Color, Piece), FenError> {
+    let piece = match ch.to_ascii_lowercase() {
+        'p' => Piece::Pawn,
+        'n' => Piece::Knight,
+        'b' => Piece::Bishop,
+        'r' => Piece::Rook,
+        'q' => Piece::Queen,
+        'k' => Piece::King,
+        _ => return Err(FenError::Invalid),
+    };
+
+    let color = if ch.is_lowercase() { Color::B } else { Color::W };
+
+    Ok((color, piece))
 }
 
 #[cfg(test)]

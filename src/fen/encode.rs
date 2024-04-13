@@ -2,9 +2,8 @@ use crate::{
     board::{Board, GameState},
     color::Color,
     defs::Castling,
+    piece::Piece,
 };
-
-use super::piece_to_fen;
 
 pub(crate) fn encode(board: &Board) -> String {
     let mut out = String::new();
@@ -91,6 +90,23 @@ fn encode_moves(out: &mut String, state: &GameState) {
     out.push('0');
     out.push(' ');
     out.push_str(&full_moves.to_string());
+}
+
+const fn piece_to_fen(color: Color, piece: Piece) -> char {
+    let fen = match piece {
+        Piece::Pawn => 'p',
+        Piece::Knight => 'n',
+        Piece::Bishop => 'b',
+        Piece::Rook => 'r',
+        Piece::Queen => 'q',
+        Piece::King => 'k',
+    };
+
+    if matches!(color, Color::W) {
+        fen.to_ascii_uppercase()
+    } else {
+        fen
+    }
 }
 
 #[cfg(test)]
