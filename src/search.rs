@@ -51,7 +51,7 @@ fn negamax(
 
     // Avoid stalemates
     if best_move.is_none() && !board.in_check(mover) {
-        best_eval = 0.0
+        best_eval = 0.0;
     }
 
     best_mate = best_mate.map(|m| m + 1).or_else(|| {

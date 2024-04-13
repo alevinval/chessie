@@ -19,7 +19,7 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
         }
         println!("| {}", row + 1);
     }
-    print_cols()
+    print_cols();
 }
 
 pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
@@ -42,7 +42,7 @@ pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
         }
         println!("| {}", row + 1);
     }
-    print_cols()
+    print_cols();
 }
 
 fn print_cols() {

@@ -85,7 +85,7 @@ pub fn auto_play(moves: usize, depth: usize) {
 
         if let Some(movement) = movement {
             if let Some(mate) = mate {
-                println!("{movement}, mate in {}", mate);
+                println!("{movement}, mate in {mate}");
             } else {
                 println!("{movement}");
             }
