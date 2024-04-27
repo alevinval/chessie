@@ -115,8 +115,8 @@ fn decode_halfmove(_board: &mut Board, input: &str) -> Result<(), FenError> {
 }
 
 fn decode_fullmove(board: &mut Board, input: &str) -> Result<(), FenError> {
-    let n: usize = input.parse().map_err(|_| FenError::Invalid)?;
-    board.state_mut().set_n(n * 2 - 1);
+    let fullmove: usize = input.parse().map_err(|_| FenError::Invalid)?;
+    board.state_mut().set_fullmove(fullmove);
     Ok(())
 }
 

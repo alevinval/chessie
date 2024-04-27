@@ -32,7 +32,7 @@ pub(crate) fn print_hboard(board: &Board, highlights: &[Pos]) {
     let legacy_eval = LegacyScorer::eval(board) / 100.0;
     println!(
         "[move={} mover={} highlights={highlights:?} eval={eval:.1} legacy_eval={legacy_eval:.1}]",
-        state.n(),
+        state.fullmove(),
         state.mover()
     );
     println!("[{}]", fen::encode(board));

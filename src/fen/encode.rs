@@ -84,12 +84,10 @@ fn encode_enpassant(out: &mut String) {
 }
 
 fn encode_moves(out: &mut String, state: &GameState) {
-    let n = state.n();
-    let full_moves = n / 2 + 1;
     out.push(' ');
     out.push('0');
     out.push(' ');
-    out.push_str(&full_moves.to_string());
+    out.push_str(&state.fullmove().to_string());
 }
 
 const fn piece_to_fen(color: Color, piece: Piece) -> char {

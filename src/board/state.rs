@@ -5,13 +5,13 @@ pub(crate) struct GameState {
     mover: Color,
     white_castling: Castling,
     black_castling: Castling,
-    n: usize,
+    fullmove: usize,
 }
 
 impl GameState {
     #[must_use]
-    pub(crate) const fn n(&self) -> usize {
-        self.n
+    pub(crate) const fn fullmove(&self) -> usize {
+        self.fullmove
     }
 
     #[must_use]
@@ -28,16 +28,18 @@ impl GameState {
     }
 
     pub(super) fn advance(&mut self) {
+        if self.mover == Color::B {
+            self.fullmove += 1;
+        }
         self.mover = self.mover.flip();
-        self.n += 1;
     }
 
     pub(crate) fn set_mover(&mut self, mover: Color) {
         self.mover = mover;
     }
 
-    pub(crate) fn set_n(&mut self, n: usize) {
-        self.n = n;
+    pub(crate) fn set_fullmove(&mut self, fullmove: usize) {
+        self.fullmove = fullmove;
     }
 
     pub(crate) fn set_castled(&mut self) {
@@ -62,7 +64,7 @@ impl Default for GameState {
             mover: Color::W,
             white_castling: Castling::default(),
             black_castling: Castling::default(),
-            n: 0,
+            fullmove: 1,
         }
     }
 }
@@ -74,10 +76,13 @@ mod test {
     #[test]
     fn n() {
         let mut sut = GameState::default();
-        assert_eq!(0, sut.n());
+        assert_eq!(1, sut.fullmove());
 
         sut.advance();
-        assert_eq!(1, sut.n());
+        assert_eq!(1, sut.fullmove());
+
+        sut.advance();
+        assert_eq!(2, sut.fullmove());
     }
 
     #[test]
