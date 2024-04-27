@@ -150,7 +150,7 @@ mod test {
     #[test_case("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 12")]
     fn test_symmetry(input: &str) {
         let decoded = &decode(input).expect("should be OK");
-        print_board(decoded, &[]);
+        print_board(decoded);
         assert_eq!(input, encode(decoded));
     }
 

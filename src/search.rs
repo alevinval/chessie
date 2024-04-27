@@ -67,7 +67,7 @@ fn negamax(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{eval::Scorer, fen, pos::Pos, util::print_board};
+    use crate::{eval::Scorer, fen, pos::Pos, util::print_hboard};
     use test_case::test_case;
 
     #[test_case("8/8/8/8/2Q4p/k6P/1N6/1K3B2 w - - 0 101", (3, 2), (2,2))]
@@ -78,7 +78,7 @@ mod test {
 
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
 
-        print_board(&board, &[a.unwrap().to()]);
+        print_hboard(&board, &[a.unwrap().to()]);
 
         assert_eq!(Some(1), mate);
         assert_eq!(Some(Move::Slide { from: from.into(), to: to.into() }), a);
@@ -87,20 +87,20 @@ mod test {
     #[test]
     fn mate_in_two() {
         let board = fen::decode("8/8/8/2Q5/7p/1k5P/1N6/1K3B2 w - - 0 101").expect("ook");
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
-        print_board(&board, &[a.unwrap().to()]);
+        print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(2), mate);
 
         let board = a.unwrap().apply(&board);
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
-        print_board(&board, &[a.unwrap().to()]);
+        print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
         let board = a.unwrap().apply(&board);
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
-        print_board(&board, &[a.unwrap().to()]);
+        print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
         assert_eq!(Some(Move::Slide { from: Pos::new(3, 2), to: Pos::new(2, 2) }), a);

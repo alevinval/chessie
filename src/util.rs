@@ -22,7 +22,11 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
     print_cols();
 }
 
-pub(crate) fn print_board(board: &Board, highlights: &[Pos]) {
+pub(crate) fn print_board(board: &Board) {
+    print_hboard(board, &[]);
+}
+
+pub(crate) fn print_hboard(board: &Board, highlights: &[Pos]) {
     let state = board.state();
     let eval = Scorer::eval(board) / 100.0;
     let legacy_eval = LegacyScorer::eval(board) / 100.0;

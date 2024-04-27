@@ -6,7 +6,7 @@ use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
 use pos::Pos;
 use search::find_move;
-use util::print_board;
+use util::{print_board, print_hboard};
 
 mod bits;
 mod board;
@@ -35,7 +35,7 @@ fn read_pos() -> Pos {
 pub fn play() {
     let legacy_eval = LegacyScorer::eval;
     let mut board = Board::default();
-    print_board(&board, &[]);
+    print_board(&board);
     loop {
         let from = read_pos();
         // print_board(&board, &[board.generate_moves(from).map(|p| )]);
@@ -43,12 +43,12 @@ pub fn play() {
         let to = read_pos();
 
         board = Move::Slide { from, to }.apply(&board);
-        print_board(&board, &[]);
+        print_board(&board);
 
         let (movement, _, _) = find_move(&board, 4, legacy_eval);
         if let Some(movement) = movement {
             board = movement.apply(&board);
-            print_board(&board, &[]);
+            print_hboard(&board, &[]);
         } else {
             println!("Game over");
             return;
@@ -90,7 +90,7 @@ pub fn auto_play(moves: usize, depth: usize) {
                 println!("{movement}");
             }
             board = movement.apply(&board);
-            print_board(&board, &[movement.from()]);
+            print_hboard(&board, &[movement.from()]);
         } else {
             if board.in_check(board.state().mover()) {
                 println!("{:?} wins by checkmate", board.state().mover().flip());

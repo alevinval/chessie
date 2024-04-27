@@ -7,7 +7,8 @@ use crate::{
     eval::score_piece,
     magic::Magic,
     piece::Piece,
-    print_board, Color, Pos,
+    util::print_board,
+    Color, Pos,
 };
 
 pub(crate) use self::movement::Move;
@@ -30,7 +31,7 @@ impl<'board> Generator<'board> {
     ) -> Self {
         let from = from.into();
         let (color, piece, _) = board.at(from).unwrap_or_else(|| {
-            print_board(board, &[]);
+            print_board(board);
             unreachable!("cannot generate moves for empty position {from:?}")
         });
 
@@ -208,7 +209,7 @@ impl<'board> Generator<'board> {
 #[cfg(test)]
 mod test {
 
-    use crate::defs::Sq;
+    use crate::{defs::Sq, util::print_hboard};
 
     use super::*;
 
@@ -233,22 +234,22 @@ mod test {
         board.advance();
         board.advance();
 
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, (1, 1));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![18, 17, 25], actual);
 
         let actual = gen_squares(&board, (1, 2));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![] as Vec<Sq>, actual);
 
         let actual = gen_squares(&board, (4, 5));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![45], actual);
 
         let actual = gen_squares(&board, (5, 7));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![54], actual);
     }
 
@@ -261,24 +262,24 @@ mod test {
         Bits::set(board.white(Piece::P), Pos::new(4, 5));
         Bits::set(board.white(Piece::P), Pos::new(5, 7));
 
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         board.advance();
 
         let actual = gen_squares(&board, (6, 7));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![] as Vec<Sq>, actual);
 
         let actual = gen_squares(&board, (6, 6));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![47, 38, 46], actual);
 
         let actual = gen_squares(&board, (3, 5));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![21], actual);
 
         let actual = gen_squares(&board, (2, 7));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![14], actual);
     }
 
@@ -293,24 +294,24 @@ mod test {
         board.advance();
         board.advance();
 
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, Pos::new(3, 5));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![38, 21, 28], actual);
 
         Bits::slide(board.white(Piece::K), Pos::new(3, 5), Pos::new(1, 3));
         board.advance();
         board.advance();
         let actual = gen_squares(&board, Pos::new(1, 3));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![3, 4, 10, 18, 19], actual);
 
         Bits::slide(board.white(Piece::K), Pos::new(1, 3), Pos::new(0, 0));
         board.advance();
         board.advance();
         let actual = gen_squares(&board, Pos::new(0, 0));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![1, 8, 9], actual);
     }
 
@@ -322,10 +323,10 @@ mod test {
         Bits::set(board.black(Piece::K), Pos::new(6, 6));
         Bits::set(board.black(Piece::R), Pos::new(4, 6));
         board.advance();
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, Pos::new(4, 6));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![14, 22, 30, 32, 33, 34, 35, 36, 37, 39, 46], actual);
     }
 
@@ -340,20 +341,20 @@ mod test {
         Bits::set(board.black(Piece::N), Pos::new(7, 6));
         Bits::set(board.black(Piece::R), Pos::new(7, 7));
         board.advance();
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, Pos::new(7, 7));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![55], actual);
     }
 
     #[test]
     fn slide_gen_two() {
         let board = Board::default();
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, Pos::new(0, 0));
-        print_board(&board, &actual);
+        print_hboard(&board, &actual);
         assert_moves(vec![], actual);
     }
 
@@ -366,7 +367,7 @@ mod test {
         Bits::unset(board.white(Piece::B), Pos::new(0, 2));
         Bits::unset(board.white(Piece::Q), Pos::new(0, 3));
         board.advance();
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, Pos::new(0, 4));
         assert_moves(vec![6, 2, 3, 5], actual);
@@ -378,7 +379,7 @@ mod test {
         Bits::unset(board.black(Piece::B), Pos::new(7, 2));
         Bits::unset(board.black(Piece::Q), Pos::new(7, 3));
         board.advance();
-        print_board(&board, &[]);
+        print_hboard(&board, &[]);
 
         let actual = gen_squares(&board, Pos::new(7, 4));
         assert_moves(vec![62, 58, 59, 61], actual);
