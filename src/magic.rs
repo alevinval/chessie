@@ -1,6 +1,42 @@
-use crate::defs::BitBoard;
+use crate::{color::Color, defs::BitBoard, pos::Pos};
 
 pub struct Magic();
+pub struct MagicCastling();
+
+impl MagicCastling {
+    const WHITE_LEFT_CASTLE: BitBoard = 0xf;
+    const WHITE_RIGHT_CASTLE: BitBoard = 0xe0;
+    const BLACK_LEFT_CASTLE: BitBoard = 0xf00000000000000;
+    const BLACK_RIGHT_CASTLE: BitBoard = 0xe000000000000000;
+
+    pub(crate) const fn left(color: Color) -> BitBoard {
+        match color {
+            Color::B => Self::BLACK_LEFT_CASTLE,
+            Color::W => Self::WHITE_LEFT_CASTLE,
+        }
+    }
+
+    pub(crate) const fn right(color: Color) -> BitBoard {
+        match color {
+            Color::B => Self::BLACK_RIGHT_CASTLE,
+            Color::W => Self::WHITE_RIGHT_CASTLE,
+        }
+    }
+
+    pub(crate) const fn left_xray(color: Color) -> BitBoard {
+        match color {
+            Color::B => Pos::new(7, 3).bb(),
+            Color::W => Pos::new(0, 3).bb(),
+        }
+    }
+
+    pub(crate) const fn right_xray(color: Color) -> BitBoard {
+        match color {
+            Color::B => Pos::new(7, 5).bb(),
+            Color::W => Pos::new(0, 5).bb(),
+        }
+    }
+}
 
 #[allow(dead_code)]
 #[allow(clippy::unreadable_literal)]
@@ -10,11 +46,6 @@ impl Magic {
 
     pub(crate) const RANK_3: BitBoard = 0xff0000;
     pub(crate) const RANK_6: BitBoard = 0xff0000000000;
-
-    pub(crate) const WHITE_LEFT_CASTLE: BitBoard = 0xf;
-    pub(crate) const WHITE_RIGHT_CASTLE: BitBoard = 0xe0;
-    pub(crate) const BLACK_LEFT_CASTLE: BitBoard = 0xf00000000000000;
-    pub(crate) const BLACK_RIGHT_CASTLE: BitBoard = 0xe000000000000000;
 
     pub(crate) const A1: BitBoard = 0x1;
     pub(crate) const H1: BitBoard = 0x80;
@@ -326,14 +357,17 @@ mod test {
         print_bitboard(Magic::RANK_3);
         print_bitboard(Magic::RANK_6);
 
-        print_bitboard(Magic::WHITE_LEFT_CASTLE);
-        print_bitboard(Magic::WHITE_RIGHT_CASTLE);
-        print_bitboard(Magic::BLACK_LEFT_CASTLE);
-        print_bitboard(Magic::BLACK_RIGHT_CASTLE);
-
         print_bitboard(Magic::A1);
         print_bitboard(Magic::A8);
         print_bitboard(Magic::H1);
         print_bitboard(Magic::H8);
+    }
+
+    #[test]
+    fn print_castle_magic() {
+        print_bitboard(MagicCastling::WHITE_LEFT_CASTLE);
+        print_bitboard(MagicCastling::WHITE_RIGHT_CASTLE);
+        print_bitboard(MagicCastling::BLACK_LEFT_CASTLE);
+        print_bitboard(MagicCastling::BLACK_RIGHT_CASTLE);
     }
 }

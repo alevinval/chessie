@@ -5,7 +5,7 @@ use crate::{
     board::Board,
     defs::{BitBoard, Castling},
     eval::score_piece,
-    magic::Magic,
+    magic::{Magic, MagicCastling},
     piece::Piece,
     util::print_board,
     Color, Pos,
@@ -138,10 +138,7 @@ impl<'board> Generator<'board> {
             let side = self.board.occupancy_side(self.color);
 
             if right {
-                let right_msk = match self.color {
-                    Color::B => Magic::BLACK_RIGHT_CASTLE,
-                    Color::W => Magic::WHITE_RIGHT_CASTLE,
-                };
+                let right_msk = MagicCastling::right(self.color);
                 let right_sq = match self.color {
                     Color::B => Magic::H8,
                     Color::W => Magic::H1,
@@ -152,10 +149,7 @@ impl<'board> Generator<'board> {
             }
 
             if left {
-                let left_msk = match self.color {
-                    Color::B => Magic::BLACK_LEFT_CASTLE,
-                    Color::W => Magic::WHITE_LEFT_CASTLE,
-                };
+                let left_msk = MagicCastling::left(self.color);
                 let left_sq = match self.color {
                     Color::B => Magic::A8,
                     Color::W => Magic::A1,
@@ -194,7 +188,26 @@ impl<'board> Generator<'board> {
     }
 
     fn is_legal(&self, movement: Move) -> bool {
-        !movement.apply(self.board).in_check(self.color)
+        let next = movement.apply(self.board);
+        if matches!(movement, Move::LeftCastle { .. })
+            && next
+                .pseudo_movements(self.color.flip())
+                .iter()
+                .any(|m| m.to().bb() & MagicCastling::left_xray(self.color) > 0)
+        {
+            return false;
+        }
+
+        if matches!(movement, Move::RightCastle { .. })
+            && next
+                .pseudo_movements(self.color.flip())
+                .iter()
+                .any(|m| m.to().bb() & MagicCastling::right_xray(self.color) > 0)
+        {
+            return false;
+        }
+
+        !next.in_check(self.color)
     }
 
     fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
@@ -209,7 +222,7 @@ impl<'board> Generator<'board> {
 #[cfg(test)]
 mod test {
 
-    use crate::{defs::Sq, util::print_hboard};
+    use crate::{defs::Sq, fen, util::print_hboard};
 
     use super::*;
 
@@ -360,26 +373,44 @@ mod test {
 
     #[test]
     fn emit_castling() {
-        let mut board = Board::default();
-        Bits::unset(board.white(Piece::N), Pos::new(0, 6));
-        Bits::unset(board.white(Piece::N), Pos::new(0, 1));
-        Bits::unset(board.white(Piece::B), Pos::new(0, 5));
-        Bits::unset(board.white(Piece::B), Pos::new(0, 2));
-        Bits::unset(board.white(Piece::Q), Pos::new(0, 3));
-        board.advance();
-        print_hboard(&board, &[]);
+        let board = fen::decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1").unwrap();
+        print_board(&board);
 
         let actual = gen_squares(&board, Pos::new(0, 4));
         assert_moves(vec![6, 2, 3, 5], actual);
 
-        let mut board = Board::default();
-        Bits::unset(board.black(Piece::N), Pos::new(7, 6));
-        Bits::unset(board.black(Piece::N), Pos::new(7, 1));
-        Bits::unset(board.black(Piece::B), Pos::new(7, 5));
-        Bits::unset(board.black(Piece::B), Pos::new(7, 2));
-        Bits::unset(board.black(Piece::Q), Pos::new(7, 3));
-        board.advance();
-        print_hboard(&board, &[]);
+        let board = fen::decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1").unwrap();
+        print_board(&board);
+
+        let actual = gen_squares(&board, Pos::new(7, 4));
+        assert_moves(vec![62, 58, 59, 61], actual);
+    }
+
+    #[test]
+    fn emit_castling_xray_white() {
+        let board = fen::decode("4k3/8/8/8/q7/7q/3PPP2/R3K2R b KQ - 0 1").unwrap();
+        print_board(&board);
+
+        let actual = gen_squares(&board, Pos::new(0, 4));
+        assert_moves(vec![], actual);
+
+        let board = fen::decode("4k3/8/8/8/8/8/3PPP2/R3K2R b KQ - 0 1").unwrap();
+        print_board(&board);
+
+        let actual = gen_squares(&board, Pos::new(0, 4));
+        assert_moves(vec![6, 2, 3, 5], actual);
+    }
+
+    #[test]
+    fn emit_castling_xray_black() {
+        let board = fen::decode("r3k2r/3ppp2/1Q5Q/8/8/8/3PPP2/4K3 b kq - 0 1").unwrap();
+        print_board(&board);
+
+        let actual = gen_squares(&board, Pos::new(7, 4));
+        assert_moves(vec![], actual);
+
+        let board = fen::decode("r3k2r/3ppp2/8/8/8/8/3PPP2/4K3 b kq - 0 1").unwrap();
+        print_board(&board);
 
         let actual = gen_squares(&board, Pos::new(7, 4));
         assert_moves(vec![62, 58, 59, 61], actual);
