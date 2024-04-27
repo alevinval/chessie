@@ -5,12 +5,12 @@ pub(crate) type BitBoard = u64;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Castling {
     None,
-    Some(bool, bool),
+    Some { left: bool, right: bool },
 }
 
 impl Default for Castling {
     fn default() -> Self {
-        Self::Some(true, true)
+        Self::Some { left: true, right: true }
     }
 }
 
@@ -20,6 +20,6 @@ mod test {
 
     #[test]
     fn castling_default() {
-        assert_eq!(Castling::Some(true, true), Castling::default());
+        assert_eq!(Castling::Some { left: true, right: true }, Castling::default());
     }
 }

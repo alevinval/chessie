@@ -59,7 +59,7 @@ fn encode_castling(out: &mut String, state: &GameState) {
         out.push('-');
     }
 
-    if let Castling::Some(left, right) = white {
+    if let Castling::Some { left, right } = white {
         if right {
             out.push('K');
         }
@@ -68,7 +68,7 @@ fn encode_castling(out: &mut String, state: &GameState) {
         }
     }
 
-    if let Castling::Some(left, right) = black {
+    if let Castling::Some { left, right } = black {
         if left {
             out.push('k');
         }

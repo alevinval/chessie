@@ -112,7 +112,7 @@ impl Move {
 
     fn update_castling(self, board: &mut Board, from: Pos) {
         let color = board.state().mover();
-        if let Castling::Some(left, right) = board.state().castling(color) {
+        if let Castling::Some { left, right } = board.state().castling(color) {
             if !left && !right {
                 board.state_mut().set_castled();
                 return;

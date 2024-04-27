@@ -128,10 +128,10 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_castling(&mut self) {
-        if let Castling::Some(left, right) = self.board.state().castling(self.color) {
+        if let Castling::Some { left, right } = self.board.state().castling(self.color) {
             debug_assert!(
                 right | left,
-                "should never emitoccupancy_sidetling if there are no castling rights"
+                "should never emit castling if there are no castling rights"
             );
 
             let occ = self.board.occupancy();

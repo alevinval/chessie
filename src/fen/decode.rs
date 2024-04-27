@@ -91,10 +91,12 @@ fn decode_castling(board: &mut Board, input: &str) -> Result<(), FenError> {
     }
 
     if white_left || white_right {
-        *board.state_mut().castling_for(Color::W) = Castling::Some(white_left, white_right);
+        *board.state_mut().castling_for(Color::W) =
+            Castling::Some { left: white_left, right: white_right }
     }
     if black_left || black_right {
-        *board.state_mut().castling_for(Color::B) = Castling::Some(black_left, black_right);
+        *board.state_mut().castling_for(Color::B) =
+            Castling::Some { left: black_left, right: black_right };
     }
 
     Ok(())

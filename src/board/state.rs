@@ -47,7 +47,7 @@ impl GameState {
     }
 
     pub(crate) fn update_castling(&mut self, left: bool, right: bool) {
-        *self.castling_for(self.mover) = Castling::Some(left, right);
+        *self.castling_for(self.mover) = Castling::Some { left, right };
     }
 
     pub(crate) fn castling_for(&mut self, color: Color) -> &mut Castling {
@@ -97,8 +97,8 @@ mod test {
     #[test]
     fn castling() {
         let sut = GameState::default();
-        assert_eq!(Castling::Some(true, true), sut.castling(Color::W));
-        assert_eq!(Castling::Some(true, true), sut.castling(Color::B));
+        assert_eq!(Castling::Some { left: true, right: true }, sut.castling(Color::W));
+        assert_eq!(Castling::Some { left: true, right: true }, sut.castling(Color::B));
     }
 
     #[test]
@@ -120,6 +120,6 @@ mod test {
     fn set_castling() {
         let mut sut = GameState::default();
         sut.update_castling(false, true);
-        assert_eq!(Castling::Some(false, true), sut.castling(Color::W));
+        assert_eq!(Castling::Some { left: false, right: true }, sut.castling(Color::W));
     }
 }
