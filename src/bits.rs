@@ -2,7 +2,7 @@ use super::Color;
 use crate::{
     defs::{BitBoard, Sq},
     piece::Piece,
-    pos::Pos,
+    pos,
 };
 
 pub(crate) struct Bits();
@@ -33,20 +33,20 @@ impl Bits {
     }
 
     #[must_use]
-    pub(crate) fn has_piece(bb: BitBoard, pos: Sq) -> bool {
-        bb & Pos::bb(pos) != 0
+    pub(crate) fn has_piece(bb: BitBoard, sq: Sq) -> bool {
+        bb & pos::bb(sq) != 0
     }
 
     pub(crate) fn slide(bb: &mut BitBoard, from: Sq, to: Sq) {
-        *bb ^= Pos::bb(from) | Pos::bb(to);
+        *bb ^= pos::bb(from) | pos::bb(to);
     }
 
-    pub(crate) fn set(bb: &mut BitBoard, pos: Sq) {
-        *bb |= Pos::bb(pos);
+    pub(crate) fn set(bb: &mut BitBoard, sq: Sq) {
+        *bb |= pos::bb(sq);
     }
 
-    pub(crate) fn unset(bb: &mut BitBoard, pos: Sq) {
-        *bb &= !Pos::bb(pos);
+    pub(crate) fn unset(bb: &mut BitBoard, sq: Sq) {
+        *bb &= !pos::bb(sq);
     }
 
     #[must_use]
@@ -120,7 +120,7 @@ impl Bits {
 mod test {
 
     use super::*;
-    use crate::{sq, util::print_bitboard, Pos};
+    use crate::{pos, sq, util::print_bitboard};
 
     static ORIGIN: Sq = sq!(0, 0);
     static TARGET: Sq = sq!(3, 3);
@@ -148,10 +148,10 @@ mod test {
     #[test]
     fn has_piece() {
         assert!(!Bits::has_piece(0, ORIGIN));
-        assert!(Bits::has_piece(Pos::bb(ORIGIN), ORIGIN));
+        assert!(Bits::has_piece(pos::bb(ORIGIN), ORIGIN));
 
         assert!(!Bits::has_piece(0, TARGET));
-        assert!(Bits::has_piece(Pos::bb(TARGET), TARGET));
+        assert!(Bits::has_piece(pos::bb(TARGET), TARGET));
     }
 
     #[test]

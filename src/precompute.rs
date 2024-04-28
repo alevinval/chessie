@@ -3,7 +3,7 @@ use crate::{
     board::Board,
     defs::{BitBoard, Sq},
     magic::Magic,
-    pos::Pos,
+    pos,
 };
 
 #[must_use]
@@ -15,7 +15,7 @@ pub fn king() -> [BitBoard; 64] {
     let mut gen = [0; 64];
     for (sq, gen_bb) in gen.iter_mut().enumerate() {
         let from = sq as Sq;
-        let bb = Pos::bb(from);
+        let bb = pos::bb(from);
         let mut pattern = Bits::north(bb)
             | Bits::northwest(bb)
             | Bits::northeast(bb)
@@ -25,9 +25,9 @@ pub fn king() -> [BitBoard; 64] {
             | Bits::west(bb)
             | Bits::east(bb);
 
-        if Pos::col(from) == 0 {
+        if pos::col(from) == 0 {
             pattern &= Magic::NOT_H_FILE;
-        } else if Pos::col(from) == 7 {
+        } else if pos::col(from) == 7 {
             pattern &= Magic::NOT_A_FILE;
         }
 
@@ -74,11 +74,11 @@ pub fn diag_slider() -> [BitBoard; 64] {
         let o = 1 << sq;
 
         let mut v = 0;
-        for (s, _) in (Pos::col(p)..8).enumerate() {
+        for (s, _) in (pos::col(p)..8).enumerate() {
             v |= o << (8 * s + s);
         }
 
-        for (s, _) in (0..=Pos::col(p)).enumerate() {
+        for (s, _) in (0..=pos::col(p)).enumerate() {
             v |= o >> (8 * s + s);
         }
         *bb = v;
@@ -96,11 +96,11 @@ pub fn antidiag_slider() -> [BitBoard; 64] {
         let o = 1 << sq;
 
         let mut v = 0;
-        for (s, _) in (0..=Pos::col(p)).enumerate() {
+        for (s, _) in (0..=pos::col(p)).enumerate() {
             v |= o << (8 * s - s);
         }
 
-        for (s, _) in (Pos::col(p)..8).enumerate() {
+        for (s, _) in (pos::col(p)..8).enumerate() {
             v |= o >> (8 * s - s);
         }
         *bb = v;

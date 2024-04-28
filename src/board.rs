@@ -44,10 +44,10 @@ impl Board {
         &mut self.state
     }
 
-    pub(crate) fn add(&mut self, color: Color, piece: Piece, pos: Sq) {
+    pub(crate) fn add(&mut self, color: Color, piece: Piece, sq: Sq) {
         match color {
-            Color::B => Bits::set(&mut self.black[piece.idx()], pos),
-            Color::W => Bits::set(&mut self.white[piece.idx()], pos),
+            Color::B => Bits::set(&mut self.black[piece.idx()], sq),
+            Color::W => Bits::set(&mut self.white[piece.idx()], sq),
         }
     }
 
@@ -70,29 +70,29 @@ impl Board {
     }
 
     #[must_use]
-    pub(crate) fn at(&self, pos: Sq) -> Option<(Color, Piece, BitBoard)> {
+    pub(crate) fn at(&self, sq: Sq) -> Option<(Color, Piece, BitBoard)> {
         self.white
             .into_iter()
-            .position(|bb| Bits::has_piece(bb, pos))
+            .position(|bb| Bits::has_piece(bb, sq))
             .map(|i| (Color::W, Piece::from_idx(i), self.white[i]))
             .or_else(|| {
                 self.black
                     .into_iter()
-                    .position(|bb| Bits::has_piece(bb, pos))
+                    .position(|bb| Bits::has_piece(bb, sq))
                     .map(|i| (Color::B, Piece::from_idx(i), self.black[i]))
             })
     }
 
     #[must_use]
-    pub(crate) fn at_mut(&mut self, pos: Sq) -> Option<(Color, Piece, &mut BitBoard)> {
+    pub(crate) fn at_mut(&mut self, sq: Sq) -> Option<(Color, Piece, &mut BitBoard)> {
         self.white
             .into_iter()
-            .position(|bb| Bits::has_piece(bb, pos))
+            .position(|bb| Bits::has_piece(bb, sq))
             .map(|i| (Color::W, Piece::from_idx(i), &mut self.white[i]))
             .or_else(|| {
                 self.black
                     .into_iter()
-                    .position(|bb| Bits::has_piece(bb, pos))
+                    .position(|bb| Bits::has_piece(bb, sq))
                     .map(|i| (Color::B, Piece::from_idx(i), &mut self.black[i]))
             })
     }

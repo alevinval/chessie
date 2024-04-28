@@ -5,7 +5,6 @@ use color::Color;
 use defs::Sq;
 use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
-use pos::Pos;
 use search::find_move;
 use util::{print_board, print_hboard};
 

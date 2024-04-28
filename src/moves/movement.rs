@@ -5,8 +5,7 @@ use crate::{
     board::Board,
     defs::{Castling, Sq},
     piece::Piece,
-    pos::Pos,
-    sq, Color,
+    pos, sq, Color,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -104,9 +103,9 @@ impl Move {
         }
     }
 
-    fn clear(board: &mut Board, pos: Sq) {
-        if let Some((_, _, bb)) = board.at_mut(pos) {
-            Bits::unset(bb, pos);
+    fn clear(board: &mut Board, sq: Sq) {
+        if let Some((_, _, bb)) = board.at_mut(sq) {
+            Bits::unset(bb, sq);
         }
     }
 
@@ -137,7 +136,7 @@ impl Move {
             if let Piece::Rook = piece {
                 board
                     .state_mut()
-                    .update_castling(left || Pos::col(from) == 0, right || Pos::col(from) == 7);
+                    .update_castling(left || pos::col(from) == 0, right || pos::col(from) == 7);
             }
         }
     }
@@ -147,8 +146,8 @@ impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Move::Takes { from, to, .. } | Move::Slide { from, to } => {
-                let from = Pos::str(*from);
-                let to = Pos::str(*to);
+                let from = pos::str(*from);
+                let to = pos::str(*to);
                 f.write_fmt(format_args!("{from} × {to}"))
             }
             Move::PawnPromo { to, piece, .. } => f.write_fmt(format_args!("{to}/{piece}")),

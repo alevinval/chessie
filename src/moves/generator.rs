@@ -6,8 +6,9 @@ use crate::{
     magic::{Magic, MagicCastling},
     moves,
     piece::Piece,
+    pos,
     util::print_board,
-    Color, Pos,
+    Color,
 };
 
 use super::Move;
@@ -64,8 +65,8 @@ impl<'board> Generator<'board> {
     }
 
     fn cross(&self) -> BitBoard {
-        let col = self.hyper_quint(Magic::COL_SLIDER[Pos::col(self.from) as usize]);
-        let row = self.hyper_quint(Magic::ROW_SLIDER[Pos::row(self.from) as usize]);
+        let col = self.hyper_quint(Magic::COL_SLIDER[pos::col(self.from) as usize]);
+        let row = self.hyper_quint(Magic::ROW_SLIDER[pos::row(self.from) as usize]);
         col | row
     }
 
@@ -76,7 +77,7 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_black_pawn(&mut self) {
-        let pawns = self.board.get(Color::B, Piece::Pawn) & Pos::bb(self.from);
+        let pawns = self.board.get(Color::B, Piece::Pawn) & pos::bb(self.from);
         let white_side = self.board.occupancy_side(Color::W);
         let side_attack = (Bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
             | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
@@ -85,7 +86,7 @@ impl<'board> Generator<'board> {
         let second_push = Bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
-        if Pos::row(self.from) == self.color.flip().pawn_row() {
+        if pos::row(self.from) == self.color.flip().pawn_row() {
             self.emit_pawn_promos(side_attack);
             self.emit_pawn_promos(pushes);
         } else {
@@ -95,7 +96,7 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_white_pawn(&mut self) {
-        let pawns = self.board.get(Color::W, Piece::Pawn) & Pos::bb(self.from);
+        let pawns = self.board.get(Color::W, Piece::Pawn) & pos::bb(self.from);
         let black_side = self.board.occupancy_side(Color::B);
         let side_attack = (Bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
             | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
@@ -104,7 +105,7 @@ impl<'board> Generator<'board> {
         let second_push = Bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
-        if Pos::row(self.from) == self.color.flip().pawn_row() {
+        if pos::row(self.from) == self.color.flip().pawn_row() {
             self.emit_pawn_promos(side_attack);
             self.emit_pawn_promos(pushes);
         } else {
@@ -206,7 +207,7 @@ impl<'board> Generator<'board> {
 
     fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
         let o = self.board.occupancy() & mask;
-        let r = Pos::bb(self.from);
+        let r = pos::bb(self.from);
         let line = (o.wrapping_sub(r.wrapping_mul(2)))
             ^ (o.reverse_bits().wrapping_sub(r.reverse_bits().wrapping_mul(2))).reverse_bits();
         line & mask
@@ -219,8 +220,8 @@ mod test {
 
     use super::*;
 
-    fn gen_squares(board: &Board, pos: Sq) -> Vec<Sq> {
-        let m = Generator::from_board(board, pos, true).generate();
+    fn gen_squares(board: &Board, sq: Sq) -> Vec<Sq> {
+        let m = Generator::from_board(board, sq, true).generate();
         moves::attacked_positions(&m).collect()
     }
 

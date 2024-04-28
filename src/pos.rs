@@ -1,7 +1,5 @@
 use crate::defs::{BitBoard, Sq};
 
-pub(crate) struct Pos();
-
 #[macro_export]
 macro_rules! sq {
     ( $row:expr, $col:expr ) => {
@@ -12,33 +10,31 @@ macro_rules! sq {
     };
 }
 
-impl Pos {
-    #[must_use]
-    pub(crate) const fn row(sq: Sq) -> u8 {
-        sq >> 3
-    }
+#[must_use]
+pub(crate) const fn row(sq: Sq) -> u8 {
+    sq >> 3
+}
 
-    #[must_use]
-    pub(crate) const fn col(sq: Sq) -> u8 {
-        sq & 7
-    }
+#[must_use]
+pub(crate) const fn col(sq: Sq) -> u8 {
+    sq & 7
+}
 
-    #[must_use]
-    pub(crate) const fn bb(sq: Sq) -> BitBoard {
-        1 << sq
-    }
+#[must_use]
+pub(crate) const fn bb(sq: Sq) -> BitBoard {
+    1 << sq
+}
 
-    #[must_use]
-    #[allow(dead_code)]
-    pub(crate) const fn is_central(sq: Sq) -> bool {
-        let (row, col) = (Self::row(sq), Self::col(sq));
-        row >= 3 && col >= 3 && row <= 4 && col <= 4
-    }
+#[must_use]
+#[allow(dead_code)]
+pub(crate) const fn is_central(sq: Sq) -> bool {
+    let (row, col) = (row(sq), col(sq));
+    row >= 3 && col >= 3 && row <= 4 && col <= 4
+}
 
-    #[must_use]
-    pub(crate) fn str(sq: Sq) -> String {
-        format!("{}{}", display_col(Pos::col(sq)), display_row(Pos::row(sq)))
-    }
+#[must_use]
+pub(crate) fn str(sq: Sq) -> String {
+    format!("{}{}", display_col(col(sq)), display_row(row(sq)))
 }
 
 const fn display_col(col: u8) -> char {
@@ -71,9 +67,9 @@ mod test {
     #[test_case((1, 0), 0x100)]
     #[test_case((1, 3), 0x800)]
     #[test_case((7, 7), 0x8000000000000000)]
-    fn bb((row, col): (u8, u8), expected: BitBoard) {
-        let pos = sq!(row, col);
-        assert_eq!(expected, Pos::bb(pos));
+    fn test_bb((r, c): (u8, u8), expected: BitBoard) {
+        let pos = sq!(r, c);
+        assert_eq!(expected, bb(pos));
     }
 
     #[test_case((0, 0), 0)]
@@ -81,9 +77,9 @@ mod test {
     #[test_case((1, 0), 1)]
     #[test_case((1, 3), 1)]
     #[test_case((7, 7), 7)]
-    fn row((row, col): (u8, u8), expected: u8) {
-        let pos = sq!(row, col);
-        assert_eq!(expected, Pos::row(pos));
+    fn test_row((r, c): (u8, u8), expected: u8) {
+        let pos = sq!(r, c);
+        assert_eq!(expected, row(pos));
     }
 
     #[test_case((0, 0), 0)]
@@ -91,9 +87,9 @@ mod test {
     #[test_case((1, 0), 0)]
     #[test_case((1, 3), 3)]
     #[test_case((7, 7), 7)]
-    fn col((row, col): (u8, u8), expected: u8) {
-        let pos = sq!(row, col);
-        assert_eq!(expected, Pos::col(pos));
+    fn test_col((r, c): (u8, u8), expected: u8) {
+        let pos = sq!(r, c);
+        assert_eq!(expected, col(pos));
     }
 
     #[test_case((0, 0), false)]
@@ -105,13 +101,13 @@ mod test {
     #[test_case((4, 3), true)]
     #[test_case((3, 3), true)]
     #[test_case((3, 4), true)]
-    fn is_central((row, col): (u8, u8), expected: bool) {
-        let pos = sq!(row, col);
-        assert_eq!(expected, Pos::is_central(pos));
+    fn test_is_central((r, c): (u8, u8), expected: bool) {
+        let pos = sq!(r, c);
+        assert_eq!(expected, is_central(pos));
     }
 
     #[test]
-    fn display() {
-        assert_eq!("d3", Pos::str(sq!(2, 3)))
+    fn test_str() {
+        assert_eq!("d3", str(sq!(2, 3)))
     }
 }
