@@ -1,5 +1,5 @@
 use crate::{
-    bits::Bits,
+    bits,
     board::Board,
     defs::{BitBoard, Sq},
     eval::{legacy::LegacyScorer, Scorer},
@@ -13,7 +13,7 @@ pub(crate) fn print_bitboard(bb: BitBoard) {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
             let pos = sq!(row, col);
-            let piece = if Bits::has_piece(bb, pos) { "@" } else { " " };
+            let piece = if bits::has_piece(bb, pos) { "@" } else { " " };
             print!("| {piece} ");
         }
         println!("| {}", row + 1);

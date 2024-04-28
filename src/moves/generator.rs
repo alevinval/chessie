@@ -1,5 +1,5 @@
 use crate::{
-    bits::Bits,
+    bits,
     board::Board,
     defs::{BitBoard, Castling, Sq},
     eval::score_piece,
@@ -79,11 +79,11 @@ impl<'board> Generator<'board> {
     fn emit_black_pawn(&mut self) {
         let pawns = self.board.get(Color::B, Piece::Pawn) & pos::bb(self.from);
         let white_side = self.board.occupancy_side(Color::W);
-        let side_attack = (Bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
-            | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
+        let side_attack = (bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
+            | (bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
 
-        let first_push = Bits::south(pawns) & !self.board.occupancy();
-        let second_push = Bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
+        let first_push = bits::south(pawns) & !self.board.occupancy();
+        let second_push = bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
         if pos::row(self.from) == self.color.flip().pawn_row() {
@@ -98,11 +98,11 @@ impl<'board> Generator<'board> {
     fn emit_white_pawn(&mut self) {
         let pawns = self.board.get(Color::W, Piece::Pawn) & pos::bb(self.from);
         let black_side = self.board.occupancy_side(Color::B);
-        let side_attack = (Bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
-            | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
+        let side_attack = (bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
+            | (bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
 
-        let first_push = Bits::north(pawns) & !self.board.occupancy();
-        let second_push = Bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
+        let first_push = bits::north(pawns) & !self.board.occupancy();
+        let second_push = bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
         if pos::row(self.from) == self.color.flip().pawn_row() {
@@ -115,7 +115,7 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_pawn_promos(&mut self, bb: BitBoard) {
-        if let Some(to) = Bits::first_pos(bb) {
+        if let Some(to) = bits::first_pos(bb) {
             for piece in Piece::PROMO {
                 self.push_move(Move::PawnPromo { from: self.from, to, piece });
             }
@@ -162,13 +162,13 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_slides(&mut self, bb: BitBoard) {
-        for to in Bits::pos(bb) {
+        for to in bits::pos(bb) {
             self.push_move(Move::Slide { from: self.from, to });
         }
     }
 
     fn emit_takes(&mut self, bb: BitBoard) {
-        for to in Bits::pos(bb) {
+        for to in bits::pos(bb) {
             let (_, pf, _) = self.board.at(self.from).unwrap();
             let (_, pt, _) = self.board.at(to).unwrap();
             let value = score_piece(pt) - score_piece(pf);
@@ -229,10 +229,10 @@ mod test {
     fn white_pawn_gen() {
         let mut board = Board::default();
 
-        Bits::set(board.black(Piece::P), sq!(3, 5));
-        Bits::set(board.black(Piece::P), sq!(2, 2));
-        Bits::set(board.white(Piece::P), sq!(4, 5));
-        Bits::set(board.white(Piece::P), sq!(5, 7));
+        bits::set(board.black(Piece::P), sq!(3, 5));
+        bits::set(board.black(Piece::P), sq!(2, 2));
+        bits::set(board.white(Piece::P), sq!(4, 5));
+        bits::set(board.white(Piece::P), sq!(5, 7));
         board.advance();
         board.advance();
 
@@ -259,10 +259,10 @@ mod test {
     fn black_pawn_gen() {
         let mut board = Board::default();
 
-        Bits::set(board.black(Piece::P), sq!(3, 5));
-        Bits::set(board.black(Piece::P), sq!(2, 7));
-        Bits::set(board.white(Piece::P), sq!(4, 5));
-        Bits::set(board.white(Piece::P), sq!(5, 7));
+        bits::set(board.black(Piece::P), sq!(3, 5));
+        bits::set(board.black(Piece::P), sq!(2, 7));
+        bits::set(board.white(Piece::P), sq!(4, 5));
+        bits::set(board.white(Piece::P), sq!(5, 7));
 
         print_hboard(&board, &[]);
 
@@ -290,9 +290,9 @@ mod test {
         let mut board = Board::default();
         board.state_mut().set_castled();
         board.clear();
-        Bits::set(board.black(Piece::Q), sq!(4, 6));
-        Bits::set(board.white(Piece::P), sq!(1, 4));
-        Bits::set(board.white(Piece::K), sq!(3, 5));
+        bits::set(board.black(Piece::Q), sq!(4, 6));
+        bits::set(board.white(Piece::P), sq!(1, 4));
+        bits::set(board.white(Piece::K), sq!(3, 5));
         board.advance();
         board.advance();
 
@@ -302,14 +302,14 @@ mod test {
         print_hboard(&board, &actual);
         assert_eq!(vec![38, 21, 28], actual);
 
-        Bits::slide(board.white(Piece::K), sq!(3, 5), sq!(1, 3));
+        bits::slide(board.white(Piece::K), sq!(3, 5), sq!(1, 3));
         board.advance();
         board.advance();
         let actual = gen_squares(&board, sq!(1, 3));
         print_hboard(&board, &actual);
         assert_eq!(vec![3, 4, 10, 18, 19], actual);
 
-        Bits::slide(board.white(Piece::K), sq!(1, 3), sq!(0, 0));
+        bits::slide(board.white(Piece::K), sq!(1, 3), sq!(0, 0));
         board.advance();
         board.advance();
         let actual = gen_squares(&board, sq!(0, 0));
@@ -321,9 +321,9 @@ mod test {
     fn slide_gen() {
         let mut board = Board::default();
         board.clear();
-        Bits::set(board.white(Piece::K), sq!(1, 6));
-        Bits::set(board.black(Piece::K), sq!(6, 6));
-        Bits::set(board.black(Piece::R), sq!(4, 6));
+        bits::set(board.white(Piece::K), sq!(1, 6));
+        bits::set(board.black(Piece::K), sq!(6, 6));
+        bits::set(board.black(Piece::R), sq!(4, 6));
         board.advance();
         print_hboard(&board, &[]);
 
@@ -336,12 +336,12 @@ mod test {
     fn slide_three() {
         let mut board = Board::default();
         board.clear();
-        Bits::set(board.white(Piece::K), sq!(2, 6));
-        Bits::set(board.white(Piece::Q), sq!(6, 7));
+        bits::set(board.white(Piece::K), sq!(2, 6));
+        bits::set(board.white(Piece::Q), sq!(6, 7));
 
-        Bits::set(board.black(Piece::K), sq!(7, 1));
-        Bits::set(board.black(Piece::N), sq!(7, 6));
-        Bits::set(board.black(Piece::R), sq!(7, 7));
+        bits::set(board.black(Piece::K), sq!(7, 1));
+        bits::set(board.black(Piece::N), sq!(7, 6));
+        bits::set(board.black(Piece::R), sq!(7, 7));
         board.advance();
         print_hboard(&board, &[]);
 

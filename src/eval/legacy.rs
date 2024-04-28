@@ -1,4 +1,4 @@
-use crate::{bits::Bits, board::Board, color::Color, defs::BitBoard, piece::Piece};
+use crate::{bits, board::Board, color::Color, defs::BitBoard, piece::Piece};
 
 use super::{score_piece, MATE_SCORE};
 
@@ -37,6 +37,6 @@ impl LegacyScorer {
 
     #[allow(clippy::cast_precision_loss)]
     fn score_bitboard(piece: Piece, bb: BitBoard) -> f64 {
-        Bits::count(bb) as f64 * score_piece(piece)
+        bits::count(bb) as f64 * score_piece(piece)
     }
 }

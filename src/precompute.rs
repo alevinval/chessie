@@ -1,5 +1,5 @@
 use crate::{
-    bits::Bits,
+    bits,
     board::Board,
     defs::{BitBoard, Sq},
     magic::Magic,
@@ -16,14 +16,14 @@ pub fn king() -> [BitBoard; 64] {
     for (sq, gen_bb) in gen.iter_mut().enumerate() {
         let from = sq as Sq;
         let bb = pos::bb(from);
-        let mut pattern = Bits::north(bb)
-            | Bits::northwest(bb)
-            | Bits::northeast(bb)
-            | Bits::south(bb)
-            | Bits::southwest(bb)
-            | Bits::southeast(bb)
-            | Bits::west(bb)
-            | Bits::east(bb);
+        let mut pattern = bits::north(bb)
+            | bits::northwest(bb)
+            | bits::northeast(bb)
+            | bits::south(bb)
+            | bits::southwest(bb)
+            | bits::southeast(bb)
+            | bits::west(bb)
+            | bits::east(bb);
 
         if pos::col(from) == 0 {
             pattern &= Magic::NOT_H_FILE;

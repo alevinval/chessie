@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::{
-    bits::Bits,
+    bits,
     board::Board,
     defs::{Castling, Sq},
     piece::Piece,
@@ -105,7 +105,7 @@ impl Move {
 
     fn clear(board: &mut Board, sq: Sq) {
         if let Some((_, _, bb)) = board.at_mut(sq) {
-            Bits::unset(bb, sq);
+            bits::unset(bb, sq);
         }
     }
 
@@ -113,7 +113,7 @@ impl Move {
         let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
-        Bits::slide(bb, from, to);
+        bits::slide(bb, from, to);
     }
 
     fn update_castling(self, board: &mut Board, from: Sq) {
