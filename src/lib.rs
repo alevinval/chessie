@@ -42,12 +42,12 @@ pub fn play() {
 
         let to = read_sq();
 
-        board = Move::Slide { from, to }.apply(&board);
+        board = board.apply_move(Move::Slide { from, to });
         print_board(&board);
 
         let (movement, _, _) = find_move(&board, 4, legacy_eval);
         if let Some(movement) = movement {
-            board = movement.apply(&board);
+            board = board.apply_move(movement);
             print_board(&board);
         } else {
             println!("Game over");
@@ -89,7 +89,7 @@ pub fn auto_play(moves: usize, depth: usize) {
             } else {
                 println!("{movement}");
             }
-            board = movement.apply(&board);
+            board = board.apply_move(movement);
             print_hboard(&board, &[movement.from()]);
         } else {
             if board.in_check(board.state().mover()) {

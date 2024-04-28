@@ -35,7 +35,7 @@ fn negamax(
     let mut best_mate: Option<usize> = None;
 
     for movement in movements {
-        let child = movement.apply(board);
+        let child = board.apply_move(movement);
         let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, (-beta, -alpha));
         let eval = -eval;
         if eval > best_eval {
@@ -93,12 +93,12 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(2), mate);
 
-        let board = a.unwrap().apply(&board);
+        let board = board.apply_move(a.unwrap());
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
-        let board = a.unwrap().apply(&board);
+        let board = board.apply_move(a.unwrap());
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);

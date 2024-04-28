@@ -142,6 +142,14 @@ impl Board {
         self.occupancy = self.white_side | self.black_side;
     }
 
+    #[must_use]
+    pub(crate) fn apply_move(&self, movement: Move) -> Self {
+        let mut next = self.clone();
+        movement.apply(&mut next);
+        next.advance();
+        next
+    }
+
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
         self.pieces(color)
             .flat_map(|(_, bb)| bits::pos(bb))

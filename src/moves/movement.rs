@@ -10,9 +10,9 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Move {
-    Takes { from: Sq, to: Sq, value: f64 },
+    Takes { from: Sq, to: Sq, piece: Piece, value: f64 },
     Slide { from: Sq, to: Sq },
-    PawnPromo { from: Sq, to: Sq, piece: Piece },
+    PawnPromo { from: Sq, to: Sq, promo_piece: Piece, taken_piece: Option<Piece> },
     LeftCastle { mover: Color },
     RightCastle { mover: Color },
 }
@@ -50,15 +50,7 @@ impl Move {
         }
     }
 
-    #[must_use]
-    pub(crate) fn apply(self, board: &Board) -> Board {
-        let mut next = board.clone();
-        self.inner_apply(&mut next);
-        next.advance();
-        next
-    }
-
-    fn inner_apply(self, board: &mut Board) {
+    pub(crate) fn apply(self, board: &mut Board) {
         match self {
             Move::Takes { from, to, .. } => {
                 Self::clear(board, to);
@@ -69,7 +61,7 @@ impl Move {
                 self.update_castling(board, from);
                 self.slide(board, from, to);
             }
-            Move::PawnPromo { from, to, piece } => {
+            Move::PawnPromo { from, to, promo_piece: piece, .. } => {
                 Self::clear(board, from);
                 Self::clear(board, to);
                 board.add(board.state().mover(), piece, to);
@@ -150,7 +142,9 @@ impl fmt::Display for Move {
                 let to = pos::str(*to);
                 f.write_fmt(format_args!("{from} × {to}"))
             }
-            Move::PawnPromo { to, piece, .. } => f.write_fmt(format_args!("{to}/{piece}")),
+            Move::PawnPromo { to, promo_piece, .. } => {
+                f.write_fmt(format_args!("{to}/{promo_piece}"))
+            }
             Move::LeftCastle { .. } => f.write_fmt(format_args!("O-O-O")),
             Move::RightCastle { .. } => f.write_fmt(format_args!("O-O")),
         }
@@ -169,7 +163,11 @@ mod test {
     #[test]
     fn to() {
         assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to());
-        assert_eq!(TO, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.to());
+        assert_eq!(
+            TO,
+            Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }
+                .to()
+        );
         assert_eq!(sq!(0, 2), Move::LeftCastle { mover: Color::W }.to());
         assert_eq!(sq!(7, 2), Move::LeftCastle { mover: Color::B }.to());
         assert_eq!(sq!(0, 6), Move::RightCastle { mover: Color::W }.to());
@@ -178,7 +176,11 @@ mod test {
     #[test]
     fn from() {
         assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from());
-        assert_eq!(FROM, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.from());
+        assert_eq!(
+            FROM,
+            Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }
+                .from()
+        );
         assert_eq!(sq!(0, 4), Move::LeftCastle { mover: Color::W }.from());
         assert_eq!(sq!(7, 4), Move::LeftCastle { mover: Color::B }.from());
         assert_eq!(sq!(0, 4), Move::RightCastle { mover: Color::W }.from());

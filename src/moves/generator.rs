@@ -116,8 +116,9 @@ impl<'board> Generator<'board> {
 
     fn emit_pawn_promos(&mut self, bb: BitBoard) {
         if let Some(to) = bits::first_pos(bb) {
-            for piece in Piece::PROMO {
-                self.push_move(Move::PawnPromo { from: self.from, to, piece });
+            let taken_piece = self.board.at(to).map(|(_, piece, _)| piece);
+            for promo_piece in Piece::PROMO {
+                self.push_move(Move::PawnPromo { from: self.from, to, promo_piece, taken_piece });
             }
         }
     }
@@ -169,10 +170,10 @@ impl<'board> Generator<'board> {
 
     fn emit_takes(&mut self, bb: BitBoard) {
         for to in bits::pos(bb) {
-            let (_, pf, _) = self.board.at(self.from).unwrap();
-            let (_, pt, _) = self.board.at(to).unwrap();
-            let value = score_piece(pt) - score_piece(pf);
-            self.push_move(Move::Takes { from: self.from, to, value });
+            let (_, moved_piece, _) = self.board.at(self.from).unwrap();
+            let (_, taken_piece, _) = self.board.at(to).unwrap();
+            let value = score_piece(taken_piece) - score_piece(moved_piece);
+            self.push_move(Move::Takes { from: self.from, to, piece: taken_piece, value });
         }
     }
 
@@ -183,7 +184,7 @@ impl<'board> Generator<'board> {
     }
 
     fn is_legal(&self, movement: Move) -> bool {
-        let next = movement.apply(self.board);
+        let next = self.board.apply_move(movement);
         if matches!(movement, Move::LeftCastle { .. })
             && moves::is_attacked(
                 &next.pseudo_movements(self.color.flip()),
