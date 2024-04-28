@@ -216,116 +216,59 @@ impl<'board> Generator<'board> {
 #[cfg(test)]
 mod test {
 
-    use crate::{defs::Sq, fen, sq, util::print_hboard};
-
     use super::*;
+    use crate::{defs::Sq, fen, sq, util::print_hboard};
+    use test_case::test_case;
 
     fn gen_squares(board: &Board, sq: Sq) -> Vec<Sq> {
         let m = Generator::from_board(board, sq, true).generate();
         moves::attacked_positions(&m).collect()
     }
 
-    #[test]
-    fn white_pawn_gen() {
-        let mut board = Board::default();
+    #[test_case(sq!(1, 1), vec![18, 17, 25])]
+    #[test_case(sq!(1, 2), vec![])]
+    #[test_case(sq!(4, 5), vec![45])]
+    #[test_case(sq!(5, 7), vec![54])]
+    fn white_pawn_gen(sq: Sq, expected: Vec<Sq>) {
+        let board =
+            fen::decode("rnbqkbnr/pppppppp/7P/5P2/5p2/2p5/PPPPPPPP/RNBQKBNR w KQkq - 0 2").unwrap();
+        print_board(&board);
 
-        bits::set(board.black(Piece::P), sq!(3, 5));
-        bits::set(board.black(Piece::P), sq!(2, 2));
-        bits::set(board.white(Piece::P), sq!(4, 5));
-        bits::set(board.white(Piece::P), sq!(5, 7));
-        board.advance();
-        board.advance();
-
-        print_hboard(&board, &[]);
-
-        let actual = gen_squares(&board, sq!(1, 1));
+        let actual = gen_squares(&board, sq);
         print_hboard(&board, &actual);
-        assert_eq!(vec![18, 17, 25], actual);
-
-        let actual = gen_squares(&board, sq!(1, 2));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![] as Vec<Sq>, actual);
-
-        let actual = gen_squares(&board, sq!(4, 5));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![45], actual);
-
-        let actual = gen_squares(&board, sq!(5, 7));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![54], actual);
+        assert_eq!(expected, actual);
     }
 
-    #[test]
-    fn black_pawn_gen() {
-        let mut board = Board::default();
+    #[test_case(sq!(6, 7), vec![])]
+    #[test_case(sq!(6, 6), vec![47, 38, 46])]
+    #[test_case(sq!(3, 5), vec![21])]
+    #[test_case(sq!(2, 7), vec![14])]
+    fn black_pawn_gen(sq: Sq, expected: Vec<Sq>) {
+        let board =
+            fen::decode("rnbqkbnr/pppppppp/7P/5P2/5p2/7p/PPPPPPPP/RNBQKBNR b KQkq - 0 1").unwrap();
+        print_board(&board);
 
-        bits::set(board.black(Piece::P), sq!(3, 5));
-        bits::set(board.black(Piece::P), sq!(2, 7));
-        bits::set(board.white(Piece::P), sq!(4, 5));
-        bits::set(board.white(Piece::P), sq!(5, 7));
-
-        print_hboard(&board, &[]);
-
-        board.advance();
-
-        let actual = gen_squares(&board, sq!(6, 7));
+        let actual = gen_squares(&board, sq);
         print_hboard(&board, &actual);
-        assert_eq!(vec![] as Vec<Sq>, actual);
-
-        let actual = gen_squares(&board, sq!(6, 6));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![47, 38, 46], actual);
-
-        let actual = gen_squares(&board, sq!(3, 5));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![21], actual);
-
-        let actual = gen_squares(&board, sq!(2, 7));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![14], actual);
+        assert_eq!(expected, actual);
     }
 
-    #[test]
-    fn king_gen() {
-        let mut board = Board::default();
-        board.state_mut().set_castled();
-        board.clear();
-        bits::set(board.black(Piece::Q), sq!(4, 6));
-        bits::set(board.white(Piece::P), sq!(1, 4));
-        bits::set(board.white(Piece::K), sq!(3, 5));
-        board.advance();
-        board.advance();
+    #[test_case("8/8/8/6q1/5K2/8/4P3/8 w kq - 0 2", sq!(3, 5), vec![38, 21, 28])]
+    #[test_case("8/8/8/6q1/8/8/3KP3/8 w kq - 0 3", sq!(1, 3), vec![3, 4, 10, 18, 19])]
+    #[test_case("8/8/8/6q1/8/8/4P3/K7 w kq - 0 4", sq!(0, 0), vec![1, 8, 9])]
+    fn king_gen(input: &str, at: Sq, expected: Vec<Sq>) {
+        let board = fen::decode(input).unwrap();
+        print_board(&board);
 
-        print_hboard(&board, &[]);
-
-        let actual = gen_squares(&board, sq!(3, 5));
+        let actual = gen_squares(&board, at);
         print_hboard(&board, &actual);
-        assert_eq!(vec![38, 21, 28], actual);
-
-        bits::slide(board.white(Piece::K), sq!(3, 5), sq!(1, 3));
-        board.advance();
-        board.advance();
-        let actual = gen_squares(&board, sq!(1, 3));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![3, 4, 10, 18, 19], actual);
-
-        bits::slide(board.white(Piece::K), sq!(1, 3), sq!(0, 0));
-        board.advance();
-        board.advance();
-        let actual = gen_squares(&board, sq!(0, 0));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![1, 8, 9], actual);
+        assert_eq!(expected, actual);
     }
 
     #[test]
     fn slide_gen() {
-        let mut board = Board::default();
-        board.clear();
-        bits::set(board.white(Piece::K), sq!(1, 6));
-        bits::set(board.black(Piece::K), sq!(6, 6));
-        bits::set(board.black(Piece::R), sq!(4, 6));
-        board.advance();
-        print_hboard(&board, &[]);
+        let board = fen::decode("8/6k1/8/6r1/8/8/6K1/8 b KQkq - 0 1").unwrap();
+        print_board(&board);
 
         let actual = gen_squares(&board, sq!(4, 6));
         print_hboard(&board, &actual);
@@ -334,16 +277,8 @@ mod test {
 
     #[test]
     fn slide_three() {
-        let mut board = Board::default();
-        board.clear();
-        bits::set(board.white(Piece::K), sq!(2, 6));
-        bits::set(board.white(Piece::Q), sq!(6, 7));
-
-        bits::set(board.black(Piece::K), sq!(7, 1));
-        bits::set(board.black(Piece::N), sq!(7, 6));
-        bits::set(board.black(Piece::R), sq!(7, 7));
-        board.advance();
-        print_hboard(&board, &[]);
+        let board = fen::decode("1k4nr/7Q/8/8/8/6K1/8/8 b KQkq - 0 1").unwrap();
+        print_board(&board);
 
         let actual = gen_squares(&board, sq!(7, 7));
         print_hboard(&board, &actual);
@@ -353,7 +288,7 @@ mod test {
     #[test]
     fn slide_gen_two() {
         let board = Board::default();
-        print_hboard(&board, &[]);
+        print_board(&board);
 
         let actual = gen_squares(&board, sq!(0, 0));
         print_hboard(&board, &actual);

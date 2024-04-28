@@ -148,16 +148,6 @@ impl Board {
             .flat_map(|p| Generator::from_board(self, p, legal_only).generate())
             .collect()
     }
-
-    #[cfg(test)]
-    pub(crate) fn black(&mut self, idx: crate::piece::Idx) -> &mut BitBoard {
-        &mut self.black[idx]
-    }
-
-    #[cfg(test)]
-    pub(crate) fn white(&mut self, idx: crate::piece::Idx) -> &mut BitBoard {
-        &mut self.white[idx]
-    }
 }
 
 impl Default for Board {
