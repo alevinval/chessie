@@ -67,13 +67,13 @@ fn negamax(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{eval::Scorer, fen, pos::Pos, util::print_hboard};
+    use crate::{eval::Scorer, fen, sq, util::print_hboard};
     use test_case::test_case;
 
     #[test_case("8/8/8/8/2Q4p/k6P/1N6/1K3B2 w - - 0 101", (3, 2), (2,2))]
     #[test_case("8/8/8/2Q5/k6p/3N3P/8/1K3B2 w - - 0 101", (4,2), (3,1))]
     #[test_case("8/8/8/2Q5/2B4p/2k2p1P/5N2/1K6 w - - 0 101", (1,5), (3,4))]
-    fn mate_in_one<P: Into<Pos>>(input: &str, from: P, to: P) {
+    fn mate_in_one(input: &str, from: (u8, u8), to: (u8, u8)) {
         let board = fen::decode(input).unwrap();
 
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
@@ -81,7 +81,7 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
 
         assert_eq!(Some(1), mate);
-        assert_eq!(Some(Move::Slide { from: from.into(), to: to.into() }), a);
+        assert_eq!(Some(Move::Slide { from: sq!(from), to: sq!(to) }), a);
     }
 
     #[test]
@@ -103,6 +103,6 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
-        assert_eq!(Some(Move::Slide { from: Pos::new(3, 2), to: Pos::new(2, 2) }), a);
+        assert_eq!(Some(Move::Slide { from: sq!(3, 2), to: sq!(2, 2) }), a);
     }
 }

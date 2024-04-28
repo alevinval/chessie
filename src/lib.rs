@@ -2,6 +2,7 @@ use std::io;
 
 use board::Board;
 use color::Color;
+use defs::Sq;
 use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
 use pos::Pos;
@@ -22,14 +23,14 @@ pub mod precompute;
 mod search;
 mod util;
 
-fn read_pos() -> Pos {
+fn read_sq() -> Sq {
     let mut line = String::new();
     io::stdin().read_line(&mut line).unwrap();
     let col: u8 = line.trim().parse().unwrap();
     line.clear();
     io::stdin().read_line(&mut line).unwrap();
     let row: u8 = line.trim().parse().unwrap();
-    (row, col).into()
+    sq!(row, col)
 }
 
 pub fn play() {
@@ -37,10 +38,10 @@ pub fn play() {
     let mut board = Board::default();
     print_board(&board);
     loop {
-        let from = read_pos();
+        let from = read_sq();
         // print_board(&board, &[board.generate_moves(from).map(|p| )]);
 
-        let to = read_pos();
+        let to = read_sq();
 
         board = Move::Slide { from, to }.apply(&board);
         print_board(&board);
@@ -48,7 +49,7 @@ pub fn play() {
         let (movement, _, _) = find_move(&board, 4, legacy_eval);
         if let Some(movement) = movement {
             board = movement.apply(&board);
-            print_hboard(&board, &[]);
+            print_board(&board);
         } else {
             println!("Game over");
             return;

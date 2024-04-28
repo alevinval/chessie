@@ -1,4 +1,4 @@
-use crate::{board::Board, color::Color, defs::Castling, piece::Piece, pos::Pos};
+use crate::{board::Board, color::Color, defs::Castling, piece::Piece, sq};
 
 use super::FenError;
 
@@ -45,9 +45,9 @@ fn decode_ranks(board: &mut Board, input: &str) -> Result<(), FenError> {
                 continue;
             }
             #[allow(clippy::cast_possible_truncation)]
-            let pos = Pos::new(row as u8, col);
+            let sq = sq!(row as u8, col);
             let (color, piece) = fen_to_piece(ch)?;
-            board.add(color, piece, pos);
+            board.add(color, piece, sq);
             col += 1;
         }
         if col != 8 {

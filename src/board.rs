@@ -1,9 +1,8 @@
 use crate::{
     bits::Bits,
-    defs::BitBoard,
+    defs::{BitBoard, Sq},
     moves::{self, Generator, Move},
     piece::Piece,
-    pos::Pos,
     Color,
 };
 
@@ -45,7 +44,7 @@ impl Board {
         &mut self.state
     }
 
-    pub(crate) fn add(&mut self, color: Color, piece: Piece, pos: Pos) {
+    pub(crate) fn add(&mut self, color: Color, piece: Piece, pos: Sq) {
         match color {
             Color::B => Bits::set(&mut self.black[piece.idx()], pos),
             Color::W => Bits::set(&mut self.white[piece.idx()], pos),
@@ -71,8 +70,7 @@ impl Board {
     }
 
     #[must_use]
-    pub(crate) fn at<P: Into<Pos>>(&self, pos: P) -> Option<(Color, Piece, BitBoard)> {
-        let pos = pos.into();
+    pub(crate) fn at(&self, pos: Sq) -> Option<(Color, Piece, BitBoard)> {
         self.white
             .into_iter()
             .position(|bb| Bits::has_piece(bb, pos))
@@ -86,8 +84,7 @@ impl Board {
     }
 
     #[must_use]
-    pub(crate) fn at_mut<P: Into<Pos>>(&mut self, pos: P) -> Option<(Color, Piece, &mut BitBoard)> {
-        let pos = pos.into();
+    pub(crate) fn at_mut(&mut self, pos: Sq) -> Option<(Color, Piece, &mut BitBoard)> {
         self.white
             .into_iter()
             .position(|bb| Bits::has_piece(bb, pos))
@@ -128,7 +125,7 @@ impl Board {
     pub(crate) fn in_check(&self, color: Color) -> bool {
         if let Some(pos) = Bits::first_pos(self.get(color, Piece::King)) {
             let moves = self.pseudo_movements(color.flip());
-            moves::is_attacked(&moves, pos.sq())
+            moves::is_attacked(&moves, pos)
         } else {
             true
         }
@@ -198,12 +195,14 @@ mod test {
 
     use std::mem;
 
+    use crate::sq;
+
     use super::*;
 
     #[test]
     fn at_white_king() {
         let sut = Board::default();
-        let king = sut.at((0, 4));
+        let king = sut.at(sq!(0, 4));
         assert!(king.is_some());
 
         if let Some((color, piece, _bb)) = king {
@@ -215,7 +214,7 @@ mod test {
     #[test]
     fn at_black_king() {
         let sut = Board::default();
-        let king = sut.at((7, 4));
+        let king = sut.at(sq!(7, 4));
 
         assert!(king.is_some());
 
@@ -227,14 +226,14 @@ mod test {
 
     #[test]
     fn mut_at_white() {
-        let pos = (0, 0);
+        let pos = sq!(0, 0);
 
         assert_eq!(Board::default().at(pos).unwrap().1, Board::default().at_mut(pos).unwrap().1);
     }
 
     #[test]
     fn mut_at_black() {
-        let pos = (7, 7);
+        let pos = sq!(7, 7);
 
         assert_eq!(Board::default().at(pos).unwrap().1, Board::default().at_mut(pos).unwrap().1);
     }

@@ -6,14 +6,14 @@ use crate::{
     defs::{Castling, Sq},
     piece::Piece,
     pos::Pos,
-    Color,
+    sq, Color,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Move {
-    Takes { from: Pos, to: Pos, value: f64 },
-    Slide { from: Pos, to: Pos },
-    PawnPromo { from: Pos, to: Pos, piece: Piece },
+    Takes { from: Sq, to: Sq, value: f64 },
+    Slide { from: Sq, to: Sq },
+    PawnPromo { from: Sq, to: Sq, piece: Piece },
     LeftCastle { mover: Color },
     RightCastle { mover: Color },
 }
@@ -22,20 +22,20 @@ impl Move {
     #[must_use]
     pub(crate) const fn to(self) -> Sq {
         match self {
-            Move::Takes { to, .. } | Move::Slide { to, .. } | Move::PawnPromo { to, .. } => to.sq(),
-            Move::LeftCastle { mover } => Pos::new(mover.piece_row(), 2).sq(),
-            Move::RightCastle { mover } => Pos::new(mover.piece_row(), 6).sq(),
+            Move::Slide { to, .. } | Move::Takes { to, .. } | Move::PawnPromo { to, .. } => to,
+            Move::LeftCastle { mover } => sq!(mover.piece_row(), 2),
+            Move::RightCastle { mover } => sq!(mover.piece_row(), 6),
         }
     }
 
     #[must_use]
     pub(crate) const fn from(self) -> Sq {
         match self {
-            Move::Takes { from, .. } | Move::Slide { from, .. } | Move::PawnPromo { from, .. } => {
-                from.sq()
+            Move::Slide { from, .. } | Move::Takes { from, .. } | Move::PawnPromo { from, .. } => {
+                from
             }
             Move::LeftCastle { mover } | Move::RightCastle { mover } => {
-                Pos::new(mover.piece_row(), 4).sq()
+                sq!(mover.piece_row(), 4)
             }
         }
     }
@@ -79,12 +79,12 @@ impl Move {
                 board.state_mut().set_castled();
                 match mover {
                     Color::B => {
-                        self.slide(board, Pos::new(7, 4), Pos::new(7, 2));
-                        self.slide(board, Pos::new(7, 0), Pos::new(7, 3));
+                        self.slide(board, sq!(7, 4), sq!(7, 2));
+                        self.slide(board, sq!(7, 0), sq!(7, 3));
                     }
                     Color::W => {
-                        self.slide(board, Pos::new(0, 4), Pos::new(0, 2));
-                        self.slide(board, Pos::new(0, 0), Pos::new(0, 3));
+                        self.slide(board, sq!(0, 4), sq!(0, 2));
+                        self.slide(board, sq!(0, 0), sq!(0, 3));
                     }
                 }
             }
@@ -92,32 +92,32 @@ impl Move {
                 board.state_mut().set_castled();
                 match mover {
                     Color::B => {
-                        self.slide(board, Pos::new(7, 4), Pos::new(7, 6));
-                        self.slide(board, Pos::new(7, 7), Pos::new(7, 5));
+                        self.slide(board, sq!(7, 4), sq!(7, 6));
+                        self.slide(board, sq!(7, 7), sq!(7, 5));
                     }
                     Color::W => {
-                        self.slide(board, Pos::new(0, 4), Pos::new(0, 6));
-                        self.slide(board, Pos::new(0, 7), Pos::new(0, 5));
+                        self.slide(board, sq!(0, 4), sq!(0, 6));
+                        self.slide(board, sq!(0, 7), sq!(0, 5));
                     }
                 }
             }
         }
     }
 
-    fn clear(board: &mut Board, pos: Pos) {
+    fn clear(board: &mut Board, pos: Sq) {
         if let Some((_, _, bb)) = board.at_mut(pos) {
             Bits::unset(bb, pos);
         }
     }
 
-    fn slide(self, board: &mut Board, from: Pos, to: Pos) {
+    fn slide(self, board: &mut Board, from: Sq, to: Sq) {
         let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
             unreachable!("must have a piece in order to move {:?} {:?}", self, from)
         });
         Bits::slide(bb, from, to);
     }
 
-    fn update_castling(self, board: &mut Board, from: Pos) {
+    fn update_castling(self, board: &mut Board, from: Sq) {
         let color = board.state().mover();
         if let Castling::Some { left, right } = board.state().castling(color) {
             if !left && !right {
@@ -137,7 +137,7 @@ impl Move {
             if let Piece::Rook = piece {
                 board
                     .state_mut()
-                    .update_castling(left || from.col() == 0, right || from.col() == 7);
+                    .update_castling(left || Pos::col(from) == 0, right || Pos::col(from) == 7);
             }
         }
     }
@@ -146,8 +146,11 @@ impl Move {
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Move::Takes { from, to, .. } => f.write_fmt(format_args!("{from} × {to}")),
-            Move::Slide { from, to } => f.write_fmt(format_args!("{from} → {to}")),
+            Move::Takes { from, to, .. } | Move::Slide { from, to } => {
+                let from = Pos::str(*from);
+                let to = Pos::str(*to);
+                f.write_fmt(format_args!("{from} × {to}"))
+            }
             Move::PawnPromo { to, piece, .. } => f.write_fmt(format_args!("{to}/{piece}")),
             Move::LeftCastle { .. } => f.write_fmt(format_args!("O-O-O")),
             Move::RightCastle { .. } => f.write_fmt(format_args!("O-O")),
@@ -161,27 +164,26 @@ mod test {
 
     use super::*;
 
-    const FROM: Pos = Pos::new(1, 1);
-    const TO: Pos = Pos::new(3, 3);
+    const FROM: Sq = sq!(1, 1);
+    const TO: Sq = sq!(3, 3);
 
     #[test]
     fn to() {
-        assert_eq!(TO.sq(), Move::Slide { from: FROM, to: TO }.to());
-        assert_eq!(TO.sq(), Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.to());
-        assert_eq!(Pos::new(0, 2).sq(), Move::LeftCastle { mover: Color::W }.to());
-        assert_eq!(Pos::new(7, 2).sq(), Move::LeftCastle { mover: Color::B }.to());
-        assert_eq!(Pos::new(0, 6).sq(), Move::RightCastle { mover: Color::W }.to());
-        assert_eq!(Pos::new(7, 6).sq(), Move::RightCastle { mover: Color::B }.to());
+        assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to());
+        assert_eq!(TO, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.to());
+        assert_eq!(sq!(0, 2), Move::LeftCastle { mover: Color::W }.to());
+        assert_eq!(sq!(7, 2), Move::LeftCastle { mover: Color::B }.to());
+        assert_eq!(sq!(0, 6), Move::RightCastle { mover: Color::W }.to());
+        assert_eq!(sq!(7, 6), Move::RightCastle { mover: Color::B }.to());
     }
-
     #[test]
     fn from() {
-        assert_eq!(FROM.sq(), Move::Slide { from: FROM, to: TO }.from());
-        assert_eq!(FROM.sq(), Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.from());
-        assert_eq!(Pos::new(0, 4).sq(), Move::LeftCastle { mover: Color::W }.from());
-        assert_eq!(Pos::new(7, 4).sq(), Move::LeftCastle { mover: Color::B }.from());
-        assert_eq!(Pos::new(0, 4).sq(), Move::RightCastle { mover: Color::W }.from());
-        assert_eq!(Pos::new(7, 4).sq(), Move::RightCastle { mover: Color::B }.from());
+        assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from());
+        assert_eq!(FROM, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.from());
+        assert_eq!(sq!(0, 4), Move::LeftCastle { mover: Color::W }.from());
+        assert_eq!(sq!(7, 4), Move::LeftCastle { mover: Color::B }.from());
+        assert_eq!(sq!(0, 4), Move::RightCastle { mover: Color::W }.from());
+        assert_eq!(sq!(7, 4), Move::RightCastle { mover: Color::B }.from());
     }
 
     #[test]

@@ -1,7 +1,7 @@
 use crate::{
     bits::Bits,
     board::Board,
-    defs::{BitBoard, Castling},
+    defs::{BitBoard, Castling, Sq},
     eval::score_piece,
     magic::{Magic, MagicCastling},
     moves,
@@ -17,18 +17,13 @@ pub(crate) struct Generator<'board> {
     board: &'board Board,
     color: Color,
     piece: Piece,
-    from: Pos,
+    from: Sq,
     moves: Vec<Move>,
     only_legal: bool,
 }
 
 impl<'board> Generator<'board> {
-    pub(crate) fn from_board<P: Into<Pos>>(
-        board: &'board Board,
-        from: P,
-        only_legal: bool,
-    ) -> Self {
-        let from = from.into();
+    pub(crate) fn from_board(board: &'board Board, from: Sq, only_legal: bool) -> Self {
         let (color, piece, _) = board.at(from).unwrap_or_else(|| {
             print_board(board);
             unreachable!("cannot generate moves for empty position {from:?}")
@@ -37,14 +32,14 @@ impl<'board> Generator<'board> {
         Self::new(board, from, color, piece, only_legal)
     }
 
-    pub(crate) fn new<P: Into<Pos>>(
+    pub(crate) fn new(
         board: &'board Board,
-        from: P,
+        from: Sq,
         color: Color,
         piece: Piece,
         only_legal: bool,
     ) -> Self {
-        Self { board, from: from.into(), color, piece, moves: vec![], only_legal }
+        Self { board, from, color, piece, moves: vec![], only_legal }
     }
 
     #[must_use]
@@ -58,30 +53,30 @@ impl<'board> Generator<'board> {
             Piece::Bishop => self.emit(self.diag()),
             Piece::Queen => self.emit(self.cross() | self.diag()),
             Piece::Knight => {
-                self.emit(Magic::KNIGHT_MOVES[self.from.sq() as usize]);
+                self.emit(Magic::KNIGHT_MOVES[self.from as usize]);
             }
             Piece::King => {
                 self.emit_castling();
-                self.emit(Magic::KING_MOVES[self.from.sq() as usize]);
+                self.emit(Magic::KING_MOVES[self.from as usize]);
             }
         };
         self.moves
     }
 
     fn cross(&self) -> BitBoard {
-        let col = self.hyper_quint(Magic::COL_SLIDER[self.from.col() as usize]);
-        let row = self.hyper_quint(Magic::ROW_SLIDER[self.from.row() as usize]);
+        let col = self.hyper_quint(Magic::COL_SLIDER[Pos::col(self.from) as usize]);
+        let row = self.hyper_quint(Magic::ROW_SLIDER[Pos::row(self.from) as usize]);
         col | row
     }
 
     fn diag(&self) -> BitBoard {
-        let diag = self.hyper_quint(Magic::DIAG_SLIDER[self.from.sq() as usize]);
-        let antidiag = self.hyper_quint(Magic::ANTIDIAG_SLIDER[self.from.sq() as usize]);
+        let diag = self.hyper_quint(Magic::DIAG_SLIDER[self.from as usize]);
+        let antidiag = self.hyper_quint(Magic::ANTIDIAG_SLIDER[self.from as usize]);
         diag | antidiag
     }
 
     fn emit_black_pawn(&mut self) {
-        let pawns = self.board.get(Color::B, Piece::Pawn) & self.from.bb();
+        let pawns = self.board.get(Color::B, Piece::Pawn) & Pos::bb(self.from);
         let white_side = self.board.occupancy_side(Color::W);
         let side_attack = (Bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
             | (Bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
@@ -90,7 +85,7 @@ impl<'board> Generator<'board> {
         let second_push = Bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
-        if self.from.row() == self.color.flip().pawn_row() {
+        if Pos::row(self.from) == self.color.flip().pawn_row() {
             self.emit_pawn_promos(side_attack);
             self.emit_pawn_promos(pushes);
         } else {
@@ -100,7 +95,7 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_white_pawn(&mut self) {
-        let pawns = self.board.get(Color::W, Piece::Pawn) & self.from.bb();
+        let pawns = self.board.get(Color::W, Piece::Pawn) & Pos::bb(self.from);
         let black_side = self.board.occupancy_side(Color::B);
         let side_attack = (Bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
             | (Bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
@@ -109,7 +104,7 @@ impl<'board> Generator<'board> {
         let second_push = Bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
-        if self.from.row() == self.color.flip().pawn_row() {
+        if Pos::row(self.from) == self.color.flip().pawn_row() {
             self.emit_pawn_promos(side_attack);
             self.emit_pawn_promos(pushes);
         } else {
@@ -211,7 +206,7 @@ impl<'board> Generator<'board> {
 
     fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
         let o = self.board.occupancy() & mask;
-        let r = self.from.bb();
+        let r = Pos::bb(self.from);
         let line = (o.wrapping_sub(r.wrapping_mul(2)))
             ^ (o.reverse_bits().wrapping_sub(r.reverse_bits().wrapping_mul(2))).reverse_bits();
         line & mask
@@ -220,11 +215,11 @@ impl<'board> Generator<'board> {
 #[cfg(test)]
 mod test {
 
-    use crate::{defs::Sq, fen, util::print_hboard};
+    use crate::{defs::Sq, fen, sq, util::print_hboard};
 
     use super::*;
 
-    fn gen_squares<P: Into<Pos>>(board: &Board, pos: P) -> Vec<Sq> {
+    fn gen_squares(board: &Board, pos: Sq) -> Vec<Sq> {
         let m = Generator::from_board(board, pos, true).generate();
         moves::attacked_positions(&m).collect()
     }
@@ -233,28 +228,28 @@ mod test {
     fn white_pawn_gen() {
         let mut board = Board::default();
 
-        Bits::set(board.black(Piece::P), Pos::new(3, 5));
-        Bits::set(board.black(Piece::P), Pos::new(2, 2));
-        Bits::set(board.white(Piece::P), Pos::new(4, 5));
-        Bits::set(board.white(Piece::P), Pos::new(5, 7));
+        Bits::set(board.black(Piece::P), sq!(3, 5));
+        Bits::set(board.black(Piece::P), sq!(2, 2));
+        Bits::set(board.white(Piece::P), sq!(4, 5));
+        Bits::set(board.white(Piece::P), sq!(5, 7));
         board.advance();
         board.advance();
 
         print_hboard(&board, &[]);
 
-        let actual = gen_squares(&board, (1, 1));
+        let actual = gen_squares(&board, sq!(1, 1));
         print_hboard(&board, &actual);
         assert_eq!(vec![18, 17, 25], actual);
 
-        let actual = gen_squares(&board, (1, 2));
+        let actual = gen_squares(&board, sq!(1, 2));
         print_hboard(&board, &actual);
         assert_eq!(vec![] as Vec<Sq>, actual);
 
-        let actual = gen_squares(&board, (4, 5));
+        let actual = gen_squares(&board, sq!(4, 5));
         print_hboard(&board, &actual);
         assert_eq!(vec![45], actual);
 
-        let actual = gen_squares(&board, (5, 7));
+        let actual = gen_squares(&board, sq!(5, 7));
         print_hboard(&board, &actual);
         assert_eq!(vec![54], actual);
     }
@@ -263,28 +258,28 @@ mod test {
     fn black_pawn_gen() {
         let mut board = Board::default();
 
-        Bits::set(board.black(Piece::P), Pos::new(3, 5));
-        Bits::set(board.black(Piece::P), Pos::new(2, 7));
-        Bits::set(board.white(Piece::P), Pos::new(4, 5));
-        Bits::set(board.white(Piece::P), Pos::new(5, 7));
+        Bits::set(board.black(Piece::P), sq!(3, 5));
+        Bits::set(board.black(Piece::P), sq!(2, 7));
+        Bits::set(board.white(Piece::P), sq!(4, 5));
+        Bits::set(board.white(Piece::P), sq!(5, 7));
 
         print_hboard(&board, &[]);
 
         board.advance();
 
-        let actual = gen_squares(&board, (6, 7));
+        let actual = gen_squares(&board, sq!(6, 7));
         print_hboard(&board, &actual);
         assert_eq!(vec![] as Vec<Sq>, actual);
 
-        let actual = gen_squares(&board, (6, 6));
+        let actual = gen_squares(&board, sq!(6, 6));
         print_hboard(&board, &actual);
         assert_eq!(vec![47, 38, 46], actual);
 
-        let actual = gen_squares(&board, (3, 5));
+        let actual = gen_squares(&board, sq!(3, 5));
         print_hboard(&board, &actual);
         assert_eq!(vec![21], actual);
 
-        let actual = gen_squares(&board, (2, 7));
+        let actual = gen_squares(&board, sq!(2, 7));
         print_hboard(&board, &actual);
         assert_eq!(vec![14], actual);
     }
@@ -294,29 +289,29 @@ mod test {
         let mut board = Board::default();
         board.state_mut().set_castled();
         board.clear();
-        Bits::set(board.black(Piece::Q), Pos::new(4, 6));
-        Bits::set(board.white(Piece::P), Pos::new(1, 4));
-        Bits::set(board.white(Piece::K), Pos::new(3, 5));
+        Bits::set(board.black(Piece::Q), sq!(4, 6));
+        Bits::set(board.white(Piece::P), sq!(1, 4));
+        Bits::set(board.white(Piece::K), sq!(3, 5));
         board.advance();
         board.advance();
 
         print_hboard(&board, &[]);
 
-        let actual = gen_squares(&board, Pos::new(3, 5));
+        let actual = gen_squares(&board, sq!(3, 5));
         print_hboard(&board, &actual);
         assert_eq!(vec![38, 21, 28], actual);
 
-        Bits::slide(board.white(Piece::K), Pos::new(3, 5), Pos::new(1, 3));
+        Bits::slide(board.white(Piece::K), sq!(3, 5), sq!(1, 3));
         board.advance();
         board.advance();
-        let actual = gen_squares(&board, Pos::new(1, 3));
+        let actual = gen_squares(&board, sq!(1, 3));
         print_hboard(&board, &actual);
         assert_eq!(vec![3, 4, 10, 18, 19], actual);
 
-        Bits::slide(board.white(Piece::K), Pos::new(1, 3), Pos::new(0, 0));
+        Bits::slide(board.white(Piece::K), sq!(1, 3), sq!(0, 0));
         board.advance();
         board.advance();
-        let actual = gen_squares(&board, Pos::new(0, 0));
+        let actual = gen_squares(&board, sq!(0, 0));
         print_hboard(&board, &actual);
         assert_eq!(vec![1, 8, 9], actual);
     }
@@ -325,13 +320,13 @@ mod test {
     fn slide_gen() {
         let mut board = Board::default();
         board.clear();
-        Bits::set(board.white(Piece::K), Pos::new(1, 6));
-        Bits::set(board.black(Piece::K), Pos::new(6, 6));
-        Bits::set(board.black(Piece::R), Pos::new(4, 6));
+        Bits::set(board.white(Piece::K), sq!(1, 6));
+        Bits::set(board.black(Piece::K), sq!(6, 6));
+        Bits::set(board.black(Piece::R), sq!(4, 6));
         board.advance();
         print_hboard(&board, &[]);
 
-        let actual = gen_squares(&board, Pos::new(4, 6));
+        let actual = gen_squares(&board, sq!(4, 6));
         print_hboard(&board, &actual);
         assert_eq!(vec![14, 22, 30, 32, 33, 34, 35, 36, 37, 39, 46], actual);
     }
@@ -340,16 +335,16 @@ mod test {
     fn slide_three() {
         let mut board = Board::default();
         board.clear();
-        Bits::set(board.white(Piece::K), Pos::new(2, 6));
-        Bits::set(board.white(Piece::Q), Pos::new(6, 7));
+        Bits::set(board.white(Piece::K), sq!(2, 6));
+        Bits::set(board.white(Piece::Q), sq!(6, 7));
 
-        Bits::set(board.black(Piece::K), Pos::new(7, 1));
-        Bits::set(board.black(Piece::N), Pos::new(7, 6));
-        Bits::set(board.black(Piece::R), Pos::new(7, 7));
+        Bits::set(board.black(Piece::K), sq!(7, 1));
+        Bits::set(board.black(Piece::N), sq!(7, 6));
+        Bits::set(board.black(Piece::R), sq!(7, 7));
         board.advance();
         print_hboard(&board, &[]);
 
-        let actual = gen_squares(&board, Pos::new(7, 7));
+        let actual = gen_squares(&board, sq!(7, 7));
         print_hboard(&board, &actual);
         assert_eq!(vec![55], actual);
     }
@@ -359,7 +354,7 @@ mod test {
         let board = Board::default();
         print_hboard(&board, &[]);
 
-        let actual = gen_squares(&board, Pos::new(0, 0));
+        let actual = gen_squares(&board, sq!(0, 0));
         print_hboard(&board, &actual);
         assert_eq!(vec![] as Vec<Sq>, actual);
     }
@@ -369,13 +364,13 @@ mod test {
         let board = fen::decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, Pos::new(0, 4));
+        let actual = gen_squares(&board, sq!(0, 4));
         assert_eq!(vec![6, 2, 3, 5], actual);
 
         let board = fen::decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, Pos::new(7, 4));
+        let actual = gen_squares(&board, sq!(7, 4));
         assert_eq!(vec![62, 58, 59, 61], actual);
     }
 
@@ -384,13 +379,13 @@ mod test {
         let board = fen::decode("4k3/8/8/8/q7/7q/3PPP2/R3K2R b KQ - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, Pos::new(0, 4));
+        let actual = gen_squares(&board, sq!(0, 4));
         assert_eq!(vec![] as Vec<Sq>, actual);
 
         let board = fen::decode("4k3/8/8/8/8/8/3PPP2/R3K2R b KQ - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, Pos::new(0, 4));
+        let actual = gen_squares(&board, sq!(0, 4));
         assert_eq!(vec![6, 2, 3, 5], actual);
     }
 
@@ -399,13 +394,13 @@ mod test {
         let board = fen::decode("r3k2r/3ppp2/1Q5Q/8/8/8/3PPP2/4K3 b kq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, Pos::new(7, 4));
+        let actual = gen_squares(&board, sq!(7, 4));
         assert_eq!(vec![] as Vec<Sq>, actual);
 
         let board = fen::decode("r3k2r/3ppp2/8/8/8/8/3PPP2/4K3 b kq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, Pos::new(7, 4));
+        let actual = gen_squares(&board, sq!(7, 4));
         assert_eq!(vec![62, 58, 59, 61], actual);
     }
 }

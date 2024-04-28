@@ -1,4 +1,10 @@
-use crate::{bits::Bits, board::Board, defs::BitBoard, magic::Magic, pos::Pos};
+use crate::{
+    bits::Bits,
+    board::Board,
+    defs::{BitBoard, Sq},
+    magic::Magic,
+    pos::Pos,
+};
 
 #[must_use]
 #[allow(clippy::cast_possible_truncation)]
@@ -8,9 +14,8 @@ pub fn king() -> [BitBoard; 64] {
 
     let mut gen = [0; 64];
     for (sq, gen_bb) in gen.iter_mut().enumerate() {
-        let from = Pos::from(sq as u8);
-
-        let bb = from.bb();
+        let from = sq as Sq;
+        let bb = Pos::bb(from);
         let mut pattern = Bits::north(bb)
             | Bits::northwest(bb)
             | Bits::northeast(bb)
@@ -20,9 +25,9 @@ pub fn king() -> [BitBoard; 64] {
             | Bits::west(bb)
             | Bits::east(bb);
 
-        if from.col() == 0 {
+        if Pos::col(from) == 0 {
             pattern &= Magic::NOT_H_FILE;
-        } else if from.col() == 7 {
+        } else if Pos::col(from) == 7 {
             pattern &= Magic::NOT_A_FILE;
         }
 
@@ -65,15 +70,15 @@ pub fn col_slider() -> [BitBoard; 8] {
 pub fn diag_slider() -> [BitBoard; 64] {
     let mut ans: [BitBoard; 64] = [0; 64];
     for (sq, bb) in ans.iter_mut().enumerate().rev() {
-        let p = Pos::from(sq as u8);
+        let p = sq as Sq;
         let o = 1 << sq;
 
         let mut v = 0;
-        for (s, _) in (p.col()..8).enumerate() {
+        for (s, _) in (Pos::col(p)..8).enumerate() {
             v |= o << (8 * s + s);
         }
 
-        for (s, _) in (0..=p.col()).enumerate() {
+        for (s, _) in (0..=Pos::col(p)).enumerate() {
             v |= o >> (8 * s + s);
         }
         *bb = v;
@@ -87,15 +92,15 @@ pub fn diag_slider() -> [BitBoard; 64] {
 pub fn antidiag_slider() -> [BitBoard; 64] {
     let mut ans: [BitBoard; 64] = [0; 64];
     for (sq, bb) in ans.iter_mut().enumerate().rev() {
-        let p = Pos::from(sq as u8);
+        let p = sq as Sq;
         let o = 1 << sq;
 
         let mut v = 0;
-        for (s, _) in (0..=p.col()).enumerate() {
+        for (s, _) in (0..=Pos::col(p)).enumerate() {
             v |= o << (8 * s - s);
         }
 
-        for (s, _) in (p.col()..8).enumerate() {
+        for (s, _) in (Pos::col(p)..8).enumerate() {
             v |= o >> (8 * s - s);
         }
         *bb = v;

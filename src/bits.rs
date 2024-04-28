@@ -33,31 +33,31 @@ impl Bits {
     }
 
     #[must_use]
-    pub(crate) fn has_piece(bb: BitBoard, pos: Pos) -> bool {
-        bb & pos.bb() != 0
+    pub(crate) fn has_piece(bb: BitBoard, pos: Sq) -> bool {
+        bb & Pos::bb(pos) != 0
     }
 
-    pub(crate) fn slide(bb: &mut BitBoard, from: Pos, to: Pos) {
-        *bb ^= from.bb() | to.bb();
+    pub(crate) fn slide(bb: &mut BitBoard, from: Sq, to: Sq) {
+        *bb ^= Pos::bb(from) | Pos::bb(to);
     }
 
-    pub(crate) fn set(bb: &mut BitBoard, pos: Pos) {
-        *bb |= pos.bb();
+    pub(crate) fn set(bb: &mut BitBoard, pos: Sq) {
+        *bb |= Pos::bb(pos);
     }
 
-    pub(crate) fn unset(bb: &mut BitBoard, pos: Pos) {
-        *bb &= !pos.bb();
+    pub(crate) fn unset(bb: &mut BitBoard, pos: Sq) {
+        *bb &= !Pos::bb(pos);
     }
 
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
-    pub(crate) fn pos(mut bb: BitBoard) -> Vec<Pos> {
-        let mut acc: Vec<Pos> = vec![];
+    pub(crate) fn pos(mut bb: BitBoard) -> Vec<Sq> {
+        let mut acc: Vec<Sq> = vec![];
         let mut square: Sq = 0;
         while bb > 0 {
             let mut shift = bb.trailing_zeros() as u8;
             if shift == 0 {
-                acc.push(square.into());
+                acc.push(square);
                 shift = 1;
             }
             bb >>= shift;
@@ -68,11 +68,11 @@ impl Bits {
 
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
-    pub(crate) fn first_pos(bb: BitBoard) -> Option<Pos> {
+    pub(crate) fn first_pos(bb: BitBoard) -> Option<Sq> {
         if bb == 0 {
             return None;
         }
-        Some((bb.trailing_zeros() as Sq).into())
+        Some(bb.trailing_zeros() as Sq)
     }
 
     #[must_use]
@@ -120,10 +120,10 @@ impl Bits {
 mod test {
 
     use super::*;
-    use crate::{util::print_bitboard, Pos};
+    use crate::{sq, util::print_bitboard, Pos};
 
-    static ORIGIN: Pos = Pos::new(0, 0);
-    static TARGET: Pos = Pos::new(3, 3);
+    static ORIGIN: Sq = sq!(0, 0);
+    static TARGET: Sq = sq!(3, 3);
 
     #[test]
     fn count() {
@@ -135,30 +135,29 @@ mod test {
     #[test]
     fn pos() {
         let sut = 0x800c00000a007000;
-        let expected: Vec<_> =
-            vec![12, 13, 14, 25, 27, 50, 51, 63].into_iter().map(Pos::from).collect();
+        let expected: Vec<Sq> = vec![12, 13, 14, 25, 27, 50, 51, 63];
         assert_eq!(expected, Bits::pos(sut));
     }
 
     #[test]
     fn first_pos() {
         let sut = 0x800c00000a007000;
-        assert_eq!(Some(12.into()), Bits::first_pos(sut));
+        assert_eq!(Some(12), Bits::first_pos(sut));
     }
 
     #[test]
     fn has_piece() {
         assert!(!Bits::has_piece(0, ORIGIN));
-        assert!(Bits::has_piece(ORIGIN.bb(), ORIGIN));
+        assert!(Bits::has_piece(Pos::bb(ORIGIN), ORIGIN));
 
         assert!(!Bits::has_piece(0, TARGET));
-        assert!(Bits::has_piece(TARGET.bb(), TARGET));
+        assert!(Bits::has_piece(Pos::bb(TARGET), TARGET));
     }
 
     #[test]
     fn slide() {
-        let from = Pos::new(1, 1);
-        let to = Pos::new(2, 2);
+        let from = sq!(1, 1);
+        let to = sq!(2, 2);
 
         let mut sut = Bits::init(Piece::Pawn, Color::W);
         assert!(!Bits::has_piece(sut, to));
@@ -171,7 +170,7 @@ mod test {
 
     #[test]
     fn unset() {
-        let pos = Pos::new(1, 1);
+        let pos = sq!(1, 1);
         let mut sut = Bits::init(Piece::Pawn, Color::W);
         assert!(Bits::has_piece(sut, pos));
 

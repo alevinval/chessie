@@ -1,7 +1,7 @@
 use crate::{
     color::Color,
     defs::{BitBoard, Sq},
-    pos::Pos,
+    sq,
 };
 
 pub struct Magic();
@@ -29,15 +29,15 @@ impl MagicCastling {
 
     pub(crate) const fn left_xray(color: Color) -> Sq {
         match color {
-            Color::B => Pos::new(7, 3).sq(),
-            Color::W => Pos::new(0, 3).sq(),
+            Color::B => sq!(7, 3),
+            Color::W => sq!(0, 3),
         }
     }
 
     pub(crate) const fn right_xray(color: Color) -> Sq {
         match color {
-            Color::B => Pos::new(7, 5).sq(),
-            Color::W => Pos::new(0, 5).sq(),
+            Color::B => sq!(7, 5),
+            Color::W => sq!(0, 5),
         }
     }
 }
