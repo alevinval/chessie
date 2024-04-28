@@ -1,7 +1,7 @@
 use crate::{
     bits::Bits,
     board::Board,
-    defs::BitBoard,
+    defs::{BitBoard, Sq},
     eval::{legacy::LegacyScorer, Scorer},
     fen,
     pos::Pos,
@@ -26,7 +26,7 @@ pub(crate) fn print_board(board: &Board) {
     print_hboard(board, &[]);
 }
 
-pub(crate) fn print_hboard(board: &Board, highlights: &[Pos]) {
+pub(crate) fn print_hboard(board: &Board, highlights: &[Sq]) {
     let state = board.state();
     let eval = Scorer::eval(board) / 100.0;
     let legacy_eval = LegacyScorer::eval(board) / 100.0;
@@ -39,9 +39,9 @@ pub(crate) fn print_hboard(board: &Board, highlights: &[Pos]) {
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
-            let pos: Pos = (row, col).into();
-            let mark = highlights.iter().find(|p| **p == pos).map(|_| "•");
-            let piece = board.at(pos).map_or(" ", |(color, piece, _)| piece.as_str(color));
+            let sq: Sq = Pos::new(row, col).sq();
+            let mark = highlights.iter().find(|p| **p == sq).map(|_| "•");
+            let piece = board.at(sq).map_or(" ", |(color, piece, _)| piece.as_str(color));
             print!("| {} ", mark.unwrap_or(piece));
         }
         println!("| {}", row + 1);

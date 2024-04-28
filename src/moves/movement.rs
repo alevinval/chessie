@@ -1,6 +1,13 @@
 use std::fmt;
 
-use crate::{bits::Bits, board::Board, defs::Castling, piece::Piece, pos::Pos, Color};
+use crate::{
+    bits::Bits,
+    board::Board,
+    defs::{Castling, Sq},
+    piece::Piece,
+    pos::Pos,
+    Color,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Move {
@@ -13,22 +20,22 @@ pub(crate) enum Move {
 
 impl Move {
     #[must_use]
-    pub(crate) const fn to(self) -> Pos {
+    pub(crate) const fn to(self) -> Sq {
         match self {
-            Move::Takes { to, .. } | Move::Slide { to, .. } | Move::PawnPromo { to, .. } => to,
-            Move::LeftCastle { mover } => Pos::new(mover.piece_row(), 2),
-            Move::RightCastle { mover } => Pos::new(mover.piece_row(), 6),
+            Move::Takes { to, .. } | Move::Slide { to, .. } | Move::PawnPromo { to, .. } => to.sq(),
+            Move::LeftCastle { mover } => Pos::new(mover.piece_row(), 2).sq(),
+            Move::RightCastle { mover } => Pos::new(mover.piece_row(), 6).sq(),
         }
     }
 
     #[must_use]
-    pub(crate) const fn from(self) -> Pos {
+    pub(crate) const fn from(self) -> Sq {
         match self {
             Move::Takes { from, .. } | Move::Slide { from, .. } | Move::PawnPromo { from, .. } => {
-                from
+                from.sq()
             }
             Move::LeftCastle { mover } | Move::RightCastle { mover } => {
-                Pos::new(mover.piece_row(), 4)
+                Pos::new(mover.piece_row(), 4).sq()
             }
         }
     }
@@ -159,22 +166,22 @@ mod test {
 
     #[test]
     fn to() {
-        assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to());
-        assert_eq!(TO, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.to());
-        assert_eq!(Pos::new(0, 2), Move::LeftCastle { mover: Color::W }.to());
-        assert_eq!(Pos::new(7, 2), Move::LeftCastle { mover: Color::B }.to());
-        assert_eq!(Pos::new(0, 6), Move::RightCastle { mover: Color::W }.to());
-        assert_eq!(Pos::new(7, 6), Move::RightCastle { mover: Color::B }.to());
+        assert_eq!(TO.sq(), Move::Slide { from: FROM, to: TO }.to());
+        assert_eq!(TO.sq(), Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.to());
+        assert_eq!(Pos::new(0, 2).sq(), Move::LeftCastle { mover: Color::W }.to());
+        assert_eq!(Pos::new(7, 2).sq(), Move::LeftCastle { mover: Color::B }.to());
+        assert_eq!(Pos::new(0, 6).sq(), Move::RightCastle { mover: Color::W }.to());
+        assert_eq!(Pos::new(7, 6).sq(), Move::RightCastle { mover: Color::B }.to());
     }
 
     #[test]
     fn from() {
-        assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from());
-        assert_eq!(FROM, Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.from());
-        assert_eq!(Pos::new(0, 4), Move::LeftCastle { mover: Color::W }.from());
-        assert_eq!(Pos::new(7, 4), Move::LeftCastle { mover: Color::B }.from());
-        assert_eq!(Pos::new(0, 4), Move::RightCastle { mover: Color::W }.from());
-        assert_eq!(Pos::new(7, 4), Move::RightCastle { mover: Color::B }.from());
+        assert_eq!(FROM.sq(), Move::Slide { from: FROM, to: TO }.from());
+        assert_eq!(FROM.sq(), Move::PawnPromo { from: FROM, to: TO, piece: Piece::Pawn }.from());
+        assert_eq!(Pos::new(0, 4).sq(), Move::LeftCastle { mover: Color::W }.from());
+        assert_eq!(Pos::new(7, 4).sq(), Move::LeftCastle { mover: Color::B }.from());
+        assert_eq!(Pos::new(0, 4).sq(), Move::RightCastle { mover: Color::W }.from());
+        assert_eq!(Pos::new(7, 4).sq(), Move::RightCastle { mover: Color::B }.from());
     }
 
     #[test]
