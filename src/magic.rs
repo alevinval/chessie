@@ -1,4 +1,8 @@
-use crate::{color::Color, defs::BitBoard, pos::Pos};
+use crate::{
+    color::Color,
+    defs::{BitBoard, Sq},
+    pos::Pos,
+};
 
 pub struct Magic();
 pub struct MagicCastling();
@@ -23,17 +27,17 @@ impl MagicCastling {
         }
     }
 
-    pub(crate) const fn left_xray(color: Color) -> BitBoard {
+    pub(crate) const fn left_xray(color: Color) -> Sq {
         match color {
-            Color::B => Pos::new(7, 3).bb(),
-            Color::W => Pos::new(0, 3).bb(),
+            Color::B => Pos::new(7, 3).sq(),
+            Color::W => Pos::new(0, 3).sq(),
         }
     }
 
-    pub(crate) const fn right_xray(color: Color) -> BitBoard {
+    pub(crate) const fn right_xray(color: Color) -> Sq {
         match color {
-            Color::B => Pos::new(7, 5).bb(),
-            Color::W => Pos::new(0, 5).bb(),
+            Color::B => Pos::new(7, 5).sq(),
+            Color::W => Pos::new(0, 5).sq(),
         }
     }
 }

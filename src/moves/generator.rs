@@ -4,6 +4,7 @@ use crate::{
     defs::{BitBoard, Castling},
     eval::score_piece,
     magic::{Magic, MagicCastling},
+    moves,
     piece::Piece,
     util::print_board,
     Color, Pos,
@@ -188,19 +189,19 @@ impl<'board> Generator<'board> {
     fn is_legal(&self, movement: Move) -> bool {
         let next = movement.apply(self.board);
         if matches!(movement, Move::LeftCastle { .. })
-            && next
-                .pseudo_movements(self.color.flip())
-                .iter()
-                .any(|m| m.to().bb() & MagicCastling::left_xray(self.color) > 0)
+            && moves::is_attacked(
+                &next.pseudo_movements(self.color.flip()),
+                MagicCastling::left_xray(self.color),
+            )
         {
             return false;
         }
 
         if matches!(movement, Move::RightCastle { .. })
-            && next
-                .pseudo_movements(self.color.flip())
-                .iter()
-                .any(|m| m.to().bb() & MagicCastling::right_xray(self.color) > 0)
+            && moves::is_attacked(
+                &next.pseudo_movements(self.color.flip()),
+                MagicCastling::right_xray(self.color),
+            )
         {
             return false;
         }
@@ -225,7 +226,7 @@ mod test {
 
     fn gen_squares<P: Into<Pos>>(board: &Board, pos: P) -> Vec<Pos> {
         let m = Generator::from_board(board, pos, true).generate();
-        m.iter().map(|m| m.to()).collect()
+        moves::attacked_positions(&m).collect()
     }
 
     fn assert_moves(expected: Vec<Sq>, actual: Vec<Pos>) {

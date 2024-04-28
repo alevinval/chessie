@@ -1,7 +1,7 @@
 use crate::{
     bits::Bits,
     defs::BitBoard,
-    moves::{Generator, Move},
+    moves::{self, Generator, Move},
     piece::Piece,
     pos::Pos,
     Color,
@@ -127,7 +127,8 @@ impl Board {
     #[must_use]
     pub(crate) fn in_check(&self, color: Color) -> bool {
         if let Some(pos) = Bits::first_pos(self.get(color, Piece::King)) {
-            self.pseudo_movements(color.flip()).iter().any(|m| m.to() == pos)
+            let moves = self.pseudo_movements(color.flip());
+            moves::is_attacked(&moves, pos.sq())
         } else {
             true
         }
