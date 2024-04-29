@@ -69,6 +69,10 @@ impl Board {
         self.state_mut().set_castling(color, update, false);
     }
 
+    pub(crate) fn enable_castling(&mut self, color: Color, update: CastlingUpdate) {
+        self.state_mut().set_castling(color, update, true);
+    }
+
     #[must_use]
     pub(crate) const fn get(&self, color: Color, piece: Piece) -> BitBoard {
         match color {
@@ -120,6 +124,11 @@ impl Board {
         self.state.advance();
     }
 
+    pub(crate) fn backwards(&mut self) {
+        self.calculate_occupancies();
+        self.state.backwards();
+    }
+
     #[must_use]
     pub(crate) fn movements(&self, color: Color) -> Vec<Move> {
         self.generate_movements(color, true)
@@ -155,16 +164,14 @@ impl Board {
         self.occupancy = self.white_side | self.black_side;
     }
 
-    #[must_use]
-    pub(crate) fn apply_clone(&self, movement: Move) -> Self {
-        let mut next = self.clone();
-        next.apply_mut(movement);
-        next
-    }
-
     pub(crate) fn apply_mut(&mut self, movement: Move) {
         movement.apply(self);
         self.advance();
+    }
+
+    pub(crate) fn unapply_mut(&mut self, movement: Move) {
+        movement.unapply(self);
+        self.backwards();
     }
 
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {

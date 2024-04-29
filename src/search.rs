@@ -8,12 +8,12 @@ pub(crate) fn find_move(
     depth: usize,
     eval_fn: EvalFn,
 ) -> (Option<Move>, f64, Option<usize>) {
-    negamax(board, depth, eval_fn, (-f64::INFINITY, f64::INFINITY))
+    negamax(&mut board.clone(), depth, eval_fn, (-f64::INFINITY, f64::INFINITY))
 }
 
 #[must_use]
 fn negamax(
-    board: &Board,
+    board: &mut Board,
     ply: usize,
     eval_fn: EvalFn,
     (mut alpha, beta): (f64, f64),
@@ -35,8 +35,10 @@ fn negamax(
     let mut best_mate: Option<usize> = None;
 
     for movement in movements {
-        let child = board.apply_clone(movement);
-        let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, (-beta, -alpha));
+        board.apply_mut(movement);
+        let (_, eval, mate) = negamax(board, ply - 1, eval_fn, (-beta, -alpha));
+        board.unapply_mut(movement);
+
         let eval = -eval;
         if eval > best_eval {
             best_eval = eval;
