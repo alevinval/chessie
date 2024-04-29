@@ -41,6 +41,13 @@ impl GameState {
         self.mover = self.mover.flip();
     }
 
+    pub(super) fn backwards(&mut self) {
+        if self.mover == Color::W {
+            self.fullmove -= 1;
+        }
+        self.mover = self.mover.flip();
+    }
+
     pub(crate) fn set_mover(&mut self, mover: Color) {
         self.mover = mover;
     }
@@ -87,6 +94,24 @@ impl Default for GameState {
 mod test {
     use super::*;
     use test_case::test_case;
+
+    #[test]
+    fn advance_and_backwards() {
+        let mut sut = GameState::default();
+        let modified = sut.clone();
+
+        sut.advance();
+        assert_ne!(modified, sut);
+
+        sut.advance();
+        assert_ne!(modified, sut);
+
+        sut.backwards();
+        assert_ne!(modified, sut);
+
+        sut.backwards();
+        assert_eq!(modified, sut);
+    }
 
     #[test]
     fn n() {
