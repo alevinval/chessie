@@ -143,11 +143,15 @@ impl Board {
     }
 
     #[must_use]
-    pub(crate) fn apply_move(&self, movement: Move) -> Self {
+    pub(crate) fn apply_clone(&self, movement: Move) -> Self {
         let mut next = self.clone();
-        movement.apply(&mut next);
-        next.advance();
+        next.apply_mut(movement);
         next
+    }
+
+    pub(crate) fn apply_mut(&mut self, movement: Move) {
+        movement.apply(self);
+        self.advance();
     }
 
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {

@@ -35,7 +35,7 @@ fn negamax(
     let mut best_mate: Option<usize> = None;
 
     for movement in movements {
-        let child = board.apply_move(movement);
+        let child = board.apply_clone(movement);
         let (_, eval, mate) = negamax(&child, ply - 1, eval_fn, (-beta, -alpha));
         let eval = -eval;
         if eval > best_eval {
@@ -86,19 +86,19 @@ mod test {
 
     #[test]
     fn mate_in_two() {
-        let board = fen::decode("8/8/8/2Q5/7p/1k5P/1N6/1K3B2 w - - 0 101").expect("ook");
+        let mut board = fen::decode("8/8/8/2Q5/7p/1k5P/1N6/1K3B2 w - - 0 101").expect("ook");
         print_hboard(&board, &[]);
 
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(2), mate);
 
-        let board = board.apply_move(a.unwrap());
+        board.apply_mut(a.unwrap());
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
-        let board = board.apply_move(a.unwrap());
+        board.apply_mut(a.unwrap());
         let (a, _, mate) = find_move(&board, 4, Scorer::eval);
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);

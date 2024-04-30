@@ -184,7 +184,7 @@ impl<'board> Generator<'board> {
     }
 
     fn is_legal(&self, movement: Move) -> bool {
-        let next = self.board.apply_move(movement);
+        let next = self.board.apply_clone(movement);
         if matches!(movement, Move::LeftCastle { .. })
             && moves::is_attacked(
                 &next.pseudo_movements(self.color.flip()),
