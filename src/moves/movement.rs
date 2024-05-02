@@ -3,18 +3,38 @@ use std::fmt;
 use crate::{
     bits,
     board::Board,
-    defs::{Castling, Sq},
+    defs::{CastlingUpdate, Sq},
     piece::Piece,
     pos, sq, Color,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum Move {
-    Takes { from: Sq, to: Sq, piece: Piece, value: f64 },
-    Slide { from: Sq, to: Sq },
-    PawnPromo { from: Sq, to: Sq, promo_piece: Piece, taken_piece: Option<Piece> },
-    LeftCastle { mover: Color },
-    RightCastle { mover: Color },
+    Takes {
+        from: Sq,
+        to: Sq,
+        piece: Piece,
+        value: f64,
+        castling_update: Option<CastlingUpdate>,
+        target_castling_update: Option<CastlingUpdate>,
+    },
+    Slide {
+        from: Sq,
+        to: Sq,
+        castling_update: Option<CastlingUpdate>,
+    },
+    PawnPromo {
+        from: Sq,
+        to: Sq,
+        promo_piece: Piece,
+        taken_piece: Option<Piece>,
+    },
+    LeftCastle {
+        mover: Color,
+    },
+    RightCastle {
+        mover: Color,
+    },
 }
 
 impl Move {
@@ -51,23 +71,32 @@ impl Move {
     }
 
     pub(crate) fn apply(self, board: &mut Board) {
+        let mover = board.state().mover();
+        let opponent = mover.flip();
         match self {
-            Move::Takes { from, to, .. } => {
+            Move::Takes { from, to, castling_update, target_castling_update, .. } => {
                 Self::clear(board, to);
-                self.update_castling(board, from);
+                if let Some(update) = castling_update {
+                    board.state_mut().set_castling(mover, update, false);
+                }
+                if let Some(update) = target_castling_update {
+                    board.state_mut().set_castling(opponent, update, false);
+                }
                 self.slide(board, from, to);
             }
-            Move::Slide { from, to } => {
-                self.update_castling(board, from);
+            Move::Slide { from, to, castling_update, .. } => {
+                if let Some(update) = castling_update {
+                    board.state_mut().set_castling(mover, update, false);
+                }
                 self.slide(board, from, to);
             }
             Move::PawnPromo { from, to, promo_piece: piece, .. } => {
                 Self::clear(board, from);
                 Self::clear(board, to);
-                board.add(board.state().mover(), piece, to);
+                board.add(mover, piece, to);
             }
             Move::LeftCastle { mover } => {
-                board.state_mut().set_castled();
+                board.state_mut().set_castling(mover, CastlingUpdate::Both, false);
                 match mover {
                     Color::B => {
                         self.slide(board, sq!(7, 4), sq!(7, 2));
@@ -80,7 +109,7 @@ impl Move {
                 }
             }
             Move::RightCastle { mover } => {
-                board.state_mut().set_castled();
+                board.state_mut().set_castling(mover, CastlingUpdate::Both, false);
                 match mover {
                     Color::B => {
                         self.slide(board, sq!(7, 4), sq!(7, 6));
@@ -107,37 +136,12 @@ impl Move {
         });
         bits::slide(bb, from, to);
     }
-
-    fn update_castling(self, board: &mut Board, from: Sq) {
-        let color = board.state().mover();
-        if let Castling::Some { left, right } = board.state().castling(color) {
-            if !left && !right {
-                board.state_mut().set_castled();
-                return;
-            }
-
-            let (_, piece, _) = board.at(from).unwrap_or_else(|| {
-                unreachable!("must have a piece in order to move {:?} {:?}", self, from)
-            });
-
-            if let Piece::King = piece {
-                board.state_mut().set_castled();
-                return;
-            }
-
-            if let Piece::Rook = piece {
-                board
-                    .state_mut()
-                    .update_castling(left || pos::col(from) == 0, right || pos::col(from) == 7);
-            }
-        }
-    }
 }
 
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Move::Takes { from, to, .. } | Move::Slide { from, to } => {
+            Move::Takes { from, to, .. } | Move::Slide { from, to, .. } => {
                 let from = pos::str(*from);
                 let to = pos::str(*to);
                 f.write_fmt(format_args!("{from} × {to}"))
@@ -162,7 +166,7 @@ mod test {
 
     #[test]
     fn to() {
-        assert_eq!(TO, Move::Slide { from: FROM, to: TO }.to());
+        assert_eq!(TO, Move::Slide { from: FROM, to: TO, castling_update: None }.to());
         assert_eq!(
             TO,
             Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }
@@ -175,7 +179,7 @@ mod test {
     }
     #[test]
     fn from() {
-        assert_eq!(FROM, Move::Slide { from: FROM, to: TO }.from());
+        assert_eq!(FROM, Move::Slide { from: FROM, to: TO, castling_update: None }.from());
         assert_eq!(
             FROM,
             Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }

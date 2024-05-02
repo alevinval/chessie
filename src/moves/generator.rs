@@ -1,7 +1,7 @@
 use crate::{
     bits,
-    board::Board,
-    defs::{BitBoard, Castling, Sq},
+    board::{Board, GameState},
+    defs::{BitBoard, CastlingUpdate, Sq},
     eval::score_piece,
     magic::{Magic, MagicCastling},
     moves,
@@ -16,6 +16,7 @@ use super::Move;
 #[derive(Debug)]
 pub(crate) struct Generator<'board> {
     board: &'board Board,
+    state: &'board GameState,
     color: Color,
     piece: Piece,
     from: Sq,
@@ -40,7 +41,7 @@ impl<'board> Generator<'board> {
         piece: Piece,
         only_legal: bool,
     ) -> Self {
-        Self { board, from, color, piece, moves: vec![], only_legal }
+        Self { board, state: board.state(), from, color, piece, moves: vec![], only_legal }
     }
 
     #[must_use]
@@ -124,12 +125,8 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_castling(&mut self) {
-        if let Castling::Some { left, right } = self.board.state().castling(self.color) {
-            debug_assert!(
-                right | left,
-                "should never emit castling if there are no castling rights"
-            );
-
+        let (left, right) = self.state.castling(self.color);
+        if left || right {
             let occ = self.board.occupancy();
             let side = self.board.occupancy_side(self.color);
 
@@ -162,9 +159,39 @@ impl<'board> Generator<'board> {
         self.emit_slides(bb & !self.board.occupancy());
     }
 
+    fn get_castling_update(&self, color: Color, piece: Piece, pos: Sq) -> Option<CastlingUpdate> {
+        let mut update = None;
+        let is_king = matches!(piece, Piece::King);
+        let is_rook = matches!(piece, Piece::Rook);
+        if is_king || is_rook {
+            let (left, right) = self.state.castling(color);
+
+            if is_king {
+                if left && right {
+                    update = Some(CastlingUpdate::Both);
+                } else if left {
+                    update = Some(CastlingUpdate::Left);
+                } else if right {
+                    update = Some(CastlingUpdate::Right);
+                }
+            } else if is_rook {
+                if pos == MagicCastling::right_rook(color) && right {
+                    update = Some(CastlingUpdate::Right);
+                } else if pos == MagicCastling::left_rook(color) && left {
+                    update = Some(CastlingUpdate::Left);
+                }
+            }
+        }
+        update
+    }
+
     fn emit_slides(&mut self, bb: BitBoard) {
         for to in bits::pos(bb) {
-            self.push_move(Move::Slide { from: self.from, to });
+            self.push_move(Move::Slide {
+                from: self.from,
+                to,
+                castling_update: self.get_castling_update(self.color, self.piece, self.from),
+            });
         }
     }
 
@@ -173,7 +200,18 @@ impl<'board> Generator<'board> {
             let (_, moved_piece, _) = self.board.at(self.from).unwrap();
             let (_, taken_piece, _) = self.board.at(to).unwrap();
             let value = score_piece(taken_piece) - score_piece(moved_piece);
-            self.push_move(Move::Takes { from: self.from, to, piece: taken_piece, value });
+            self.push_move(Move::Takes {
+                from: self.from,
+                to,
+                piece: taken_piece,
+                value,
+                castling_update: self.get_castling_update(self.color, self.piece, self.from),
+                target_castling_update: self.get_castling_update(
+                    self.color.flip(),
+                    taken_piece,
+                    to,
+                ),
+            });
         }
     }
 
@@ -254,9 +292,9 @@ mod test {
         assert_eq!(expected, actual);
     }
 
-    #[test_case("8/8/8/6q1/5K2/8/4P3/8 w kq - 0 2", sq!(3, 5), vec![38, 21, 28])]
-    #[test_case("8/8/8/6q1/8/8/3KP3/8 w kq - 0 3", sq!(1, 3), vec![3, 4, 10, 18, 19])]
-    #[test_case("8/8/8/6q1/8/8/4P3/K7 w kq - 0 4", sq!(0, 0), vec![1, 8, 9])]
+    #[test_case("8/8/8/6q1/5K2/8/4P3/8 w - - 0 2", sq!(3, 5), vec![38, 21, 28])]
+    #[test_case("8/8/8/6q1/8/8/3KP3/8 w - - 0 3", sq!(1, 3), vec![3, 4, 10, 18, 19])]
+    #[test_case("8/8/8/6q1/8/8/4P3/K7 w - - 0 4", sq!(0, 0), vec![1, 8, 9])]
     fn king_gen(input: &str, at: Sq, expected: Vec<Sq>) {
         let board = fen::decode(input).unwrap();
         print_board(&board);

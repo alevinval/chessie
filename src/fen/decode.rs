@@ -1,4 +1,4 @@
-use crate::{board::Board, color::Color, defs::Castling, piece::Piece, sq};
+use crate::{board::Board, color::Color, defs::CastlingUpdate, piece::Piece, sq};
 
 use super::FenError;
 
@@ -68,35 +68,22 @@ fn decode_mover(board: &mut Board, input: &str) -> Result<(), FenError> {
 }
 
 fn decode_castling(board: &mut Board, input: &str) -> Result<(), FenError> {
-    *board.state_mut().castling_for(Color::W) = Castling::None;
-    *board.state_mut().castling_for(Color::B) = Castling::None;
+    let state = board.state_mut();
+    state.set_castling(Color::W, CastlingUpdate::Both, false);
+    state.set_castling(Color::B, CastlingUpdate::Both, false);
 
     if input == "-" {
         return Ok(());
     }
 
-    let mut white_left = false;
-    let mut white_right = false;
-    let mut black_left = false;
-    let mut black_right = false;
-
     for ch in input.chars() {
         match ch {
-            'Q' => white_left = true,
-            'K' => white_right = true,
-            'q' => black_right = true,
-            'k' => black_left = true,
+            'Q' => state.set_castling(Color::W, CastlingUpdate::Left, true),
+            'K' => state.set_castling(Color::W, CastlingUpdate::Right, true),
+            'q' => state.set_castling(Color::B, CastlingUpdate::Right, true),
+            'k' => state.set_castling(Color::B, CastlingUpdate::Left, true),
             _ => return Err(FenError::Invalid),
         }
-    }
-
-    if white_left || white_right {
-        *board.state_mut().castling_for(Color::W) =
-            Castling::Some { left: white_left, right: white_right }
-    }
-    if black_left || black_right {
-        *board.state_mut().castling_for(Color::B) =
-            Castling::Some { left: black_left, right: black_right };
     }
 
     Ok(())

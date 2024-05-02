@@ -40,6 +40,20 @@ impl MagicCastling {
             Color::W => sq!(0, 5),
         }
     }
+
+    pub(crate) const fn left_rook(color: Color) -> Sq {
+        match color {
+            Color::B => sq!(7, 0),
+            Color::W => sq!(0, 0),
+        }
+    }
+
+    pub(crate) const fn right_rook(color: Color) -> Sq {
+        match color {
+            Color::B => sq!(7, 7),
+            Color::W => sq!(0, 7),
+        }
+    }
 }
 
 #[allow(dead_code)]

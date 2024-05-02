@@ -81,7 +81,7 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
 
         assert_eq!(Some(1), mate);
-        assert_eq!(Some(Move::Slide { from: sq!(from), to: sq!(to) }), a);
+        assert_eq!(Some(Move::Slide { from: sq!(from), to: sq!(to), castling_update: None }), a);
     }
 
     #[test]
@@ -103,6 +103,6 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
-        assert_eq!(Some(Move::Slide { from: sq!(3, 2), to: sq!(2, 2) }), a);
+        assert_eq!(Some(Move::Slide { from: sq!(3, 2), to: sq!(2, 2), castling_update: None }), a);
     }
 }

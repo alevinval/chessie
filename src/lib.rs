@@ -42,7 +42,7 @@ pub fn play() {
 
         let to = read_sq();
 
-        board.apply_mut(Move::Slide { from, to });
+        board.apply_mut(Move::Slide { from, to, castling_update: None });
         print_board(&board);
 
         let (movement, _, _) = find_move(&board, 4, legacy_eval);

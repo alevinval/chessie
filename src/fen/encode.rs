@@ -1,7 +1,6 @@
 use crate::{
     board::{Board, GameState},
     color::Color,
-    defs::Castling,
     piece::Piece,
     sq,
 };
@@ -54,28 +53,25 @@ fn encode_mover(out: &mut String, state: &GameState) {
 fn encode_castling(out: &mut String, state: &GameState) {
     out.push(' ');
 
-    let white = state.castling(Color::W);
-    let black = state.castling(Color::B);
-    if matches!(white, Castling::None) && matches!(black, Castling::None) {
+    let (white_left, white_right) = state.castling(Color::W);
+    let (black_left, black_right) = state.castling(Color::B);
+
+    if !white_left && !white_right && !black_left && !black_right {
         out.push('-');
+        return;
     }
 
-    if let Castling::Some { left, right } = white {
-        if right {
-            out.push('K');
-        }
-        if left {
-            out.push('Q');
-        }
+    if white_right {
+        out.push('K');
     }
-
-    if let Castling::Some { left, right } = black {
-        if left {
-            out.push('k');
-        }
-        if right {
-            out.push('q');
-        }
+    if white_left {
+        out.push('Q');
+    }
+    if black_left {
+        out.push('k');
+    }
+    if black_right {
+        out.push('q');
     }
 }
 

@@ -1,11 +1,15 @@
-use crate::{color::Color, defs::Castling};
+use crate::{color::Color, defs::CastlingUpdate};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct GameState {
     mover: Color,
-    white_castling: Castling,
-    black_castling: Castling,
     fullmove: usize,
+
+    // Castling rights
+    white_left: bool,
+    white_right: bool,
+    black_left: bool,
+    black_right: bool,
 }
 
 impl GameState {
@@ -20,10 +24,10 @@ impl GameState {
     }
 
     #[must_use]
-    pub(crate) const fn castling(&self, color: Color) -> Castling {
+    pub(crate) const fn castling(&self, color: Color) -> (bool, bool) {
         match color {
-            Color::B => self.black_castling,
-            Color::W => self.white_castling,
+            Color::B => (self.black_left, self.black_right),
+            Color::W => (self.white_left, self.white_right),
         }
     }
 
@@ -42,18 +46,23 @@ impl GameState {
         self.fullmove = fullmove;
     }
 
-    pub(crate) fn set_castled(&mut self) {
-        *self.castling_for(self.mover) = Castling::None;
-    }
+    pub(crate) fn set_castling(&mut self, color: Color, update: CastlingUpdate, value: bool) {
+        let (left, right) = match color {
+            Color::B => (&mut self.black_left, &mut self.black_right),
+            Color::W => (&mut self.white_left, &mut self.white_right),
+        };
 
-    pub(crate) fn update_castling(&mut self, left: bool, right: bool) {
-        *self.castling_for(self.mover) = Castling::Some { left, right };
-    }
-
-    pub(crate) fn castling_for(&mut self, color: Color) -> &mut Castling {
-        match color {
-            Color::B => &mut self.black_castling,
-            Color::W => &mut self.white_castling,
+        match update {
+            CastlingUpdate::Left => {
+                *left = value;
+            }
+            CastlingUpdate::Right => {
+                *right = value;
+            }
+            CastlingUpdate::Both => {
+                *left = value;
+                *right = value;
+            }
         }
     }
 }
@@ -62,9 +71,11 @@ impl Default for GameState {
     fn default() -> Self {
         Self {
             mover: Color::W,
-            white_castling: Castling::default(),
-            black_castling: Castling::default(),
             fullmove: 1,
+            white_left: true,
+            white_right: true,
+            black_left: true,
+            black_right: true,
         }
     }
 }
@@ -72,6 +83,7 @@ impl Default for GameState {
 #[cfg(test)]
 mod test {
     use super::*;
+    use test_case::test_case;
 
     #[test]
     fn n() {
@@ -94,32 +106,17 @@ mod test {
         assert_eq!(Color::B, sut.mover());
     }
 
-    #[test]
-    fn castling() {
-        let sut = GameState::default();
-        assert_eq!(Castling::Some { left: true, right: true }, sut.castling(Color::W));
-        assert_eq!(Castling::Some { left: true, right: true }, sut.castling(Color::B));
-    }
-
-    #[test]
-    fn set_castled_white() {
+    #[test_case(Color::W, CastlingUpdate::Left, false, (false, true))]
+    #[test_case(Color::W, CastlingUpdate::Right, false, (true, false))]
+    #[test_case(Color::W, CastlingUpdate::Both, false, (false, false))]
+    #[test_case(Color::B, CastlingUpdate::Left, false, (false, true))]
+    #[test_case(Color::B, CastlingUpdate::Right, false, (true, false))]
+    #[test_case(Color::B, CastlingUpdate::Both, false, (false, false))]
+    fn castling(color: Color, update: CastlingUpdate, value: bool, expected: (bool, bool)) {
         let mut sut = GameState::default();
-        sut.set_castled();
-        assert_eq!(Castling::None, sut.castling(Color::W));
-    }
+        assert_eq!((true, true), sut.castling(color));
 
-    #[test]
-    fn set_castled_black() {
-        let mut sut = GameState::default();
-        sut.advance();
-        sut.set_castled();
-        assert_eq!(Castling::None, sut.castling(Color::B));
-    }
-
-    #[test]
-    fn set_castling() {
-        let mut sut = GameState::default();
-        sut.update_castling(false, true);
-        assert_eq!(Castling::Some { left: false, right: true }, sut.castling(Color::W));
+        sut.set_castling(color, update, value);
+        assert_eq!(expected, sut.castling(color));
     }
 }
