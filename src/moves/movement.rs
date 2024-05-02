@@ -31,9 +31,11 @@ pub(crate) enum Move {
     },
     LeftCastle {
         mover: Color,
+        castling_update: CastlingUpdate,
     },
     RightCastle {
         mover: Color,
+        castling_update: CastlingUpdate,
     },
 }
 
@@ -42,8 +44,8 @@ impl Move {
     pub(crate) const fn to(self) -> Sq {
         match self {
             Move::Slide { to, .. } | Move::Takes { to, .. } | Move::PawnPromo { to, .. } => to,
-            Move::LeftCastle { mover } => sq!(mover.piece_row(), 2),
-            Move::RightCastle { mover } => sq!(mover.piece_row(), 6),
+            Move::LeftCastle { mover, .. } => sq!(mover.piece_row(), 2),
+            Move::RightCastle { mover, .. } => sq!(mover.piece_row(), 6),
         }
     }
 
@@ -53,7 +55,7 @@ impl Move {
             Move::Slide { from, .. } | Move::Takes { from, .. } | Move::PawnPromo { from, .. } => {
                 from
             }
-            Move::LeftCastle { mover } | Move::RightCastle { mover } => {
+            Move::LeftCastle { mover, .. } | Move::RightCastle { mover, .. } => {
                 sq!(mover.piece_row(), 4)
             }
         }
@@ -95,8 +97,8 @@ impl Move {
                 Self::clear(board, to);
                 board.add(mover, piece, to);
             }
-            Move::LeftCastle { mover } => {
-                board.state_mut().set_castling(mover, CastlingUpdate::Both, false);
+            Move::LeftCastle { mover, castling_update } => {
+                board.state_mut().set_castling(mover, castling_update, false);
                 match mover {
                     Color::B => {
                         self.slide(board, sq!(7, 4), sq!(7, 2));
@@ -108,8 +110,8 @@ impl Move {
                     }
                 }
             }
-            Move::RightCastle { mover } => {
-                board.state_mut().set_castling(mover, CastlingUpdate::Both, false);
+            Move::RightCastle { mover, castling_update } => {
+                board.state_mut().set_castling(mover, castling_update, false);
                 match mover {
                     Color::B => {
                         self.slide(board, sq!(7, 4), sq!(7, 6));
@@ -172,10 +174,22 @@ mod test {
             Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }
                 .to()
         );
-        assert_eq!(sq!(0, 2), Move::LeftCastle { mover: Color::W }.to());
-        assert_eq!(sq!(7, 2), Move::LeftCastle { mover: Color::B }.to());
-        assert_eq!(sq!(0, 6), Move::RightCastle { mover: Color::W }.to());
-        assert_eq!(sq!(7, 6), Move::RightCastle { mover: Color::B }.to());
+        assert_eq!(
+            sq!(0, 2),
+            Move::LeftCastle { mover: Color::W, castling_update: CastlingUpdate::Left }.to()
+        );
+        assert_eq!(
+            sq!(7, 2),
+            Move::LeftCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.to()
+        );
+        assert_eq!(
+            sq!(0, 6),
+            Move::RightCastle { mover: Color::W, castling_update: CastlingUpdate::Right }.to()
+        );
+        assert_eq!(
+            sq!(7, 6),
+            Move::RightCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.to()
+        );
     }
     #[test]
     fn from() {
@@ -185,10 +199,22 @@ mod test {
             Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }
                 .from()
         );
-        assert_eq!(sq!(0, 4), Move::LeftCastle { mover: Color::W }.from());
-        assert_eq!(sq!(7, 4), Move::LeftCastle { mover: Color::B }.from());
-        assert_eq!(sq!(0, 4), Move::RightCastle { mover: Color::W }.from());
-        assert_eq!(sq!(7, 4), Move::RightCastle { mover: Color::B }.from());
+        assert_eq!(
+            sq!(0, 4),
+            Move::LeftCastle { mover: Color::W, castling_update: CastlingUpdate::Left }.from()
+        );
+        assert_eq!(
+            sq!(7, 4),
+            Move::LeftCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.from()
+        );
+        assert_eq!(
+            sq!(0, 4),
+            Move::RightCastle { mover: Color::W, castling_update: CastlingUpdate::Right }.from()
+        );
+        assert_eq!(
+            sq!(7, 4),
+            Move::RightCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.from()
+        );
     }
 
     #[test]

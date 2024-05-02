@@ -130,6 +130,14 @@ impl<'board> Generator<'board> {
             let occ = self.board.occupancy();
             let side = self.board.occupancy_side(self.color);
 
+            let castling_update = if left && right {
+                CastlingUpdate::Both
+            } else if left {
+                CastlingUpdate::Left
+            } else {
+                CastlingUpdate::Right
+            };
+
             if right {
                 let right_msk = MagicCastling::right(self.color);
                 let right_sq = match self.color {
@@ -137,7 +145,7 @@ impl<'board> Generator<'board> {
                     Color::W => Magic::H1,
                 };
                 if (right_msk & occ == right_sq) && (right_msk & side == right_sq) {
-                    self.push_move(Move::RightCastle { mover: self.color });
+                    self.push_move(Move::RightCastle { mover: self.color, castling_update });
                 }
             }
 
@@ -148,7 +156,7 @@ impl<'board> Generator<'board> {
                     Color::W => Magic::A1,
                 };
                 if (left_msk & occ == left_sq) && (left_msk & side) == left_sq {
-                    self.push_move(Move::LeftCastle { mover: self.color });
+                    self.push_move(Move::LeftCastle { mover: self.color, castling_update });
                 }
             }
         }
