@@ -15,13 +15,13 @@ pub(crate) enum Move {
         to: Sq,
         piece: Piece,
         value: f64,
-        castling_update: Option<CastlingUpdate>,
-        target_castling_update: Option<CastlingUpdate>,
+        castling_update: CastlingUpdate,
+        target_castling_update: CastlingUpdate,
     },
     Slide {
         from: Sq,
         to: Sq,
-        castling_update: Option<CastlingUpdate>,
+        castling_update: CastlingUpdate,
     },
     PawnPromo {
         from: Sq,
@@ -78,18 +78,12 @@ impl Move {
         match self {
             Move::Takes { from, to, castling_update, target_castling_update, .. } => {
                 Self::clear(board, to);
-                if let Some(update) = castling_update {
-                    board.state_mut().set_castling(mover, update, false);
-                }
-                if let Some(update) = target_castling_update {
-                    board.state_mut().set_castling(opponent, update, false);
-                }
+                board.state_mut().set_castling(mover, castling_update, false);
+                board.state_mut().set_castling(opponent, target_castling_update, false);
                 self.slide(board, from, to);
             }
             Move::Slide { from, to, castling_update, .. } => {
-                if let Some(update) = castling_update {
-                    board.state_mut().set_castling(mover, update, false);
-                }
+                board.state_mut().set_castling(mover, castling_update, false);
                 self.slide(board, from, to);
             }
             Move::PawnPromo { from, to, promo_piece: piece, .. } => {
@@ -168,7 +162,10 @@ mod test {
 
     #[test]
     fn to() {
-        assert_eq!(TO, Move::Slide { from: FROM, to: TO, castling_update: None }.to());
+        assert_eq!(
+            TO,
+            Move::Slide { from: FROM, to: TO, castling_update: CastlingUpdate::None }.to()
+        );
         assert_eq!(
             TO,
             Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }
@@ -193,7 +190,10 @@ mod test {
     }
     #[test]
     fn from() {
-        assert_eq!(FROM, Move::Slide { from: FROM, to: TO, castling_update: None }.from());
+        assert_eq!(
+            FROM,
+            Move::Slide { from: FROM, to: TO, castling_update: CastlingUpdate::None }.from()
+        );
         assert_eq!(
             FROM,
             Move::PawnPromo { from: FROM, to: TO, promo_piece: Piece::Pawn, taken_piece: None }

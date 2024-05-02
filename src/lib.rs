@@ -2,7 +2,7 @@ use std::io;
 
 use board::Board;
 use color::Color;
-use defs::Sq;
+use defs::{CastlingUpdate, Sq};
 use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
 use search::find_move;
@@ -42,7 +42,7 @@ pub fn play() {
 
         let to = read_sq();
 
-        board.apply_mut(Move::Slide { from, to, castling_update: None });
+        board.apply_mut(Move::Slide { from, to, castling_update: CastlingUpdate::None });
         print_board(&board);
 
         let (movement, _, _) = find_move(&board, 4, legacy_eval);

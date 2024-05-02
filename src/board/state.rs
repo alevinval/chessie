@@ -47,6 +47,10 @@ impl GameState {
     }
 
     pub(crate) fn set_castling(&mut self, color: Color, update: CastlingUpdate, value: bool) {
+        if matches!(update, CastlingUpdate::None) {
+            return;
+        }
+
         let (left, right) = match color {
             Color::B => (&mut self.black_left, &mut self.black_right),
             Color::W => (&mut self.white_left, &mut self.white_right),
@@ -63,6 +67,7 @@ impl GameState {
                 *left = value;
                 *right = value;
             }
+            _ => {}
         }
     }
 }

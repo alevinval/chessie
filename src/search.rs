@@ -67,7 +67,7 @@ fn negamax(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{eval::Scorer, fen, sq, util::print_hboard};
+    use crate::{defs::CastlingUpdate, eval::Scorer, fen, sq, util::print_hboard};
     use test_case::test_case;
 
     #[test_case("8/8/8/8/2Q4p/k6P/1N6/1K3B2 w - - 0 101", (3, 2), (2,2))]
@@ -81,7 +81,14 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
 
         assert_eq!(Some(1), mate);
-        assert_eq!(Some(Move::Slide { from: sq!(from), to: sq!(to), castling_update: None }), a);
+        assert_eq!(
+            Some(Move::Slide {
+                from: sq!(from),
+                to: sq!(to),
+                castling_update: CastlingUpdate::None
+            }),
+            a
+        );
     }
 
     #[test]
@@ -103,6 +110,13 @@ mod test {
         print_hboard(&board, &[a.unwrap().to()]);
         assert_eq!(Some(1), mate);
 
-        assert_eq!(Some(Move::Slide { from: sq!(3, 2), to: sq!(2, 2), castling_update: None }), a);
+        assert_eq!(
+            Some(Move::Slide {
+                from: sq!(3, 2),
+                to: sq!(2, 2),
+                castling_update: CastlingUpdate::None
+            }),
+            a
+        );
     }
 }

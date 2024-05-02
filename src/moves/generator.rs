@@ -167,8 +167,8 @@ impl<'board> Generator<'board> {
         self.emit_slides(bb & !self.board.occupancy());
     }
 
-    fn get_castling_update(&self, color: Color, piece: Piece, pos: Sq) -> Option<CastlingUpdate> {
-        let mut update = None;
+    fn get_castling_update(&self, color: Color, piece: Piece, pos: Sq) -> CastlingUpdate {
+        let mut update = CastlingUpdate::None;
         let is_king = matches!(piece, Piece::King);
         let is_rook = matches!(piece, Piece::Rook);
         if is_king || is_rook {
@@ -176,17 +176,17 @@ impl<'board> Generator<'board> {
 
             if is_king {
                 if left && right {
-                    update = Some(CastlingUpdate::Both);
+                    update = CastlingUpdate::Both;
                 } else if left {
-                    update = Some(CastlingUpdate::Left);
+                    update = CastlingUpdate::Left;
                 } else if right {
-                    update = Some(CastlingUpdate::Right);
+                    update = CastlingUpdate::Right;
                 }
             } else if is_rook {
                 if pos == MagicCastling::right_rook(color) && right {
-                    update = Some(CastlingUpdate::Right);
+                    update = CastlingUpdate::Right;
                 } else if pos == MagicCastling::left_rook(color) && left {
-                    update = Some(CastlingUpdate::Left);
+                    update = CastlingUpdate::Left;
                 }
             }
         }
