@@ -6,7 +6,7 @@ use crate::{
     magic::{Magic, MagicCastling},
     moves,
     piece::Piece,
-    pos,
+    pos, sq,
     util::print_board,
     Color,
 };
@@ -145,7 +145,11 @@ impl<'board> Generator<'board> {
                     Color::W => Magic::H1,
                 };
                 if (right_msk & occ == right_sq) && (right_msk & side == right_sq) {
-                    self.push_move(Move::RightCastle { mover: self.color, castling_update });
+                    self.push_move(Move::RightCastle {
+                        from: sq!(self.color.piece_row(), 4),
+                        to: sq!(self.color.piece_row(), 6),
+                        castling_update,
+                    });
                 }
             }
 
@@ -156,7 +160,11 @@ impl<'board> Generator<'board> {
                     Color::W => Magic::A1,
                 };
                 if (left_msk & occ == left_sq) && (left_msk & side) == left_sq {
-                    self.push_move(Move::LeftCastle { mover: self.color, castling_update });
+                    self.push_move(Move::LeftCastle {
+                        from: sq!(self.color.piece_row(), 4),
+                        to: sq!(self.color.piece_row(), 2),
+                        castling_update,
+                    });
                 }
             }
         }
