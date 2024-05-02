@@ -73,23 +73,24 @@ impl Move {
     }
 
     pub(crate) fn apply(self, board: &mut Board) {
-        let mover = board.state().mover();
-        let opponent = mover.flip();
         match self {
             Move::Takes { from, to, castling_update, target_castling_update, .. } => {
+                let mover = board.state().mover();
+                let opponent = mover.flip();
                 Self::clear(board, to);
                 board.state_mut().set_castling(mover, castling_update, false);
                 board.state_mut().set_castling(opponent, target_castling_update, false);
                 self.slide(board, from, to);
             }
             Move::Slide { from, to, castling_update, .. } => {
+                let mover = board.state().mover();
                 board.state_mut().set_castling(mover, castling_update, false);
                 self.slide(board, from, to);
             }
             Move::PawnPromo { from, to, promo_piece: piece, .. } => {
                 Self::clear(board, from);
                 Self::clear(board, to);
-                board.add(mover, piece, to);
+                board.add(board.state().mover(), piece, to);
             }
             Move::LeftCastle { mover, castling_update } => {
                 board.state_mut().set_castling(mover, castling_update, false);
