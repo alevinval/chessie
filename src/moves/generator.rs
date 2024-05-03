@@ -20,6 +20,7 @@ pub(crate) struct Generator<'board> {
     color: Color,
     piece: Piece,
     from: Sq,
+    castling_update: Option<CastlingUpdate>,
     moves: Vec<Move>,
     only_legal: bool,
 }
@@ -41,7 +42,26 @@ impl<'board> Generator<'board> {
         piece: Piece,
         only_legal: bool,
     ) -> Self {
-        Self { board, state: board.state(), from, color, piece, moves: vec![], only_legal }
+        let state = board.state();
+        let (left, right) = state.castling(color);
+        let castling_update = if matches!(piece, Piece::King) {
+            calc_castling_king(left, right)
+        } else if matches!(piece, Piece::Rook) {
+            calc_castling_rook(color, from, left, right)
+        } else {
+            None
+        };
+
+        Self {
+            board,
+            state: board.state(),
+            from,
+            color,
+            piece,
+            castling_update,
+            moves: vec![],
+            only_legal,
+        }
     }
 
     #[must_use]
@@ -167,38 +187,12 @@ impl<'board> Generator<'board> {
         self.emit_slides(bb & !self.board.occupancy());
     }
 
-    fn get_castling_update(&self, color: Color, piece: Piece, pos: Sq) -> Option<CastlingUpdate> {
-        let mut update = None;
-        let is_king = matches!(piece, Piece::King);
-        let is_rook = matches!(piece, Piece::Rook);
-        if is_king || is_rook {
-            let (left, right) = self.state.castling(color);
-
-            if is_king {
-                if left && right {
-                    update = Some(CastlingUpdate::Both);
-                } else if left {
-                    update = Some(CastlingUpdate::Left);
-                } else if right {
-                    update = Some(CastlingUpdate::Right);
-                }
-            } else if is_rook {
-                if pos == MagicCastling::right_rook(color) && right {
-                    update = Some(CastlingUpdate::Right);
-                } else if pos == MagicCastling::left_rook(color) && left {
-                    update = Some(CastlingUpdate::Left);
-                }
-            }
-        }
-        update
-    }
-
     fn emit_slides(&mut self, bb: BitBoard) {
         for to in bits::pos(bb) {
             self.push_move(Move::Slide {
                 from: self.from,
                 to,
-                castling_update: self.get_castling_update(self.color, self.piece, self.from),
+                castling_update: self.castling_update,
             });
         }
     }
@@ -213,12 +207,12 @@ impl<'board> Generator<'board> {
                 to,
                 piece: taken_piece,
                 value,
-                castling_update: self.get_castling_update(self.color, self.piece, self.from),
-                target_castling_update: self.get_castling_update(
-                    self.color.flip(),
-                    taken_piece,
-                    to,
-                ),
+                castling_update: self.castling_update,
+                target_castling_update: if matches!(taken_piece, Piece::Rook) {
+                    self.calc_castling_opponent(to)
+                } else {
+                    None
+                },
             });
         }
     }
@@ -252,14 +246,54 @@ impl<'board> Generator<'board> {
         !next.in_check(self.color)
     }
 
-    fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
+    const fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
         let o = self.board.occupancy() & mask;
         let r = pos::bb(self.from);
         let line = (o.wrapping_sub(r.wrapping_mul(2)))
             ^ (o.reverse_bits().wrapping_sub(r.reverse_bits().wrapping_mul(2))).reverse_bits();
         line & mask
     }
+
+    const fn calc_castling_opponent(&self, pos: Sq) -> Option<CastlingUpdate> {
+        let color = self.color.flip();
+        let (left, right) = self.state.castling(color);
+        if pos == MagicCastling::right_rook(color) && right {
+            Some(CastlingUpdate::Right)
+        } else if pos == MagicCastling::left_rook(color) && left {
+            Some(CastlingUpdate::Left)
+        } else {
+            None
+        }
+    }
 }
+
+const fn calc_castling_king(left: bool, right: bool) -> Option<CastlingUpdate> {
+    if left && right {
+        Some(CastlingUpdate::Both)
+    } else if right {
+        Some(CastlingUpdate::Right)
+    } else if left {
+        Some(CastlingUpdate::Left)
+    } else {
+        None
+    }
+}
+
+const fn calc_castling_rook(
+    color: Color,
+    pos: Sq,
+    left: bool,
+    right: bool,
+) -> Option<CastlingUpdate> {
+    if pos == MagicCastling::right_rook(color) && right {
+        Some(CastlingUpdate::Right)
+    } else if pos == MagicCastling::left_rook(color) && left {
+        Some(CastlingUpdate::Left)
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod test {
 
