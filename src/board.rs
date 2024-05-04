@@ -59,6 +59,12 @@ impl Board {
         }
     }
 
+    pub(crate) fn clear(&mut self, sq: Sq) {
+        if let Some((_, _, bb)) = self.at_mut(sq) {
+            bits::unset(bb, sq);
+        }
+    }
+
     #[must_use]
     pub(crate) const fn get(&self, color: Color, piece: Piece) -> BitBoard {
         match color {
@@ -137,11 +143,6 @@ impl Board {
         } else {
             true
         }
-    }
-
-    pub(crate) fn clear(&mut self) {
-        self.white.iter_mut().for_each(|bb| *bb = 0);
-        self.black.iter_mut().for_each(|bb| *bb = 0);
     }
 
     pub(crate) fn calculate_occupancies(&mut self) {
