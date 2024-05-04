@@ -75,30 +75,31 @@ impl Move {
     pub(crate) fn apply(self, board: &mut Board) {
         let mover = board.state().mover();
         let opponent = mover.flip();
+
         match self {
             Move::Takes { from, to, castling_update, target_castling_update, .. } => {
-                Self::clear(board, to);
+                board.clear(to);
+                self.slide(board, from, to);
                 if let Some(update) = castling_update {
-                    board.state_mut().set_castling(mover, update, false);
+                    board.disable_castling(mover, update);
                 }
                 if let Some(update) = target_castling_update {
-                    board.state_mut().set_castling(opponent, update, false);
+                    board.disable_castling(opponent, update);
                 }
-                self.slide(board, from, to);
             }
             Move::Slide { from, to, castling_update, .. } => {
                 if let Some(update) = castling_update {
-                    board.state_mut().set_castling(mover, update, false);
+                    board.disable_castling(mover, update);
                 }
                 self.slide(board, from, to);
             }
             Move::PawnPromo { from, to, promo_piece: piece, .. } => {
-                Self::clear(board, from);
-                Self::clear(board, to);
+                board.clear(from);
+                board.clear(to);
                 board.add(mover, piece, to);
             }
             Move::LeftCastle { mover, castling_update } => {
-                board.state_mut().set_castling(mover, castling_update, false);
+                board.disable_castling(mover, castling_update);
                 match mover {
                     Color::B => {
                         self.slide(board, sq!(7, 4), sq!(7, 2));
@@ -111,7 +112,7 @@ impl Move {
                 }
             }
             Move::RightCastle { mover, castling_update } => {
-                board.state_mut().set_castling(mover, castling_update, false);
+                board.disable_castling(mover, castling_update);
                 match mover {
                     Color::B => {
                         self.slide(board, sq!(7, 4), sq!(7, 6));
@@ -126,16 +127,11 @@ impl Move {
         }
     }
 
-    fn clear(board: &mut Board, sq: Sq) {
-        if let Some((_, _, bb)) = board.at_mut(sq) {
-            bits::unset(bb, sq);
-        }
-    }
+    fn slide(&self, board: &mut Board, from: Sq, to: Sq) {
+        let (_, _, bb) = board
+            .at_mut(from)
+            .unwrap_or_else(|| unreachable!("must have a piece in order to move {:?}", self));
 
-    fn slide(self, board: &mut Board, from: Sq, to: Sq) {
-        let (_, _, bb) = board.at_mut(from).unwrap_or_else(|| {
-            unreachable!("must have a piece in order to move {:?} {:?}", self, from)
-        });
         bits::slide(bb, from, to);
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     bits,
-    defs::{BitBoard, Sq},
+    defs::{BitBoard, CastlingUpdate, Sq},
     moves::{self, Generator, Move},
     piece::Piece,
     Color,
@@ -63,6 +63,10 @@ impl Board {
         if let Some((_, _, bb)) = self.at_mut(sq) {
             bits::unset(bb, sq);
         }
+    }
+
+    pub(crate) fn disable_castling(&mut self, color: Color, update: CastlingUpdate) {
+        self.state_mut().set_castling(color, update, false);
     }
 
     #[must_use]
