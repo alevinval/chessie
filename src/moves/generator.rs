@@ -1,7 +1,7 @@
 use crate::{
     bits,
     board::{Board, GameState},
-    defs::{BitBoard, CastlingUpdate, Sq},
+    defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
     eval::score_piece,
     magic::{Magic, MagicCastling},
     moves,
@@ -20,6 +20,7 @@ pub(crate) struct Generator<'board> {
     color: Color,
     piece: Piece,
     from: Sq,
+    castling: CastlingTuple,
     castling_update: Option<CastlingUpdate>,
     moves: Vec<Move>,
     only_legal: bool,
@@ -43,11 +44,15 @@ impl<'board> Generator<'board> {
         only_legal: bool,
     ) -> Self {
         let state = board.state();
-        let (left, right) = state.castling(color);
-        let castling_update = if matches!(piece, Piece::King) {
-            calc_castling_king(left, right)
-        } else if matches!(piece, Piece::Rook) {
-            calc_castling_rook(color, from, left, right)
+        let castling = state.castling(color);
+        let castling_update = if only_legal {
+            if matches!(piece, Piece::King) {
+                calc_castling_king(castling)
+            } else if matches!(piece, Piece::Rook) {
+                calc_castling_rook(color, from, castling)
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -58,6 +63,7 @@ impl<'board> Generator<'board> {
             from,
             color,
             piece,
+            castling,
             castling_update,
             moves: vec![],
             only_legal,
@@ -85,13 +91,13 @@ impl<'board> Generator<'board> {
         self.moves
     }
 
-    fn cross(&self) -> BitBoard {
+    const fn cross(&self) -> BitBoard {
         let col = self.hyper_quint(Magic::COL_SLIDER[pos::col(self.from) as usize]);
         let row = self.hyper_quint(Magic::ROW_SLIDER[pos::row(self.from) as usize]);
         col | row
     }
 
-    fn diag(&self) -> BitBoard {
+    const fn diag(&self) -> BitBoard {
         let diag = self.hyper_quint(Magic::DIAG_SLIDER[self.from as usize]);
         let antidiag = self.hyper_quint(Magic::ANTIDIAG_SLIDER[self.from as usize]);
         diag | antidiag
@@ -145,7 +151,7 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_castling(&mut self) {
-        let (left, right) = self.state.castling(self.color);
+        let (left, right) = self.castling;
         if left || right {
             let occ = self.board.occupancy();
             let side = self.board.occupancy_side(self.color);
@@ -267,7 +273,7 @@ impl<'board> Generator<'board> {
     }
 }
 
-const fn calc_castling_king(left: bool, right: bool) -> Option<CastlingUpdate> {
+const fn calc_castling_king((left, right): CastlingTuple) -> Option<CastlingUpdate> {
     if left && right {
         Some(CastlingUpdate::Both)
     } else if right {
@@ -282,8 +288,7 @@ const fn calc_castling_king(left: bool, right: bool) -> Option<CastlingUpdate> {
 const fn calc_castling_rook(
     color: Color,
     pos: Sq,
-    left: bool,
-    right: bool,
+    (left, right): CastlingTuple,
 ) -> Option<CastlingUpdate> {
     if pos == MagicCastling::right_rook(color) && right {
         Some(CastlingUpdate::Right)

@@ -1,4 +1,7 @@
-use crate::{color::Color, defs::CastlingUpdate};
+use crate::{
+    color::Color,
+    defs::{CastlingTuple, CastlingUpdate},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct GameState {
@@ -24,7 +27,7 @@ impl GameState {
     }
 
     #[must_use]
-    pub(crate) const fn castling(&self, color: Color) -> (bool, bool) {
+    pub(crate) const fn castling(&self, color: Color) -> CastlingTuple {
         match color {
             Color::B => (self.black_left, self.black_right),
             Color::W => (self.white_left, self.white_right),
