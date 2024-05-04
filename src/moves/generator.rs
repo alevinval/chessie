@@ -229,27 +229,23 @@ impl<'board> Generator<'board> {
         }
     }
 
-    fn is_legal(&self, movement: Move) -> bool {
-        let next = self.board.apply_clone(movement);
-        if matches!(movement, Move::LeftCastle { .. })
+    fn is_legal(&mut self, movement: Move) -> bool {
+        let mut next = self.board.clone();
+        next.apply_mut(movement);
+        if matches!(movement, Move::LeftCastle { .. } | Move::RightCastle { .. })
             && moves::is_attacked(
                 &next.pseudo_movements(self.color.flip()),
-                MagicCastling::left_xray(self.color),
+                if matches!(movement, Move::LeftCastle { .. }) {
+                    MagicCastling::left_xray(self.color)
+                } else {
+                    MagicCastling::right_xray(self.color)
+                },
             )
         {
-            return false;
+            false
+        } else {
+            !next.in_check(self.color)
         }
-
-        if matches!(movement, Move::RightCastle { .. })
-            && moves::is_attacked(
-                &next.pseudo_movements(self.color.flip()),
-                MagicCastling::right_xray(self.color),
-            )
-        {
-            return false;
-        }
-
-        !next.in_check(self.color)
     }
 
     const fn hyper_quint(&self, mask: BitBoard) -> BitBoard {
