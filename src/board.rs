@@ -21,6 +21,14 @@ pub(crate) struct Board {
 }
 
 impl Board {
+    pub(crate) fn empty() -> Self {
+        let mut board = Self::default();
+        board.white.iter_mut().for_each(|bb| *bb = 0);
+        board.black.iter_mut().for_each(|bb| *bb = 0);
+        board.calculate_occupancies();
+        board
+    }
+
     #[must_use]
     pub(crate) const fn state(&self) -> &GameState {
         &self.state

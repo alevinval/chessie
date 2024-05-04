@@ -1,6 +1,5 @@
 use crate::{
     bits,
-    board::Board,
     defs::{BitBoard, Sq},
     magic::Magic,
     pos,
@@ -9,9 +8,6 @@ use crate::{
 #[must_use]
 #[allow(clippy::cast_possible_truncation)]
 pub fn king() -> [BitBoard; 64] {
-    let mut board = Board::default();
-    board.clear();
-
     let mut gen = [0; 64];
     for (sq, gen_bb) in gen.iter_mut().enumerate() {
         let from = sq as Sq;

@@ -4,8 +4,7 @@ use super::FenError;
 
 #[allow(dead_code)]
 pub(crate) fn decode(input: &str) -> Result<Board, FenError> {
-    let mut board = Board::default();
-    board.clear();
+    let mut board = Board::empty();
 
     let mut input = input.split_whitespace();
 
