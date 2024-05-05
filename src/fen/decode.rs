@@ -90,14 +90,14 @@ fn decode_castling(board: &mut Board, input: &str) -> Result<(), FenError> {
 
 fn decode_enpassant(_board: &mut Board, input: &str) -> Result<(), FenError> {
     if input != "-" {
-        return Err(FenError::NotSupported("en-passant".to_string()));
+        return Err(FenError::NotSupportedEnPassant);
     }
     Ok(())
 }
 
 fn decode_halfmove(_board: &mut Board, input: &str) -> Result<(), FenError> {
     if input != "0" {
-        return Err(FenError::NotSupported("half-move".to_string()));
+        return Err(FenError::NotSupportedHalfMove);
     }
     Ok(())
 }
@@ -154,12 +154,12 @@ mod test {
     }
 
     #[test_case(
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq a1 0 1", 
-        FenError::NotSupported("en-passant".to_string())
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq a1 0 1",
+        FenError::NotSupportedEnPassant
     )]
     #[test_case(
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 2 1", 
-        FenError::NotSupported("half-move".to_string())
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 2 1",
+        FenError::NotSupportedHalfMove
     )]
     fn not_supported(input: &str, expected: FenError) {
         assert_eq!(expected, decode(input).expect_err("should not be supported"));
