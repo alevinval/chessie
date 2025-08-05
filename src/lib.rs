@@ -5,7 +5,7 @@ use color::Color;
 use defs::Sq;
 use eval::{legacy::LegacyScorer, Scorer};
 use moves::Move;
-use search::find_move;
+use search::Search;
 use util::{print_board, print_hboard};
 
 mod bits;
@@ -45,8 +45,8 @@ pub fn play() {
         board.apply_mut(Move::Slide { from, to, castling_update: None });
         print_board(&board);
 
-        let (movement, _, _) = find_move(&board, 4, legacy_eval);
-        if let Some(movement) = movement {
+        let result = Search::new(&board, 4, legacy_eval).find();
+        if let Some(movement) = result.movement {
             board.apply_mut(movement);
             print_board(&board);
         } else {
@@ -74,17 +74,16 @@ pub fn auto_play(moves: usize, depth: usize) {
             Color::B => depth,
             Color::W => depth + bonus,
         };
-        let (movement, _, mate) = find_move(
-            &board,
-            depth,
-            match board.state().mover() {
-                Color::B => black_eval,
-                Color::W => white_eval,
-            },
-        );
 
-        if let Some(movement) = movement {
-            if let Some(mate) = mate {
+        let eval = match board.state().mover() {
+            Color::B => black_eval,
+            Color::W => white_eval,
+        };
+
+        let result = Search::new(&board, depth, eval).find();
+
+        if let Some(movement) = result.movement {
+            if let Some(mate) = result.mate {
                 println!("{movement}, mate in {mate}");
             } else {
                 println!("{movement}");
