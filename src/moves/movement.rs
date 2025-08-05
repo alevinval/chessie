@@ -1,11 +1,11 @@
 use std::fmt;
 
 use crate::{
-    bits,
+    Color, bits,
     board::Board,
     defs::{CastlingUpdate, Sq},
     piece::Piece,
-    pos, sq, Color,
+    pos, sq,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]

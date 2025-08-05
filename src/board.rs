@@ -1,9 +1,8 @@
 use crate::{
-    bits,
+    Color, bits,
     defs::{BitBoard, CastlingUpdate, Sq},
     moves::{self, Generator, Move},
     piece::Piece,
-    Color,
 };
 
 pub(crate) use self::state::GameState;

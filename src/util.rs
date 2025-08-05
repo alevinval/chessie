@@ -2,7 +2,7 @@ use crate::{
     bits,
     board::Board,
     defs::{BitBoard, Sq},
-    eval::{legacy::LegacyScorer, Scorer},
+    eval::{Scorer, legacy::LegacyScorer},
     fen, sq,
 };
 

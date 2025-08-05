@@ -1,6 +1,6 @@
 use crate::{bits, board::Board, color::Color, defs::BitBoard, piece::Piece};
 
-use super::{score_piece, MATE_SCORE};
+use super::{MATE_SCORE, score_piece};
 
 #[derive(Default)]
 pub(crate) struct LegacyScorer {}

@@ -97,11 +97,7 @@ const fn piece_to_fen(color: Color, piece: Piece) -> char {
         Piece::King => 'k',
     };
 
-    if matches!(color, Color::W) {
-        fen.to_ascii_uppercase()
-    } else {
-        fen
-    }
+    if matches!(color, Color::W) { fen.to_ascii_uppercase() } else { fen }
 }
 
 #[cfg(test)]

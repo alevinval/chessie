@@ -1,5 +1,5 @@
 use crate::{
-    bits,
+    Color, bits,
     board::{Board, GameState},
     defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
     eval::score_piece,
@@ -8,7 +8,6 @@ use crate::{
     piece::Piece,
     pos,
     util::print_board,
-    Color,
 };
 
 use super::Move;

@@ -3,7 +3,7 @@ use std::io;
 use board::Board;
 use color::Color;
 use defs::Sq;
-use eval::{legacy::LegacyScorer, Scorer};
+use eval::{Scorer, legacy::LegacyScorer};
 use moves::Move;
 use search::Search;
 use util::{print_board, print_hboard};

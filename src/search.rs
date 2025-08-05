@@ -64,13 +64,9 @@ impl Search {
             best_eval = 0.0;
         }
 
-        best_mate = best_mate.map(|m| m + 1).or_else(|| {
-            if best_eval.abs() >= MATE_SCORE {
-                Some(1)
-            } else {
-                None
-            }
-        });
+        best_mate = best_mate
+            .map(|m| m + 1)
+            .or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
 
         SearchResult { movement: best_move.or(first), eval: best_eval, mate: best_mate }
     }
