@@ -1,7 +1,7 @@
 use crate::{
     bits,
     defs::{BitBoard, Sq},
-    magic::Magic,
+    magic::MagicMask,
     pos,
 };
 
@@ -22,9 +22,9 @@ pub fn king() -> [BitBoard; 64] {
             | bits::east(bb);
 
         if pos::col(from) == 0 {
-            pattern &= Magic::NOT_H_FILE;
+            pattern &= MagicMask::NOT_H_FILE;
         } else if pos::col(from) == 7 {
-            pattern &= Magic::NOT_A_FILE;
+            pattern &= MagicMask::NOT_A_FILE;
         }
         *gen_bb = pattern;
     }
@@ -49,9 +49,9 @@ pub fn knight() -> [BitBoard; 64] {
             | bits::southeast(bits::south(bb));
 
         if pos::col(from) < 2 {
-            pattern &= Magic::NOT_H_FILE & bits::west(Magic::NOT_H_FILE);
+            pattern &= MagicMask::NOT_H_FILE & bits::west(MagicMask::NOT_H_FILE);
         } else if pos::col(from) > 5 {
-            pattern &= Magic::NOT_A_FILE & bits::east(Magic::NOT_A_FILE);
+            pattern &= MagicMask::NOT_A_FILE & bits::east(MagicMask::NOT_A_FILE);
         }
 
         *gen_bb = pattern;

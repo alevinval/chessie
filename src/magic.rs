@@ -4,8 +4,9 @@ use crate::{
     sq,
 };
 
-pub struct Magic();
-pub struct MagicCastling();
+pub struct MagicMask;
+pub struct MagicCastling;
+pub struct MagicMovements;
 
 impl MagicCastling {
     const WHITE_LEFT_CASTLE: BitBoard = 0xf;
@@ -58,7 +59,7 @@ impl MagicCastling {
 
 #[allow(dead_code)]
 #[allow(clippy::unreadable_literal)]
-impl Magic {
+impl MagicMask {
     pub(crate) const NOT_A_FILE: BitBoard = 0xfefefefefefefefe;
     pub(crate) const NOT_H_FILE: BitBoard = 0x7f7f7f7f7f7f7f7f;
 
@@ -69,7 +70,11 @@ impl Magic {
     pub(crate) const H1: BitBoard = 0x80;
     pub(crate) const A8: BitBoard = 0x100000000000000;
     pub(crate) const H8: BitBoard = 0x8000000000000000;
+}
 
+#[allow(dead_code)]
+#[allow(clippy::unreadable_literal)]
+impl MagicMovements {
     /// This magic bitboard is pre-generated with `cargo run --bin pregen`
     pub(crate) const KING_MOVES: [BitBoard; 64] = [
         0x302,
@@ -374,21 +379,21 @@ mod test {
     use super::*;
 
     #[test]
-    fn print_magics() {
-        print_bitboard(Magic::NOT_A_FILE);
-        print_bitboard(Magic::NOT_H_FILE);
+    fn print_magic_masks() {
+        print_bitboard(MagicMask::NOT_A_FILE);
+        print_bitboard(MagicMask::NOT_H_FILE);
 
-        print_bitboard(Magic::RANK_3);
-        print_bitboard(Magic::RANK_6);
+        print_bitboard(MagicMask::RANK_3);
+        print_bitboard(MagicMask::RANK_6);
 
-        print_bitboard(Magic::A1);
-        print_bitboard(Magic::A8);
-        print_bitboard(Magic::H1);
-        print_bitboard(Magic::H8);
+        print_bitboard(MagicMask::A1);
+        print_bitboard(MagicMask::A8);
+        print_bitboard(MagicMask::H1);
+        print_bitboard(MagicMask::H8);
     }
 
     #[test]
-    fn print_castle_magic() {
+    fn print_magic_castling() {
         print_bitboard(MagicCastling::WHITE_LEFT_CASTLE);
         print_bitboard(MagicCastling::WHITE_RIGHT_CASTLE);
         print_bitboard(MagicCastling::BLACK_LEFT_CASTLE);

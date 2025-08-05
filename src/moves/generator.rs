@@ -3,7 +3,7 @@ use crate::{
     board::{Board, GameState},
     defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
     eval::score_piece,
-    magic::{Magic, MagicCastling},
+    magic::{MagicCastling, MagicMask, MagicMovements},
     moves,
     piece::Piece,
     pos,
@@ -81,36 +81,36 @@ impl<'board> Generator<'board> {
             Piece::Bishop => self.emit(self.diag()),
             Piece::Queen => self.emit(self.cross() | self.diag()),
             Piece::Knight => {
-                self.emit(Magic::KNIGHT_MOVES[self.from as usize]);
+                self.emit(MagicMovements::KNIGHT_MOVES[self.from as usize]);
             }
             Piece::King => {
                 self.emit_castling();
-                self.emit(Magic::KING_MOVES[self.from as usize]);
+                self.emit(MagicMovements::KING_MOVES[self.from as usize]);
             }
         };
         self.moves
     }
 
     const fn cross(&self) -> BitBoard {
-        let col = self.hyper_quint(Magic::COL_SLIDER[pos::col(self.from) as usize]);
-        let row = self.hyper_quint(Magic::ROW_SLIDER[pos::row(self.from) as usize]);
+        let col = self.hyper_quint(MagicMovements::COL_SLIDER[pos::col(self.from) as usize]);
+        let row = self.hyper_quint(MagicMovements::ROW_SLIDER[pos::row(self.from) as usize]);
         col | row
     }
 
     const fn diag(&self) -> BitBoard {
-        let diag = self.hyper_quint(Magic::DIAG_SLIDER[self.from as usize]);
-        let antidiag = self.hyper_quint(Magic::ANTIDIAG_SLIDER[self.from as usize]);
+        let diag = self.hyper_quint(MagicMovements::DIAG_SLIDER[self.from as usize]);
+        let antidiag = self.hyper_quint(MagicMovements::ANTIDIAG_SLIDER[self.from as usize]);
         diag | antidiag
     }
 
     fn emit_black_pawn(&mut self) {
         let pawns = self.board.get(Color::B, Piece::Pawn) & pos::bb(self.from);
         let white_side = self.board.occupancy_side(Color::W);
-        let side_attack = (bits::southeast(pawns) & Magic::NOT_A_FILE & white_side)
-            | (bits::southwest(pawns) & Magic::NOT_H_FILE & white_side);
+        let side_attack = (bits::southeast(pawns) & MagicMask::NOT_A_FILE & white_side)
+            | (bits::southwest(pawns) & MagicMask::NOT_H_FILE & white_side);
 
         let first_push = bits::south(pawns) & !self.board.occupancy();
-        let second_push = bits::south(first_push & Magic::RANK_6) & !self.board.occupancy();
+        let second_push = bits::south(first_push & MagicMask::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
         if pos::row(self.from) == self.color.flip().pawn_row() {
@@ -125,11 +125,11 @@ impl<'board> Generator<'board> {
     fn emit_white_pawn(&mut self) {
         let pawns = self.board.get(Color::W, Piece::Pawn) & pos::bb(self.from);
         let black_side = self.board.occupancy_side(Color::B);
-        let side_attack = (bits::northeast(pawns) & Magic::NOT_A_FILE & black_side)
-            | (bits::northwest(pawns) & Magic::NOT_H_FILE & black_side);
+        let side_attack = (bits::northeast(pawns) & MagicMask::NOT_A_FILE & black_side)
+            | (bits::northwest(pawns) & MagicMask::NOT_H_FILE & black_side);
 
         let first_push = bits::north(pawns) & !self.board.occupancy();
-        let second_push = bits::north(first_push & Magic::RANK_3) & !self.board.occupancy();
+        let second_push = bits::north(first_push & MagicMask::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
         if pos::row(self.from) == self.color.flip().pawn_row() {
@@ -167,8 +167,8 @@ impl<'board> Generator<'board> {
             if right {
                 let right_msk = MagicCastling::right(self.color);
                 let right_sq = match self.color {
-                    Color::B => Magic::H8,
-                    Color::W => Magic::H1,
+                    Color::B => MagicMask::H8,
+                    Color::W => MagicMask::H1,
                 };
                 if (right_msk & occ == right_sq) && (right_msk & side == right_sq) {
                     self.push_move(Move::RightCastle { mover: self.color, castling_update });
@@ -178,8 +178,8 @@ impl<'board> Generator<'board> {
             if left {
                 let left_msk = MagicCastling::left(self.color);
                 let left_sq = match self.color {
-                    Color::B => Magic::A8,
-                    Color::W => Magic::A1,
+                    Color::B => MagicMask::A8,
+                    Color::W => MagicMask::A1,
                 };
                 if (left_msk & occ == left_sq) && (left_msk & side) == left_sq {
                     self.push_move(Move::LeftCastle { mover: self.color, castling_update });
