@@ -26,10 +26,36 @@ pub fn king() -> [BitBoard; 64] {
         } else if pos::col(from) == 7 {
             pattern &= Magic::NOT_A_FILE;
         }
+        *gen_bb = pattern;
+    }
+    gen
+}
+
+#[must_use]
+#[allow(clippy::cast_possible_truncation)]
+pub fn knight() -> [BitBoard; 64] {
+    let mut gen = [0; 64];
+    for (sq, gen_bb) in gen.iter_mut().enumerate() {
+        let from = sq as Sq;
+        let bb = pos::bb(from);
+
+        let mut pattern = bits::northwest(bits::north(bb))
+            | bits::northwest(bits::west(bb))
+            | bits::southwest(bits::west(bb))
+            | bits::southwest(bits::south(bb))
+            | bits::northeast(bits::north(bb))
+            | bits::northeast(bits::east(bb))
+            | bits::southeast(bits::east(bb))
+            | bits::southeast(bits::south(bb));
+
+        if pos::col(from) < 2 {
+            pattern &= Magic::NOT_H_FILE & bits::west(Magic::NOT_H_FILE);
+        } else if pos::col(from) > 5 {
+            pattern &= Magic::NOT_A_FILE & bits::east(Magic::NOT_A_FILE);
+        }
 
         *gen_bb = pattern;
     }
-
     gen
 }
 
