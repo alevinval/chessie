@@ -14,8 +14,8 @@ cover:
 
 .PHONY: run
 run:
-	time cargo run --release --bin main
+	cargo run --release --bin chessie
 
 .PHONY: pregen
 pregen:
-	time cargo run --release --bin pregen
+	cargo run --release --bin chessie-pregen
