@@ -3,7 +3,7 @@ use std::env;
 use chessie::{
     bits,
     defs::{BitBoard, Sq},
-    magic::MagicMask,
+    magic::Files,
     pos,
     util::print_bitboard,
 };
@@ -25,9 +25,9 @@ pub fn king() -> [BitBoard; 64] {
             | bits::east(seed);
 
         if pos::col(from) == 0 {
-            pattern &= MagicMask::NOT_H_FILE;
+            pattern &= Files::NOT_FILE_H;
         } else if pos::col(from) == 7 {
-            pattern &= MagicMask::NOT_A_FILE;
+            pattern &= Files::NOT_FILE_A;
         }
         *moves = pattern;
     }
@@ -52,9 +52,9 @@ pub fn knight() -> [BitBoard; 64] {
             | bits::southeast(bits::south(seed));
 
         if pos::col(from) < 2 {
-            pattern &= MagicMask::NOT_H_FILE & bits::west(MagicMask::NOT_H_FILE);
+            pattern &= Files::NOT_FILE_H & bits::west(Files::NOT_FILE_H);
         } else if pos::col(from) > 5 {
-            pattern &= MagicMask::NOT_A_FILE & bits::east(MagicMask::NOT_A_FILE);
+            pattern &= Files::NOT_FILE_A & bits::east(Files::NOT_FILE_A);
         }
 
         *moves = pattern;
