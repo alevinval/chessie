@@ -18,4 +18,4 @@ run:
 
 .PHONY: pregen
 pregen:
-	cargo run --release --bin chessie-pregen
+	./scripts/pregenerate.sh

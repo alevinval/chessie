@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[allow(dead_code)]
-pub(crate) fn print_bitboard(bb: BitBoard) {
+pub fn print_bitboard(bb: BitBoard) {
     println!("[bitboard=0x{bb:x}]");
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");

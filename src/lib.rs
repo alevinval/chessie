@@ -8,19 +8,18 @@ use moves::Move;
 use search::Search;
 use util::{print_board, print_hboard};
 
-mod bits;
+pub mod bits;
 mod board;
 mod color;
-mod defs;
+pub mod defs;
 mod eval;
 mod fen;
-mod magic;
+pub mod magic;
 mod moves;
 mod piece;
-mod pos;
-pub mod precompute;
+pub mod pos;
 mod search;
-mod util;
+pub mod util;
 
 fn read_sq() -> Sq {
     let mut line = String::new();

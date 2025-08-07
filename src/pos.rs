@@ -16,12 +16,12 @@ pub(crate) const fn row(sq: Sq) -> u8 {
 }
 
 #[must_use]
-pub(crate) const fn col(sq: Sq) -> u8 {
+pub const fn col(sq: Sq) -> u8 {
     sq & 7
 }
 
 #[must_use]
-pub(crate) const fn bb(sq: Sq) -> BitBoard {
+pub const fn bb(sq: Sq) -> BitBoard {
     1 << sq
 }
 

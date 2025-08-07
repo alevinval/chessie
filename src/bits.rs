@@ -73,42 +73,42 @@ pub(crate) fn first_pos(bb: BitBoard) -> Option<Sq> {
 }
 
 #[must_use]
-pub(crate) const fn north(bb: BitBoard) -> BitBoard {
+pub const fn north(bb: BitBoard) -> BitBoard {
     bb << 8
 }
 
 #[must_use]
-pub(crate) const fn northeast(bb: BitBoard) -> BitBoard {
+pub const fn northeast(bb: BitBoard) -> BitBoard {
     bb << 9
 }
 
 #[must_use]
-pub(crate) const fn northwest(bb: BitBoard) -> BitBoard {
+pub const fn northwest(bb: BitBoard) -> BitBoard {
     bb << 7
 }
 
 #[must_use]
-pub(crate) const fn south(bb: BitBoard) -> BitBoard {
+pub const fn south(bb: BitBoard) -> BitBoard {
     bb >> 8
 }
 
 #[must_use]
-pub(crate) const fn southeast(bb: BitBoard) -> BitBoard {
+pub const fn southeast(bb: BitBoard) -> BitBoard {
     bb >> 7
 }
 
 #[must_use]
-pub(crate) const fn southwest(bb: BitBoard) -> BitBoard {
+pub const fn southwest(bb: BitBoard) -> BitBoard {
     bb >> 9
 }
 
 #[must_use]
-pub(crate) const fn west(bb: BitBoard) -> BitBoard {
+pub const fn west(bb: BitBoard) -> BitBoard {
     bb >> 1
 }
 
 #[must_use]
-pub(crate) const fn east(bb: BitBoard) -> BitBoard {
+pub const fn east(bb: BitBoard) -> BitBoard {
     bb << 1
 }
 

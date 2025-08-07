@@ -1,6 +1,6 @@
-pub(crate) type Sq = u8;
+pub type Sq = u8;
 
-pub(crate) type BitBoard = u64;
+pub type BitBoard = u64;
 
 pub(crate) type CastlingTuple = (bool, bool);
 
