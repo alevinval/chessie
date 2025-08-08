@@ -1,15 +1,10 @@
-use crate::{
-    color::Color,
-    defs::{BitBoard, Sq},
-    pos, sq,
-};
+use crate::{color::Color, defs::BitBoard, pos};
 
 pub(crate) use magic_movements::MagicMovements;
 
 mod magic_movements;
 
 pub struct Masks;
-pub struct MagicCastling;
 
 impl Masks {
     /// Squares
@@ -110,53 +105,25 @@ impl Masks {
     pub const RANK_6: BitBoard = Self::RANK_5 << 8;
     pub const RANK_7: BitBoard = Self::RANK_6 << 8;
     pub const RANK_8: BitBoard = Self::RANK_7 << 8;
-}
 
-impl MagicCastling {
-    const WHITE_LEFT_CASTLE: BitBoard = 0xf;
-    const WHITE_RIGHT_CASTLE: BitBoard = 0xe0;
-    const BLACK_LEFT_CASTLE: BitBoard = 0xf00000000000000;
-    const BLACK_RIGHT_CASTLE: BitBoard = 0xe000000000000000;
+    /// CASTLING
+    const CASTLE_WHITE_RIGHT: BitBoard = Masks::F1 | Masks::G1 | Masks::H1;
+    const CASTLE_BLACK_RIGHT: BitBoard = Masks::F8 | Masks::G8 | Masks::H8;
 
-    pub(crate) const fn left(color: Color) -> BitBoard {
+    const CASTLE_WHITE_LEFT: BitBoard = Masks::A1 | Masks::B1 | Masks::C1 | Masks::D1;
+    const CASTLE_BLACK_LEFT: BitBoard = Masks::A8 | Masks::B8 | Masks::C8 | Masks::D8;
+
+    pub(crate) const fn castle_left(color: Color) -> BitBoard {
         match color {
-            Color::B => Self::BLACK_LEFT_CASTLE,
-            Color::W => Self::WHITE_LEFT_CASTLE,
+            Color::B => Self::CASTLE_BLACK_LEFT,
+            Color::W => Self::CASTLE_WHITE_LEFT,
         }
     }
 
-    pub(crate) const fn right(color: Color) -> BitBoard {
+    pub(crate) const fn castle_right(color: Color) -> BitBoard {
         match color {
-            Color::B => Self::BLACK_RIGHT_CASTLE,
-            Color::W => Self::WHITE_RIGHT_CASTLE,
-        }
-    }
-
-    pub(crate) const fn left_xray(color: Color) -> Sq {
-        match color {
-            Color::B => sq!(7, 3),
-            Color::W => sq!(0, 3),
-        }
-    }
-
-    pub(crate) const fn right_xray(color: Color) -> Sq {
-        match color {
-            Color::B => sq!(7, 5),
-            Color::W => sq!(0, 5),
-        }
-    }
-
-    pub(crate) const fn left_rook(color: Color) -> Sq {
-        match color {
-            Color::B => sq!(7, 0),
-            Color::W => sq!(0, 0),
-        }
-    }
-
-    pub(crate) const fn right_rook(color: Color) -> Sq {
-        match color {
-            Color::B => sq!(7, 7),
-            Color::W => sq!(0, 7),
+            Color::B => Self::CASTLE_BLACK_RIGHT,
+            Color::W => Self::CASTLE_WHITE_RIGHT,
         }
     }
 }
@@ -188,13 +155,5 @@ mod test {
         print_bitboard(Masks::RANK_6);
         print_bitboard(Masks::RANK_7);
         print_bitboard(Masks::RANK_8);
-    }
-
-    #[test]
-    fn print_magic_castling() {
-        print_bitboard(MagicCastling::WHITE_LEFT_CASTLE);
-        print_bitboard(MagicCastling::WHITE_RIGHT_CASTLE);
-        print_bitboard(MagicCastling::BLACK_LEFT_CASTLE);
-        print_bitboard(MagicCastling::BLACK_RIGHT_CASTLE);
     }
 }

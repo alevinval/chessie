@@ -3,10 +3,10 @@ use crate::{
     board::{Board, GameState},
     defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
     eval::score_piece,
-    magic::{MagicCastling, MagicMovements, Masks},
+    magic::{MagicMovements, Masks},
     moves,
     piece::Piece,
-    pos,
+    pos, sq,
     util::print_board,
 };
 
@@ -164,7 +164,7 @@ impl<'board> Generator<'board> {
             };
 
             if right {
-                let right_msk = MagicCastling::right(self.color);
+                let right_msk = Masks::castle_right(self.color);
                 let right_sq = match self.color {
                     Color::B => Masks::H8,
                     Color::W => Masks::H1,
@@ -175,7 +175,7 @@ impl<'board> Generator<'board> {
             }
 
             if left {
-                let left_msk = MagicCastling::left(self.color);
+                let left_msk = Masks::castle_left(self.color);
                 let left_sq = match self.color {
                     Color::B => Masks::A8,
                     Color::W => Masks::A1,
@@ -235,9 +235,9 @@ impl<'board> Generator<'board> {
             && moves::is_attacked(
                 &next.pseudo_movements(self.color.flip()),
                 if matches!(movement, Move::LeftCastle { .. }) {
-                    MagicCastling::left_xray(self.color)
+                    left_xray(self.color)
                 } else {
-                    MagicCastling::right_xray(self.color)
+                    right_xray(self.color)
                 },
             )
         {
@@ -258,9 +258,9 @@ impl<'board> Generator<'board> {
     const fn calc_castling_opponent(&self, pos: Sq) -> Option<CastlingUpdate> {
         let color = self.color.flip();
         let (left, right) = self.state.castling(color);
-        if pos == MagicCastling::right_rook(color) && right {
+        if pos == right_rook(color) && right {
             Some(CastlingUpdate::Right)
-        } else if pos == MagicCastling::left_rook(color) && left {
+        } else if pos == left_rook(color) && left {
             Some(CastlingUpdate::Left)
         } else {
             None
@@ -285,12 +285,40 @@ const fn calc_castling_rook(
     pos: Sq,
     (left, right): CastlingTuple,
 ) -> Option<CastlingUpdate> {
-    if pos == MagicCastling::right_rook(color) && right {
+    if pos == right_rook(color) && right {
         Some(CastlingUpdate::Right)
-    } else if pos == MagicCastling::left_rook(color) && left {
+    } else if pos == left_rook(color) && left {
         Some(CastlingUpdate::Left)
     } else {
         None
+    }
+}
+
+const fn left_rook(color: Color) -> Sq {
+    match color {
+        Color::B => sq!(7, 0),
+        Color::W => sq!(0, 0),
+    }
+}
+
+const fn right_rook(color: Color) -> Sq {
+    match color {
+        Color::B => sq!(7, 7),
+        Color::W => sq!(0, 7),
+    }
+}
+
+const fn left_xray(color: Color) -> Sq {
+    match color {
+        Color::B => sq!(7, 3),
+        Color::W => sq!(0, 3),
+    }
+}
+
+const fn right_xray(color: Color) -> Sq {
+    match color {
+        Color::B => sq!(7, 5),
+        Color::W => sq!(0, 5),
     }
 }
 
