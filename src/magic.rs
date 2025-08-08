@@ -8,13 +8,11 @@ pub(crate) use magic_movements::MagicMovements;
 
 mod magic_movements;
 
-pub struct Squares;
-pub struct Files;
-pub struct Ranks;
-pub struct MagicMask;
+pub struct Masks;
 pub struct MagicCastling;
 
-impl Squares {
+impl Masks {
+    /// Squares
     pub const ALL: BitBoard = BitBoard::MAX;
 
     pub const A1: BitBoard = pos::bb(0);
@@ -88,17 +86,10 @@ impl Squares {
     pub const F8: BitBoard = pos::bb(61);
     pub const G8: BitBoard = pos::bb(62);
     pub const H8: BitBoard = pos::bb(63);
-}
 
-impl Files {
-    pub const FILE_A: BitBoard = Squares::A1
-        | Squares::A2
-        | Squares::A3
-        | Squares::A4
-        | Squares::A5
-        | Squares::A6
-        | Squares::A7
-        | Squares::A8;
+    /// FILES
+    pub const FILE_A: BitBoard =
+        Self::A1 | Self::A2 | Self::A3 | Self::A4 | Self::A5 | Self::A6 | Self::A7 | Self::A8;
     pub const FILE_B: BitBoard = 2 * Self::FILE_A;
     pub const FILE_C: BitBoard = 2 * Self::FILE_B;
     pub const FILE_D: BitBoard = 2 * Self::FILE_C;
@@ -107,21 +98,18 @@ impl Files {
     pub const FILE_G: BitBoard = 2 * Self::FILE_F;
     pub const FILE_H: BitBoard = 2 * Self::FILE_G;
 
-    pub const NOT_FILE_A: BitBoard = Squares::ALL & !Self::FILE_A;
-    pub const NOT_FILE_H: BitBoard = Squares::ALL & !Self::FILE_H;
-}
+    pub const NOT_FILE_A: BitBoard = Self::ALL & !Self::FILE_A;
+    pub const NOT_FILE_H: BitBoard = Self::ALL & !Self::FILE_H;
 
-#[allow(dead_code)]
-#[allow(clippy::unreadable_literal)]
-impl Ranks {
-    pub const R1: BitBoard = 0xff;
-    pub const R2: BitBoard = Self::R1 << 8;
-    pub const R3: BitBoard = Self::R2 << 8;
-    pub const R4: BitBoard = Self::R3 << 8;
-    pub const R5: BitBoard = Self::R4 << 8;
-    pub const R6: BitBoard = Self::R5 << 8;
-    pub const R7: BitBoard = Self::R6 << 8;
-    pub const R8: BitBoard = Self::R7 << 8;
+    /// RANKS
+    pub const RANK_1: BitBoard = 0xff;
+    pub const RANK_2: BitBoard = Self::RANK_1 << 8;
+    pub const RANK_3: BitBoard = Self::RANK_2 << 8;
+    pub const RANK_4: BitBoard = Self::RANK_3 << 8;
+    pub const RANK_5: BitBoard = Self::RANK_4 << 8;
+    pub const RANK_6: BitBoard = Self::RANK_5 << 8;
+    pub const RANK_7: BitBoard = Self::RANK_6 << 8;
+    pub const RANK_8: BitBoard = Self::RANK_7 << 8;
 }
 
 impl MagicCastling {
@@ -181,25 +169,25 @@ mod test {
 
     #[test]
     fn print_magic_masks() {
-        print_bitboard(Files::FILE_A);
-        print_bitboard(Files::FILE_B);
-        print_bitboard(Files::FILE_C);
-        print_bitboard(Files::FILE_D);
-        print_bitboard(Files::FILE_E);
-        print_bitboard(Files::FILE_F);
-        print_bitboard(Files::FILE_G);
+        print_bitboard(Masks::FILE_A);
+        print_bitboard(Masks::FILE_B);
+        print_bitboard(Masks::FILE_C);
+        print_bitboard(Masks::FILE_D);
+        print_bitboard(Masks::FILE_E);
+        print_bitboard(Masks::FILE_F);
+        print_bitboard(Masks::FILE_G);
 
-        print_bitboard(Files::NOT_FILE_A);
-        print_bitboard(Files::NOT_FILE_H);
+        print_bitboard(Masks::NOT_FILE_A);
+        print_bitboard(Masks::NOT_FILE_H);
 
-        print_bitboard(Ranks::R1);
-        print_bitboard(Ranks::R2);
-        print_bitboard(Ranks::R3);
-        print_bitboard(Ranks::R4);
-        print_bitboard(Ranks::R5);
-        print_bitboard(Ranks::R6);
-        print_bitboard(Ranks::R7);
-        print_bitboard(Ranks::R8);
+        print_bitboard(Masks::RANK_1);
+        print_bitboard(Masks::RANK_2);
+        print_bitboard(Masks::RANK_3);
+        print_bitboard(Masks::RANK_4);
+        print_bitboard(Masks::RANK_5);
+        print_bitboard(Masks::RANK_6);
+        print_bitboard(Masks::RANK_7);
+        print_bitboard(Masks::RANK_8);
     }
 
     #[test]

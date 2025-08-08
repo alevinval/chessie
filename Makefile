@@ -18,4 +18,5 @@ run:
 
 .PHONY: pregen
 pregen:
-	./scripts/pregenerate.sh
+	cargo run --release --bin chessie-pregen
+	make lint

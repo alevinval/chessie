@@ -3,7 +3,7 @@ use crate::{
     board::{Board, GameState},
     defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
     eval::score_piece,
-    magic::{Files, MagicCastling, MagicMovements, Ranks, Squares},
+    magic::{MagicCastling, MagicMovements, Masks},
     moves,
     piece::Piece,
     pos,
@@ -105,11 +105,11 @@ impl<'board> Generator<'board> {
     fn emit_black_pawn(&mut self) {
         let pawns = self.board.get(Color::B, Piece::Pawn) & pos::bb(self.from);
         let white_side = self.board.occupancy_side(Color::W);
-        let side_attack = (bits::southeast(pawns) & Files::NOT_FILE_A & white_side)
-            | (bits::southwest(pawns) & Files::NOT_FILE_H & white_side);
+        let side_attack = (bits::southeast(pawns) & Masks::NOT_FILE_A & white_side)
+            | (bits::southwest(pawns) & Masks::NOT_FILE_H & white_side);
 
         let first_push = bits::south(pawns) & !self.board.occupancy();
-        let second_push = bits::south(first_push & Ranks::R6) & !self.board.occupancy();
+        let second_push = bits::south(first_push & Masks::RANK_6) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
         if pos::row(self.from) == self.color.flip().pawn_row() {
@@ -124,11 +124,11 @@ impl<'board> Generator<'board> {
     fn emit_white_pawn(&mut self) {
         let pawns = self.board.get(Color::W, Piece::Pawn) & pos::bb(self.from);
         let black_side = self.board.occupancy_side(Color::B);
-        let side_attack = (bits::northeast(pawns) & Files::NOT_FILE_A & black_side)
-            | (bits::northwest(pawns) & Files::NOT_FILE_H & black_side);
+        let side_attack = (bits::northeast(pawns) & Masks::NOT_FILE_A & black_side)
+            | (bits::northwest(pawns) & Masks::NOT_FILE_H & black_side);
 
         let first_push = bits::north(pawns) & !self.board.occupancy();
-        let second_push = bits::north(first_push & Ranks::R3) & !self.board.occupancy();
+        let second_push = bits::north(first_push & Masks::RANK_3) & !self.board.occupancy();
         let pushes = first_push | second_push;
 
         if pos::row(self.from) == self.color.flip().pawn_row() {
@@ -166,8 +166,8 @@ impl<'board> Generator<'board> {
             if right {
                 let right_msk = MagicCastling::right(self.color);
                 let right_sq = match self.color {
-                    Color::B => Squares::H8,
-                    Color::W => Squares::H1,
+                    Color::B => Masks::H8,
+                    Color::W => Masks::H1,
                 };
                 if (right_msk & occ == right_sq) && (right_msk & side == right_sq) {
                     self.push_move(Move::RightCastle { mover: self.color, castling_update });
@@ -177,8 +177,8 @@ impl<'board> Generator<'board> {
             if left {
                 let left_msk = MagicCastling::left(self.color);
                 let left_sq = match self.color {
-                    Color::B => Squares::A8,
-                    Color::W => Squares::A1,
+                    Color::B => Masks::A8,
+                    Color::W => Masks::A1,
                 };
                 if (left_msk & occ == left_sq) && (left_msk & side) == left_sq {
                     self.push_move(Move::LeftCastle { mover: self.color, castling_update });
