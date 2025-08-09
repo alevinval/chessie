@@ -2,7 +2,6 @@ use crate::{
     board::{Board, GameState},
     color::Color,
     piece::Piece,
-    sq,
 };
 
 pub(crate) fn encode(board: &Board) -> String {
@@ -21,7 +20,7 @@ fn encode_ranks(out: &mut String, board: &Board) {
     for rank in (0..8).rev() {
         let mut acc = 0;
         for col in 0..8 {
-            let piece = board.at(sq!(rank, col));
+            let piece = board.at(rank * 8 + col);
             if let Some((color, piece, _)) = piece {
                 if acc != 0 {
                     out.push_str(&acc.to_string());

@@ -216,14 +216,14 @@ mod test {
 
     use std::mem;
 
-    use crate::sq;
+    use crate::squares::*;
 
     use super::*;
 
     #[test]
     fn at_white_king() {
         let sut = Board::default();
-        let king = sut.at(sq!(0, 4));
+        let king = sut.at(E1);
         assert!(king.is_some());
 
         if let Some((color, piece, _bb)) = king {
@@ -235,7 +235,7 @@ mod test {
     #[test]
     fn at_black_king() {
         let sut = Board::default();
-        let king = sut.at(sq!(7, 4));
+        let king = sut.at(E8);
 
         assert!(king.is_some());
 
@@ -247,14 +247,14 @@ mod test {
 
     #[test]
     fn mut_at_white() {
-        let pos = sq!(0, 0);
+        let pos = A1;
 
         assert_eq!(Board::default().at(pos).unwrap().1, Board::default().at_mut(pos).unwrap().1);
     }
 
     #[test]
     fn mut_at_black() {
-        let pos = sq!(7, 7);
+        let pos = H8;
 
         assert_eq!(Board::default().at(pos).unwrap().1, Board::default().at_mut(pos).unwrap().1);
     }

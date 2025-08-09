@@ -6,7 +6,8 @@ use crate::{
     magic::{MagicMovements, Masks},
     moves,
     piece::Piece,
-    pos, sq,
+    pos,
+    squares::*,
     util::print_board,
 };
 
@@ -296,29 +297,29 @@ const fn calc_castling_rook(
 
 const fn left_rook(color: Color) -> Sq {
     match color {
-        Color::B => sq!(7, 0),
-        Color::W => sq!(0, 0),
+        Color::B => A8,
+        Color::W => A1,
     }
 }
 
 const fn right_rook(color: Color) -> Sq {
     match color {
-        Color::B => sq!(7, 7),
-        Color::W => sq!(0, 7),
+        Color::B => H8,
+        Color::W => H1,
     }
 }
 
 const fn left_xray(color: Color) -> Sq {
     match color {
-        Color::B => sq!(7, 3),
-        Color::W => sq!(0, 3),
+        Color::B => D8,
+        Color::W => D1,
     }
 }
 
 const fn right_xray(color: Color) -> Sq {
     match color {
-        Color::B => sq!(7, 5),
-        Color::W => sq!(0, 5),
+        Color::B => F8,
+        Color::W => F1,
     }
 }
 
@@ -326,7 +327,7 @@ const fn right_xray(color: Color) -> Sq {
 mod test {
 
     use super::*;
-    use crate::{defs::Sq, fen, sq, util::print_hboard};
+    use crate::{defs::Sq, fen, util::print_hboard};
     use test_case::test_case;
 
     fn gen_squares(board: &Board, sq: Sq) -> Vec<Sq> {
@@ -334,10 +335,10 @@ mod test {
         moves::attacked_positions(&m).collect()
     }
 
-    #[test_case(sq!(1, 1), vec![18, 17, 25])]
-    #[test_case(sq!(1, 2), vec![])]
-    #[test_case(sq!(4, 5), vec![45])]
-    #[test_case(sq!(5, 7), vec![54])]
+    #[test_case(B2, vec![C3, B3, B4])]
+    #[test_case(C2, vec![])]
+    #[test_case(F5, vec![F6])]
+    #[test_case(H6, vec![G7])]
     fn white_pawn_gen(sq: Sq, expected: Vec<Sq>) {
         let board =
             fen::decode("rnbqkbnr/pppppppp/7P/5P2/5p2/2p5/PPPPPPPP/RNBQKBNR w KQkq - 0 2").unwrap();
@@ -348,10 +349,10 @@ mod test {
         assert_eq!(expected, actual);
     }
 
-    #[test_case(sq!(6, 7), vec![])]
-    #[test_case(sq!(6, 6), vec![47, 38, 46])]
-    #[test_case(sq!(3, 5), vec![21])]
-    #[test_case(sq!(2, 7), vec![14])]
+    #[test_case(H7, vec![])]
+    #[test_case(G7, vec![H6, G5, G6])]
+    #[test_case(F4, vec![F3])]
+    #[test_case(H3, vec![G2])]
     fn black_pawn_gen(sq: Sq, expected: Vec<Sq>) {
         let board =
             fen::decode("rnbqkbnr/pppppppp/7P/5P2/5p2/7p/PPPPPPPP/RNBQKBNR b KQkq - 0 1").unwrap();
@@ -362,9 +363,9 @@ mod test {
         assert_eq!(expected, actual);
     }
 
-    #[test_case("8/8/8/6q1/5K2/8/4P3/8 w - - 0 2", sq!(3, 5), vec![38, 21, 28])]
-    #[test_case("8/8/8/6q1/8/8/3KP3/8 w - - 0 3", sq!(1, 3), vec![3, 4, 10, 18, 19])]
-    #[test_case("8/8/8/6q1/8/8/4P3/K7 w - - 0 4", sq!(0, 0), vec![1, 8, 9])]
+    #[test_case("8/8/8/6q1/5K2/8/4P3/8 w - - 0 2", F4, vec![G5, F3, E4])]
+    #[test_case("8/8/8/6q1/8/8/3KP3/8 w - - 0 3", D2, vec![D1, E1, C2, C3, D3])]
+    #[test_case("8/8/8/6q1/8/8/4P3/K7 w - - 0 4", A1, vec![B1, A2, B2])]
     fn king_gen(input: &str, at: Sq, expected: Vec<Sq>) {
         let board = fen::decode(input).unwrap();
         print_board(&board);
@@ -374,34 +375,16 @@ mod test {
         assert_eq!(expected, actual);
     }
 
-    #[test]
-    fn slide_gen() {
-        let board = fen::decode("8/6k1/8/6r1/8/8/6K1/8 b KQkq - 0 1").unwrap();
+    #[test_case("8/6k1/8/6r1/8/8/6K1/8 b KQkq - 0 1", G5, vec![G2, G3, G4, A5, B5, C5, D5, E5, F5, H5, G6])]
+    #[test_case("1k4nr/7Q/8/8/8/6K1/8/8 b KQkq - 0 1", H8, vec![H7])]
+    #[test_case("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", A1, vec![])]
+    fn slide_rook(input: &str, at: Sq, expected: Vec<Sq>) {
+        let board = fen::decode(input).unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(4, 6));
+        let actual = gen_squares(&board, at);
         print_hboard(&board, &actual);
-        assert_eq!(vec![14, 22, 30, 32, 33, 34, 35, 36, 37, 39, 46], actual);
-    }
-
-    #[test]
-    fn slide_three() {
-        let board = fen::decode("1k4nr/7Q/8/8/8/6K1/8/8 b KQkq - 0 1").unwrap();
-        print_board(&board);
-
-        let actual = gen_squares(&board, sq!(7, 7));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![55], actual);
-    }
-
-    #[test]
-    fn slide_gen_two() {
-        let board = Board::default();
-        print_board(&board);
-
-        let actual = gen_squares(&board, sq!(0, 0));
-        print_hboard(&board, &actual);
-        assert_eq!(vec![] as Vec<Sq>, actual);
+        assert_eq!(expected, actual);
     }
 
     #[test]
@@ -409,14 +392,14 @@ mod test {
         let board = fen::decode("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(0, 4));
-        assert_eq!(vec![6, 2, 3, 5], actual);
+        let actual = gen_squares(&board, E1);
+        assert_eq!(vec![G1, C1, D1, F1], actual);
 
         let board = fen::decode("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(7, 4));
-        assert_eq!(vec![62, 58, 59, 61], actual);
+        let actual = gen_squares(&board, E8);
+        assert_eq!(vec![G8, C8, D8, F8], actual);
     }
 
     #[test]
@@ -424,14 +407,14 @@ mod test {
         let board = fen::decode("4k3/8/8/8/q7/7q/3PPP2/R3K2R b KQ - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(0, 4));
+        let actual = gen_squares(&board, E1);
         assert_eq!(vec![] as Vec<Sq>, actual);
 
         let board = fen::decode("4k3/8/8/8/8/8/3PPP2/R3K2R b KQ - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(0, 4));
-        assert_eq!(vec![6, 2, 3, 5], actual);
+        let actual = gen_squares(&board, E1);
+        assert_eq!(vec![G1, C1, D1, F1], actual);
     }
 
     #[test]
@@ -439,13 +422,13 @@ mod test {
         let board = fen::decode("r3k2r/3ppp2/1Q5Q/8/8/8/3PPP2/4K3 b kq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(7, 4));
+        let actual = gen_squares(&board, E8);
         assert_eq!(vec![] as Vec<Sq>, actual);
 
         let board = fen::decode("r3k2r/3ppp2/8/8/8/8/3PPP2/4K3 b kq - 0 1").unwrap();
         print_board(&board);
 
-        let actual = gen_squares(&board, sq!(7, 4));
-        assert_eq!(vec![62, 58, 59, 61], actual);
+        let actual = gen_squares(&board, E8);
+        assert_eq!(vec![G8, C8, D8, F8], actual);
     }
 }

@@ -29,7 +29,7 @@ fn read_sq() -> Sq {
     line.clear();
     io::stdin().read_line(&mut line).unwrap();
     let row: u8 = line.trim().parse().unwrap();
-    sq!(row, col)
+    row * 8 + col
 }
 
 pub fn play() {

@@ -75,23 +75,20 @@ impl Search {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{eval::Scorer, fen, sq, util::print_hboard};
+    use crate::{defs::Sq, eval::Scorer, fen, squares::*, util::print_hboard};
     use test_case::test_case;
 
-    #[test_case("8/8/8/8/2Q4p/k6P/1N6/1K3B2 w - - 0 101", (3, 2), (2,2))]
-    #[test_case("8/8/8/2Q5/k6p/3N3P/8/1K3B2 w - - 0 101", (4,2), (3,1))]
-    #[test_case("8/8/8/2Q5/2B4p/2k2p1P/5N2/1K6 w - - 0 101", (1,5), (3,4))]
-    fn mate_in_one(input: &str, from: (u8, u8), to: (u8, u8)) {
+    #[test_case("8/8/8/8/2Q4p/k6P/1N6/1K3B2 w - - 0 101", C4, C3)]
+    #[test_case("8/8/8/2Q5/k6p/3N3P/8/1K3B2 w - - 0 101", C5, B4)]
+    #[test_case("8/8/8/2Q5/2B4p/2k2p1P/5N2/1K6 w - - 0 101", F2, E4)]
+    fn mate_in_one(input: &str, from: Sq, to: Sq) {
         let board = fen::decode(input).unwrap();
 
         let result = Search::new(&board, 4, Scorer::eval).find();
         print_hboard(&board, &[result.movement.unwrap().to()]);
 
         assert_eq!(Some(1), result.mate);
-        assert_eq!(
-            Some(Move::Slide { from: sq!(from), to: sq!(to), castling_update: None }),
-            result.movement
-        );
+        assert_eq!(Some(Move::Slide { from, to, castling_update: None }), result.movement);
     }
 
     #[test]
@@ -113,9 +110,6 @@ mod test {
         print_hboard(&board, &[result.movement.unwrap().to()]);
         assert_eq!(Some(1), result.mate);
 
-        assert_eq!(
-            Some(Move::Slide { from: sq!(3, 2), to: sq!(2, 2), castling_update: None }),
-            result.movement
-        );
+        assert_eq!(Some(Move::Slide { from: C4, to: C3, castling_update: None }), result.movement);
     }
 }

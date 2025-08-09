@@ -3,7 +3,7 @@ use crate::{
     board::Board,
     defs::{BitBoard, Sq},
     eval::{Scorer, legacy::LegacyScorer},
-    fen, sq,
+    fen,
 };
 
 #[allow(dead_code)]
@@ -12,7 +12,7 @@ pub fn print_bitboard(bb: BitBoard) {
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
-            let pos = sq!(row, col);
+            let pos = row * 8 + col;
             let piece = if bits::has_piece(bb, pos) { "@" } else { " " };
             print!("| {piece} ");
         }
@@ -38,7 +38,7 @@ pub(crate) fn print_hboard(board: &Board, highlights: &[Sq]) {
     for row in (0..8).rev() {
         println!("+---+---+---+---+---+---+---+---+");
         for col in 0..8 {
-            let sq: Sq = sq!(row, col);
+            let sq: Sq = row * 8 + col;
             let mark = highlights.iter().find(|p| **p == sq).map(|_| "•");
             let piece = board.at(sq).map_or(" ", |(color, piece, _)| piece.as_str(color));
             print!("| {} ", mark.unwrap_or(piece));

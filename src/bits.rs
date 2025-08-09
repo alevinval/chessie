@@ -116,10 +116,10 @@ pub const fn east(bb: BitBoard) -> BitBoard {
 mod test {
 
     use super::*;
-    use crate::{bits, pos, sq, util::print_bitboard};
+    use crate::{bits, pos, squares::*, util::print_bitboard};
 
-    static ORIGIN: Sq = sq!(0, 0);
-    static TARGET: Sq = sq!(3, 3);
+    static ORIGIN: Sq = A1;
+    static TARGET: Sq = D4;
 
     #[test]
     fn count() {
@@ -152,8 +152,8 @@ mod test {
 
     #[test]
     fn slide() {
-        let from = sq!(1, 1);
-        let to = sq!(2, 2);
+        let from = B2;
+        let to = C3;
 
         let mut sut = bits::init(Piece::Pawn, Color::W);
         assert!(!bits::has_piece(sut, to));
@@ -166,7 +166,7 @@ mod test {
 
     #[test]
     fn unset() {
-        let pos = sq!(1, 1);
+        let pos = B2;
         let mut sut = bits::init(Piece::Pawn, Color::W);
         assert!(bits::has_piece(sut, pos));
 

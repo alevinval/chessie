@@ -5,7 +5,8 @@ use crate::{
     board::Board,
     defs::{CastlingUpdate, Sq},
     piece::Piece,
-    pos, sq,
+    pos,
+    squares::*,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -44,8 +45,8 @@ impl Move {
     pub(crate) const fn to(self) -> Sq {
         match self {
             Move::Slide { to, .. } | Move::Takes { to, .. } | Move::PawnPromo { to, .. } => to,
-            Move::LeftCastle { mover, .. } => sq!(mover.piece_row(), 2),
-            Move::RightCastle { mover, .. } => sq!(mover.piece_row(), 6),
+            Move::LeftCastle { mover, .. } => mover.piece_row() * 8 + 2,
+            Move::RightCastle { mover, .. } => mover.piece_row() * 8 + 6,
         }
     }
 
@@ -56,7 +57,7 @@ impl Move {
                 from
             }
             Move::LeftCastle { mover, .. } | Move::RightCastle { mover, .. } => {
-                sq!(mover.piece_row(), 4)
+                mover.piece_row() * 8 + 4
             }
         }
     }
@@ -102,12 +103,12 @@ impl Move {
                 board.disable_castling(mover, castling_update);
                 match mover {
                     Color::B => {
-                        self.slide(board, sq!(7, 4), sq!(7, 2));
-                        self.slide(board, sq!(7, 0), sq!(7, 3));
+                        self.slide(board, E8, C8);
+                        self.slide(board, A8, D8);
                     }
                     Color::W => {
-                        self.slide(board, sq!(0, 4), sq!(0, 2));
-                        self.slide(board, sq!(0, 0), sq!(0, 3));
+                        self.slide(board, E1, C1);
+                        self.slide(board, A1, D1);
                     }
                 }
             }
@@ -115,12 +116,12 @@ impl Move {
                 board.disable_castling(mover, castling_update);
                 match mover {
                     Color::B => {
-                        self.slide(board, sq!(7, 4), sq!(7, 6));
-                        self.slide(board, sq!(7, 7), sq!(7, 5));
+                        self.slide(board, E8, G8);
+                        self.slide(board, H8, F8);
                     }
                     Color::W => {
-                        self.slide(board, sq!(0, 4), sq!(0, 6));
-                        self.slide(board, sq!(0, 7), sq!(0, 5));
+                        self.slide(board, E1, G1);
+                        self.slide(board, H1, F1);
                     }
                 }
             }
@@ -161,12 +162,12 @@ impl Move {
                 board.enable_castling(mover, castling_update);
                 match mover {
                     Color::B => {
-                        self.slide(board, sq!(7, 2), sq!(7, 4));
-                        self.slide(board, sq!(7, 3), sq!(7, 0));
+                        self.slide(board, C8, E8);
+                        self.slide(board, D8, A8);
                     }
                     Color::W => {
-                        self.slide(board, sq!(0, 2), sq!(0, 4));
-                        self.slide(board, sq!(0, 3), sq!(0, 0));
+                        self.slide(board, C1, E1);
+                        self.slide(board, D1, A1);
                     }
                 }
             }
@@ -174,12 +175,12 @@ impl Move {
                 board.enable_castling(mover, castling_update);
                 match mover {
                     Color::B => {
-                        self.slide(board, sq!(7, 6), sq!(7, 4));
-                        self.slide(board, sq!(7, 5), sq!(7, 7));
+                        self.slide(board, G8, E8);
+                        self.slide(board, F8, H8);
                     }
                     Color::W => {
-                        self.slide(board, sq!(0, 6), sq!(0, 4));
-                        self.slide(board, sq!(0, 5), sq!(0, 7));
+                        self.slide(board, G1, E1);
+                        self.slide(board, F1, H1);
                     }
                 }
             }
@@ -217,8 +218,8 @@ mod test {
 
     use super::*;
 
-    const FROM: Sq = sq!(1, 1);
-    const TO: Sq = sq!(3, 3);
+    const FROM: Sq = B2;
+    const TO: Sq = D4;
 
     #[test]
     fn to() {
@@ -229,19 +230,19 @@ mod test {
                 .to()
         );
         assert_eq!(
-            sq!(0, 2),
+            C1,
             Move::LeftCastle { mover: Color::W, castling_update: CastlingUpdate::Left }.to()
         );
         assert_eq!(
-            sq!(7, 2),
+            C8,
             Move::LeftCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.to()
         );
         assert_eq!(
-            sq!(0, 6),
+            G1,
             Move::RightCastle { mover: Color::W, castling_update: CastlingUpdate::Right }.to()
         );
         assert_eq!(
-            sq!(7, 6),
+            G8,
             Move::RightCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.to()
         );
     }
@@ -254,19 +255,19 @@ mod test {
                 .from()
         );
         assert_eq!(
-            sq!(0, 4),
+            E1,
             Move::LeftCastle { mover: Color::W, castling_update: CastlingUpdate::Left }.from()
         );
         assert_eq!(
-            sq!(7, 4),
+            E8,
             Move::LeftCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.from()
         );
         assert_eq!(
-            sq!(0, 4),
+            E1,
             Move::RightCastle { mover: Color::W, castling_update: CastlingUpdate::Right }.from()
         );
         assert_eq!(
-            sq!(7, 4),
+            E8,
             Move::RightCastle { mover: Color::B, castling_update: CastlingUpdate::Both }.from()
         );
     }
