@@ -25,27 +25,34 @@ impl Search {
     }
 
     #[must_use]
-    fn negamax(&mut self, ply: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
+    fn negamax(&mut self, depth: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
         let score = (self.eval_fn)(&self.board);
         if score.abs() >= MATE_SCORE {
-            return SearchResult { movement: None, eval: score + (ply as f64), mate: Some(0) };
-        } else if ply == 0 {
-            return SearchResult { movement: None, eval: score + (ply as f64), mate: None };
+            return SearchResult { movement: None, eval: score + (depth as f64), mate: Some(0) };
+        } else if depth == 0 {
+            return SearchResult { movement: None, eval: score, mate: None };
         }
 
         let mover = self.board.state().mover();
         let mut movements = self.board.movements(mover);
         movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
-        let first = movements.first().copied();
 
         let mut best_eval = -MATE_SCORE;
-        let mut best_move = None;
+        let mut best_move = movements.first().copied();
         let mut best_mate: Option<usize> = None;
 
         for movement in movements {
             self.board.apply_mut(movement);
-            let result = self.negamax(ply - 1, (-beta, -alpha));
+            let result = self.negamax(depth - 1, (-beta, -alpha));
             self.board.unapply_mut(movement);
+
+            if let Some(0) = result.mate {
+                return SearchResult {
+                    movement: Some(movement),
+                    eval: -result.eval,
+                    mate: Some(1),
+                };
+            }
 
             let eval = -result.eval;
             if eval > best_eval {
@@ -53,6 +60,7 @@ impl Search {
                 best_move = Some(movement);
                 best_mate = result.mate;
             }
+
             alpha = alpha.max(eval);
             if alpha >= beta {
                 break;
@@ -60,15 +68,15 @@ impl Search {
         }
 
         // Avoid stalemates
-        if best_move.is_none() && !self.board.in_check(mover) {
-            best_eval = 0.0;
+        if best_move.is_none() {
+            return SearchResult { movement: None, eval: 0.0, mate: None };
         }
 
         best_mate = best_mate
             .map(|m| m + 1)
             .or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
 
-        SearchResult { movement: best_move.or(first), eval: best_eval, mate: best_mate }
+        SearchResult { movement: best_move, eval: best_eval, mate: best_mate }
     }
 }
 
@@ -110,6 +118,6 @@ mod test {
         print_hboard(&board, &[result.movement.unwrap().to()]);
         assert_eq!(Some(1), result.mate);
 
-        assert_eq!(Some(Move::Slide { from: C4, to: C3, castling_update: None }), result.movement);
+        assert_eq!(Some(Move::Slide { from: C5, to: B4, castling_update: None }), result.movement);
     }
 }
