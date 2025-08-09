@@ -19,6 +19,7 @@ mod moves;
 mod piece;
 pub mod pos;
 mod search;
+pub mod squares;
 pub mod util;
 
 fn read_sq() -> Sq {
