@@ -26,6 +26,7 @@ pub fn decode(input: &str) -> Result<Board, FenError> {
     decode_fullmove(&mut board, fullmove)?;
 
     board.calculate_occupancies();
+    board.recompute_hash();
 
     Ok(board)
 }

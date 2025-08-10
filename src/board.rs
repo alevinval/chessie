@@ -3,6 +3,7 @@ use crate::{
     defs::{BitBoard, CastlingUpdate, Sq},
     moves::{self, Generator, Move},
     piece::Piece,
+    zobrist::ZobristHash,
 };
 
 pub(crate) use self::state::GameState;
@@ -17,6 +18,7 @@ pub struct Board {
     black_side: BitBoard,
     occupancy: BitBoard,
     state: GameState,
+    hash: ZobristHash,
 }
 
 impl Board {
@@ -25,12 +27,18 @@ impl Board {
         board.white.iter_mut().for_each(|bb| *bb = 0);
         board.black.iter_mut().for_each(|bb| *bb = 0);
         board.calculate_occupancies();
+        board.recompute_hash();
         board
     }
 
     #[must_use]
     pub(crate) const fn state(&self) -> &GameState {
         &self.state
+    }
+
+    #[must_use]
+    pub(crate) const fn hash(&self) -> ZobristHash {
+        self.hash
     }
 
     #[must_use]
@@ -51,31 +59,46 @@ impl Board {
             Color::B => bits::set(&mut self.black[piece.idx()], sq),
             Color::W => bits::set(&mut self.white[piece.idx()], sq),
         }
+        self.hash.flip_piece(color, piece, sq);
     }
 
     pub(crate) fn slide(&mut self, from: Sq, to: Sq) {
-        let (_, _, bb) = self
-            .at_mut(from)
-            .unwrap_or_else(|| unreachable!("must have a piece in order to slide {from} to {to}"));
+        let (color, piece, bb) =
+            self.at_mut(from).unwrap_or_else(|| unreachable!("slide from an empty square"));
         bits::slide(bb, from, to);
+        self.hash.flip_piece(color, piece, from);
+        self.hash.flip_piece(color, piece, to);
     }
 
     pub(crate) fn clear(&mut self, sq: Sq) {
-        if let Some((_, _, bb)) = self.at_mut(sq) {
+        if let Some((color, piece, bb)) = self.at_mut(sq) {
             bits::unset(bb, sq);
+            self.hash.flip_piece(color, piece, sq);
         }
     }
 
     pub(crate) fn disable_castling(&mut self, color: Color, update: CastlingUpdate) {
-        self.state.set_castling(color, update, false);
+        self.set_castling(color, update, false);
     }
 
     pub(crate) fn enable_castling(&mut self, color: Color, update: CastlingUpdate) {
-        self.state.set_castling(color, update, true);
+        self.set_castling(color, update, true);
+    }
+
+    fn set_castling(&mut self, color: Color, update: CastlingUpdate, value: bool) {
+        let (left_changed, right_changed) = self.state.set_castling(color, update, value);
+        if left_changed {
+            self.hash.flip_castling(color, false);
+        }
+        if right_changed {
+            self.hash.flip_castling(color, true);
+        }
     }
 
     pub(crate) fn set_mover(&mut self, mover: Color) {
-        self.state.set_mover(mover);
+        if self.state.set_mover(mover) {
+            self.hash.flip_side();
+        }
     }
 
     pub(crate) fn set_fullmove(&mut self, fullmove: usize) {
@@ -131,11 +154,17 @@ impl Board {
     pub(crate) fn advance(&mut self) {
         self.calculate_occupancies();
         self.state.advance();
+        self.hash.flip_side();
     }
 
     pub(crate) fn backwards(&mut self) {
         self.calculate_occupancies();
         self.state.backwards();
+        self.hash.flip_side();
+    }
+
+    pub(crate) fn recompute_hash(&mut self) {
+        self.hash = ZobristHash::from_board(self);
     }
 
     #[must_use]
@@ -200,8 +229,10 @@ impl Default for Board {
             white_side: 0,
             black_side: 0,
             occupancy: 0,
+            hash: ZobristHash::default(),
         };
         board.calculate_occupancies();
+        board.recompute_hash();
         board
     }
 }
@@ -277,7 +308,87 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(136, mem::size_of::<Board>());
+        assert_eq!(144, mem::size_of::<Board>());
         assert_eq!(8, mem::size_of::<&Board>());
+    }
+
+    #[test]
+    fn empty_board_is_valid() {
+        let mut board = Board::empty();
+        assert_eq!(0, board.occupancy());
+        let before = board.hash();
+        board.recompute_hash();
+        assert_eq!(before, board.hash());
+        assert_eq!(before, ZobristHash::from_board(&board));
+    }
+
+    #[test]
+    fn castling_change_changes_hash() {
+        let mut board = Board::default();
+        let start = board.hash();
+
+        board.disable_castling(Color::W, CastlingUpdate::Right);
+        assert_ne!(start, board.hash());
+        assert_eq!(board.hash(), ZobristHash::from_board(&board));
+
+        board.enable_castling(Color::W, CastlingUpdate::Right);
+        assert_eq!(start, board.hash());
+        assert_eq!(board.hash(), ZobristHash::from_board(&board));
+    }
+
+    #[test]
+    fn capture_unmake_hash_check() {
+        let mut board = crate::fen::decode("6k1/8/3p4/4P3/8/8/8/7K w - - 0 1").unwrap();
+        for m in board.movements(board.state().mover()) {
+            if m.from() == crate::squares::E5 && m.to() == crate::squares::D6 {
+                board.apply_mut(m);
+                assert_eq!(board.hash(), ZobristHash::from_board(&board), "after apply");
+                board.unapply_mut(m);
+                assert_eq!(board.hash(), ZobristHash::from_board(&board), "after unapply");
+                return;
+            }
+        }
+        panic!("no capture found");
+    }
+
+    #[test]
+    fn hash_survives_random_moves() {
+        use rand::rngs::StdRng;
+        use rand::{Rng, SeedableRng};
+
+        const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        const WALK: usize = 50;
+
+        for seed in 0..10u64 {
+            let mut board = crate::fen::decode(START_FEN).unwrap();
+            let start_hash = board.hash();
+            let mut rng = StdRng::seed_from_u64(seed);
+            let mut applied = Vec::new();
+
+            for ply in 0..WALK {
+                let moves = board.movements(board.state().mover());
+                if moves.is_empty() {
+                    break;
+                }
+                let movement = moves[rng.gen_range(0..moves.len())];
+                board.apply_mut(movement);
+                assert_eq!(
+                    board.hash(),
+                    ZobristHash::from_board(&board),
+                    "seed {seed} after applying ply {ply}"
+                );
+                applied.push(movement);
+            }
+
+            for (ply, movement) in applied.iter().rev().enumerate() {
+                board.unapply_mut(*movement);
+                assert_eq!(
+                    board.hash(),
+                    ZobristHash::from_board(&board),
+                    "seed {seed} after unmaking ply {ply}"
+                );
+            }
+            assert_eq!(board.hash(), start_hash, "seed {seed} back at the start position");
+        }
     }
 }
