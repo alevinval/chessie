@@ -3,6 +3,7 @@ use crate::{bits, board::Board, color::Color, defs::BitBoard, piece::Piece};
 pub mod legacy;
 
 pub const MATE_SCORE: f64 = 100_000_000.0;
+pub const MATE_THRESHOLD: f64 = 90_000_000.0;
 
 #[derive(Default)]
 pub struct Scorer {}

@@ -1,4 +1,8 @@
-use crate::{board::Board, eval::MATE_SCORE, moves::Move};
+use crate::{
+    board::Board,
+    eval::{MATE_SCORE, MATE_THRESHOLD},
+    moves::Move,
+};
 
 type EvalFn = fn(board: &Board) -> f64;
 
@@ -40,7 +44,7 @@ impl Search {
         self.nodes += 1;
 
         let eval = (self.eval_fn)(&self.board);
-        if eval.abs() >= MATE_SCORE {
+        if eval.abs() >= MATE_THRESHOLD {
             return SearchResult { movement: None, eval: eval + (depth as f64), mate: Some(0) };
         } else if depth == 0 {
             return SearchResult { movement: None, eval, mate: None };
@@ -83,7 +87,7 @@ impl Search {
         }
 
         best_mate =
-            best_mate.or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
+            best_mate.or_else(|| if best_eval.abs() >= MATE_THRESHOLD { Some(1) } else { None });
 
         SearchResult { movement: best_move, eval: best_eval, mate: best_mate }
     }
