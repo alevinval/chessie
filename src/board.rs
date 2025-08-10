@@ -3,6 +3,7 @@ use crate::{
     defs::{BitBoard, CastlingUpdate, Sq},
     moves::{self, Generator, Move},
     piece::Piece,
+    zobrist::{self, ZobristTable},
 };
 
 pub(crate) use self::state::GameState;
@@ -17,6 +18,7 @@ pub struct Board {
     black_side: BitBoard,
     occupancy: BitBoard,
     state: GameState,
+    zobrist_table: ZobristTable,
 }
 
 impl Board {
@@ -173,6 +175,10 @@ impl Board {
         self.backwards();
     }
 
+    pub fn hash(&self) -> u64 {
+        zobrist::hash_board(self, &self.zobrist_table)
+    }
+
     fn generate_movements(&self, color: Color, legal_only: bool) -> Vec<Move> {
         self.pieces(color)
             .flat_map(|(_, bb)| bits::pos(bb))
@@ -190,6 +196,7 @@ impl Default for Board {
             white_side: 0,
             black_side: 0,
             occupancy: 0,
+            zobrist_table: zobrist::get_table(),
         };
         board.calculate_occupancies();
         board
@@ -267,7 +274,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(136, mem::size_of::<Board>());
+        assert_eq!(184, mem::size_of::<Board>());
         assert_eq!(8, mem::size_of::<&Board>());
     }
 }

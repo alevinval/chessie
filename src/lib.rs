@@ -21,6 +21,7 @@ pub mod pos;
 pub mod search;
 pub mod squares;
 pub mod util;
+mod zobrist;
 
 fn read_sq() -> Sq {
     let mut line = String::new();

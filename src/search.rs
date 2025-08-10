@@ -1,21 +1,36 @@
-use core::f64;
-
 use crate::{board::Board, eval::MATE_SCORE, moves::Move};
+use core::f64;
+use std::collections::HashMap;
 
 type EvalFn = fn(board: &Board) -> f64;
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+enum Bound {
+    Exact,
+    Lower,
+    Upper,
+}
+
+#[derive(Clone)]
+struct TTEntry {
+    depth: usize,
+    bound: Bound,
+    result: SearchResult,
+}
 
 pub struct Search {
     board: Board,
     depth: usize,
     eval_fn: EvalFn,
     nodes: usize,
+    transpositions: HashMap<u64, TTEntry>,
 }
 
 pub struct Stats {
     pub nodes: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct SearchResult {
     pub eval: f64,
     pub movement: Option<Move>,
@@ -24,7 +39,7 @@ pub struct SearchResult {
 
 impl Search {
     pub fn new(board: &Board, depth: usize, eval_fn: EvalFn) -> Self {
-        Self { board: board.clone(), depth, eval_fn, nodes: 0 }
+        Self { board: board.clone(), depth, eval_fn, nodes: 0, transpositions: HashMap::new() }
     }
 
     #[must_use]
@@ -38,8 +53,28 @@ impl Search {
     }
 
     #[must_use]
-    fn negamax(&mut self, depth: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
+    fn negamax(&mut self, depth: usize, (mut alpha, mut beta): (f64, f64)) -> SearchResult {
         self.nodes += 1;
+        let alpha_orig = alpha;
+
+        let hash = self.board.hash();
+
+        if let Some(entry) = self.transpositions.get(&hash)
+            && entry.depth >= depth
+        {
+            match entry.bound {
+                Bound::Exact => return entry.result,
+                Bound::Lower => {
+                    alpha = alpha.max(entry.result.eval);
+                }
+                Bound::Upper => {
+                    beta = beta.min(entry.result.eval);
+                }
+            };
+            if alpha >= beta {
+                return entry.result;
+            };
+        }
 
         if depth == 0 {
             let eval = (self.eval_fn)(&self.board);
@@ -91,7 +126,16 @@ impl Search {
         let mate_dist =
             mate_dist.or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
 
-        SearchResult { movement: best_move, eval: best_eval, mate_dist }
+        let result = SearchResult { movement: best_move, eval: best_eval, mate_dist };
+        let bound = if best_eval <= alpha_orig {
+            Bound::Upper
+        } else if best_eval >= beta {
+            Bound::Lower
+        } else {
+            Bound::Exact
+        };
+        self.transpositions.insert(hash, TTEntry { depth, bound, result });
+        result
     }
 }
 
