@@ -67,7 +67,7 @@ impl Move {
         match self {
             Move::Slide { .. } => 1.0,
             Move::LeftCastle { .. } => 10.0,
-            Move::RightCastle { .. } => 13.0,
+            Move::RightCastle { .. } => 10.0,
             Move::Takes { value, .. } => 100.0 + value,
             Move::PawnPromo { .. } => 900.0,
         }

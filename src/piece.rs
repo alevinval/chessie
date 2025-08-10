@@ -15,7 +15,7 @@ pub(crate) enum Piece {
 pub(crate) type Idx = usize;
 
 impl Piece {
-    pub(crate) const PROMO: [Piece; 4] = [Piece::Bishop, Piece::Knight, Piece::Queen, Piece::Rook];
+    pub(crate) const PROMO: [Piece; 4] = [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight];
 
     pub(crate) const P: Idx = 0;
     pub(crate) const N: Idx = 1;
