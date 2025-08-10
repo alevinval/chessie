@@ -10,7 +10,7 @@ pub(crate) use self::state::GameState;
 mod state;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Board {
+pub struct Board {
     white: [BitBoard; 6],
     black: [BitBoard; 6],
     white_side: BitBoard,

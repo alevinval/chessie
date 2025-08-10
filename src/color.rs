@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub(crate) enum Color {
+#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
+pub enum Color {
     B,
     W,
 }

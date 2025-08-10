@@ -1,7 +1,6 @@
-#[cfg(test)]
-pub(crate) use decode::decode;
-pub(crate) use encode::encode;
-pub(crate) use error::FenError;
+pub use decode::decode;
+pub use encode::encode;
+pub use error::FenError;
 
 mod decode;
 mod encode;

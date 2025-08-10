@@ -2,30 +2,42 @@ use crate::{board::Board, eval::MATE_SCORE, moves::Move};
 
 type EvalFn = fn(board: &Board) -> f64;
 
-pub(crate) struct Search {
+pub struct Search {
     board: Board,
     depth: usize,
     eval_fn: EvalFn,
+    nodes: usize,
 }
 
-pub(crate) struct SearchResult {
+pub struct Stats {
+    pub nodes: usize,
+}
+
+#[derive(Debug)]
+pub struct SearchResult {
     pub movement: Option<Move>,
     pub eval: f64,
     pub mate: Option<usize>,
 }
 
 impl Search {
-    pub(crate) fn new(board: &Board, depth: usize, eval_fn: EvalFn) -> Self {
-        Self { board: board.clone(), depth, eval_fn }
+    pub fn new(board: &Board, depth: usize, eval_fn: EvalFn) -> Self {
+        Self { board: board.clone(), depth, eval_fn, nodes: 0 }
     }
 
     #[must_use]
-    pub(crate) fn find(mut self) -> SearchResult {
+    pub fn find(mut self) -> SearchResult {
         self.negamax(self.depth, (-f64::INFINITY, f64::INFINITY))
     }
 
     #[must_use]
+    pub fn find_with_stats(mut self) -> (SearchResult, Stats) {
+        (self.negamax(self.depth, (-f64::INFINITY, f64::INFINITY)), Stats { nodes: self.nodes })
+    }
+
+    #[must_use]
     fn negamax(&mut self, depth: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
+        self.nodes += 1;
         let score = (self.eval_fn)(&self.board);
         if score.abs() >= MATE_SCORE {
             return SearchResult { movement: None, eval: score + (depth as f64), mate: Some(0) };

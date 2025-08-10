@@ -5,7 +5,7 @@ pub type BitBoard = u64;
 pub(crate) type CastlingTuple = (bool, bool);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum CastlingUpdate {
+pub enum CastlingUpdate {
     Left,
     Right,
     Both,

@@ -21,7 +21,7 @@ pub fn print_bitboard(bb: BitBoard) {
     print_cols();
 }
 
-pub(crate) fn print_board(board: &Board) {
+pub fn print_board(board: &Board) {
     print_hboard(board, &[]);
 }
 

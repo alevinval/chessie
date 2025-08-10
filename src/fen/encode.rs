@@ -4,7 +4,7 @@ use crate::{
     piece::Piece,
 };
 
-pub(crate) fn encode(board: &Board) -> String {
+pub fn encode(board: &Board) -> String {
     let mut out = String::new();
     let state = board.state();
 

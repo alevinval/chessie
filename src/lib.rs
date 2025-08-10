@@ -12,13 +12,13 @@ pub mod bits;
 mod board;
 mod color;
 pub mod defs;
-mod eval;
-mod fen;
+pub mod eval;
+pub mod fen;
 pub mod magic;
 mod moves;
 mod piece;
 pub mod pos;
-mod search;
+pub mod search;
 pub mod squares;
 pub mod util;
 

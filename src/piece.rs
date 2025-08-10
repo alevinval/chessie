@@ -3,7 +3,7 @@ use std::fmt;
 use super::Color;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub(crate) enum Piece {
+pub enum Piece {
     Pawn,
     Knight,
     Bishop,

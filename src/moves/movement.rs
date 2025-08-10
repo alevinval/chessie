@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) enum Move {
+pub enum Move {
     Takes {
         from: Sq,
         to: Sq,

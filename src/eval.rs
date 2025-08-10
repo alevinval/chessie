@@ -5,10 +5,10 @@ pub mod legacy;
 pub const MATE_SCORE: f64 = 100_000_000.0;
 
 #[derive(Default)]
-pub(crate) struct Scorer {}
+pub struct Scorer {}
 
 impl Scorer {
-    pub(crate) fn eval(board: &Board) -> f64 {
+    pub fn eval(board: &Board) -> f64 {
         let mover = board.state().mover();
         Self::score(board, mover, false) - Self::score(board, mover.flip(), false)
     }

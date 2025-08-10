@@ -2,8 +2,7 @@ use crate::{board::Board, color::Color, defs::CastlingUpdate, piece::Piece};
 
 use super::FenError;
 
-#[allow(dead_code)]
-pub(crate) fn decode(input: &str) -> Result<Board, FenError> {
+pub fn decode(input: &str) -> Result<Board, FenError> {
     let mut board = Board::empty();
 
     let mut input = input.split_whitespace();

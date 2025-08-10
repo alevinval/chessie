@@ -20,3 +20,7 @@ run:
 pregen:
 	cargo run --release --bin chessie-pregen
 	make lint
+
+.PHONY: bench
+bench:
+	cargo run --release --bin bench

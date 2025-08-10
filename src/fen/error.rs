@@ -1,7 +1,7 @@
 use core::fmt;
 
 #[derive(Debug, Eq, PartialEq)]
-pub(crate) enum FenError {
+pub enum FenError {
     NotSupportedEnPassant,
     NotSupportedHalfMove,
     Invalid,
