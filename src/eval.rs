@@ -20,21 +20,27 @@ impl Scorer {
     }
 
     fn score(board: &Board, color: Color, debug: bool) -> f64 {
-        if board.get(color, Piece::King) == 0
-            || (board.in_check(color) && board.movements(color).is_empty())
-        {
+        if board.get(color, Piece::King) == 0 {
+            return -MATE_SCORE;
+        }
+
+        let in_check = board.in_check(color);
+        if in_check && board.movements(color).is_empty() {
             return -MATE_SCORE;
         }
 
         let material_score: f64 =
             board.pieces(color).map(|(piece, bb)| Self::score_bitboard(piece, bb)).sum();
 
+        let check_penalizer = if in_check { -100.0 } else { 0.0 };
+
         if debug {
             println!("{color:?}");
             println!("  material: {material_score}");
+            println!("  check_penalizer: {check_penalizer}");
         }
 
-        material_score
+        material_score + check_penalizer
     }
 
     #[allow(clippy::cast_precision_loss)]
