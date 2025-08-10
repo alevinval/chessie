@@ -1,8 +1,6 @@
-use crate::{
-    board::Board,
-    eval::{MATE_SCORE, MATE_THRESHOLD},
-    moves::Move,
-};
+use core::f64;
+
+use crate::{board::Board, eval::MATE_SCORE, moves::Move};
 
 type EvalFn = fn(board: &Board) -> f64;
 
@@ -19,9 +17,9 @@ pub struct Stats {
 
 #[derive(Debug)]
 pub struct SearchResult {
-    pub movement: Option<Move>,
     pub eval: f64,
-    pub mate: Option<usize>,
+    pub movement: Option<Move>,
+    pub mate_dist: Option<usize>,
 }
 
 impl Search {
@@ -43,36 +41,45 @@ impl Search {
     fn negamax(&mut self, depth: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
         self.nodes += 1;
 
-        let eval = (self.eval_fn)(&self.board);
-        if eval.abs() >= MATE_THRESHOLD {
-            return SearchResult { movement: None, eval: eval + (depth as f64), mate: Some(0) };
-        } else if depth == 0 {
-            return SearchResult { movement: None, eval, mate: None };
+        if depth == 0 {
+            let eval = (self.eval_fn)(&self.board);
+            return SearchResult { movement: None, eval, mate_dist: None };
         }
 
         let mover = self.board.state().mover();
         let mut movements = self.board.movements(mover);
+        if movements.is_empty() {
+            if self.board.in_check(mover) {
+                return SearchResult {
+                    movement: None,
+                    eval: -MATE_SCORE - depth as f64,
+                    mate_dist: Some(0),
+                };
+            } else {
+                return SearchResult { movement: None, eval: 0.0, mate_dist: None };
+            }
+        }
+
         movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
 
-        let mut best_eval = -MATE_SCORE;
-        let mut best_move = movements.first().copied();
-        let mut best_mate: Option<usize> = None;
+        let fallback_move = movements.first().copied();
+        let mut best_eval = -f64::INFINITY;
+        let mut best_move = fallback_move;
+        let mut mate_dist = None;
 
         for movement in movements {
             self.board.apply_mut(movement);
             let result = self.negamax(depth - 1, (-beta, -alpha));
             self.board.unapply_mut(movement);
 
-            let mate = result.mate.map(|m| m + 1);
             let eval = -result.eval;
             if eval > best_eval {
                 best_eval = eval;
                 best_move = Some(movement);
-                best_mate = mate;
-            }
-
-            if best_mate == Some(0) {
-                break;
+                mate_dist = result.mate_dist.map(|d| d + 1);
+                if mate_dist == Some(1) {
+                    break;
+                }
             }
 
             alpha = alpha.max(eval);
@@ -81,15 +88,10 @@ impl Search {
             }
         }
 
-        // Avoid stalemates
-        if best_move.is_none() && best_eval.abs() <= MATE_SCORE {
-            best_eval = 0.0
-        }
+        let mate_dist =
+            mate_dist.or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
 
-        best_mate =
-            best_mate.or_else(|| if best_eval.abs() >= MATE_THRESHOLD { Some(1) } else { None });
-
-        SearchResult { movement: best_move, eval: best_eval, mate: best_mate }
+        SearchResult { movement: best_move, eval: best_eval, mate_dist }
     }
 }
 
@@ -108,7 +110,7 @@ mod test {
         let result = Search::new(&board, 4, Scorer::eval).find();
         print_hboard(&board, &[result.movement.unwrap().to()]);
 
-        assert_eq!(Some(1), result.mate);
+        assert_eq!(Some(1), result.mate_dist);
         assert_eq!(Some(Move::Slide { from, to, castling_update: None }), result.movement);
     }
 
@@ -119,17 +121,17 @@ mod test {
 
         let result = Search::new(&board, 4, Scorer::eval).find();
         print_hboard(&board, &[result.movement.unwrap().to()]);
-        assert_eq!(Some(2), result.mate);
+        assert_eq!(Some(3), result.mate_dist);
 
         board.apply_mut(result.movement.unwrap());
         let result = Search::new(&board, 4, Scorer::eval).find();
         print_hboard(&board, &[result.movement.unwrap().to()]);
-        assert_eq!(Some(1), result.mate);
+        assert_eq!(Some(2), result.mate_dist);
 
         board.apply_mut(result.movement.unwrap());
         let result = Search::new(&board, 4, Scorer::eval).find();
         print_hboard(&board, &[result.movement.unwrap().to()]);
-        assert_eq!(Some(1), result.mate);
+        assert_eq!(Some(1), result.mate_dist);
 
         assert_eq!(Some(Move::Slide { from: C5, to: B4, castling_update: None }), result.movement);
     }

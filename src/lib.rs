@@ -83,8 +83,8 @@ pub fn auto_play(moves: usize, depth: usize) {
         let result = Search::new(&board, depth, eval).find();
 
         if let Some(movement) = result.movement {
-            if let Some(mate) = result.mate {
-                println!("{movement}, mate in {mate}");
+            if let Some(dist) = result.mate_dist {
+                println!("{movement}, mate in {dist}");
             } else {
                 println!("{movement}");
             }
