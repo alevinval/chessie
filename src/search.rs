@@ -58,19 +58,15 @@ impl Search {
             let result = self.negamax(depth - 1, (-beta, -alpha));
             self.board.unapply_mut(movement);
 
-            if let Some(0) = result.mate {
-                return SearchResult {
-                    movement: Some(movement),
-                    eval: -result.eval,
-                    mate: Some(1),
-                };
-            }
-
             let eval = -result.eval;
             if eval > best_eval {
                 best_eval = eval;
                 best_move = Some(movement);
                 best_mate = result.mate;
+            }
+
+            if best_mate == Some(0) {
+                break;
             }
 
             alpha = alpha.max(eval);
@@ -80,8 +76,8 @@ impl Search {
         }
 
         // Avoid stalemates
-        if best_move.is_none() {
-            return SearchResult { movement: None, eval: 0.0, mate: None };
+        if best_move.is_none() && best_eval.abs() <= MATE_SCORE {
+            best_eval = 0.0
         }
 
         best_mate = best_mate
