@@ -38,6 +38,7 @@ impl Search {
     #[must_use]
     fn negamax(&mut self, depth: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
         self.nodes += 1;
+
         let eval = (self.eval_fn)(&self.board);
         if eval.abs() >= MATE_SCORE {
             return SearchResult { movement: None, eval: eval + (depth as f64), mate: Some(0) };
@@ -58,11 +59,12 @@ impl Search {
             let result = self.negamax(depth - 1, (-beta, -alpha));
             self.board.unapply_mut(movement);
 
+            let mate = result.mate.map(|m| m + 1);
             let eval = -result.eval;
             if eval > best_eval {
                 best_eval = eval;
                 best_move = Some(movement);
-                best_mate = result.mate;
+                best_mate = mate;
             }
 
             if best_mate == Some(0) {
@@ -80,9 +82,8 @@ impl Search {
             best_eval = 0.0
         }
 
-        best_mate = best_mate
-            .map(|m| m + 1)
-            .or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
+        best_mate =
+            best_mate.or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
 
         SearchResult { movement: best_move, eval: best_eval, mate: best_mate }
     }
