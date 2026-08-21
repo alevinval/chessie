@@ -1,8 +1,11 @@
-use core::f64;
-
 use crate::{board::Board, eval::MATE_SCORE, moves::Move};
 
-type EvalFn = fn(board: &Board) -> f64;
+type EvalFn = fn(board: &Board) -> i32;
+
+/// Search infinity. Must exceed any possible |eval| (mate scores are
+/// MATE_SCORE plus/minus ply) so windows never clip real values, while
+/// staying small enough that `-INF` is representable in i32.
+const INF: i32 = MATE_SCORE + 10_000;
 
 pub struct Search {
     board: Board,
@@ -17,7 +20,7 @@ pub struct Stats {
 
 #[derive(Debug)]
 pub struct SearchResult {
-    pub eval: f64,
+    pub eval: i32,
     pub movement: Option<Move>,
     pub mate_dist: Option<usize>,
 }
@@ -29,16 +32,16 @@ impl Search {
 
     #[must_use]
     pub fn find(mut self) -> SearchResult {
-        self.negamax(self.depth, (-f64::INFINITY, f64::INFINITY))
+        self.negamax(self.depth, (-INF, INF))
     }
 
     #[must_use]
     pub fn find_with_stats(mut self) -> (SearchResult, Stats) {
-        (self.negamax(self.depth, (-f64::INFINITY, f64::INFINITY)), Stats { nodes: self.nodes })
+        (self.negamax(self.depth, (-INF, INF)), Stats { nodes: self.nodes })
     }
 
     #[must_use]
-    fn negamax(&mut self, depth: usize, (mut alpha, beta): (f64, f64)) -> SearchResult {
+    fn negamax(&mut self, depth: usize, (mut alpha, beta): (i32, i32)) -> SearchResult {
         self.nodes += 1;
 
         if depth == 0 {
@@ -52,18 +55,18 @@ impl Search {
             if self.board.in_check(mover) {
                 return SearchResult {
                     movement: None,
-                    eval: -MATE_SCORE - depth as f64,
+                    eval: -MATE_SCORE - depth as i32,
                     mate_dist: Some(0),
                 };
             } else {
-                return SearchResult { movement: None, eval: 0.0, mate_dist: None };
+                return SearchResult { movement: None, eval: 0, mate_dist: None };
             }
         }
 
-        movements.sort_by(|a, b| b.priority().total_cmp(&a.priority()));
+        movements.sort_by(|a, b| b.priority().cmp(&a.priority()));
 
         let fallback_move = movements.first().copied();
-        let mut best_eval = -f64::INFINITY;
+        let mut best_eval = i32::MIN;
         let mut best_move = fallback_move;
         let mut mate_dist = None;
 

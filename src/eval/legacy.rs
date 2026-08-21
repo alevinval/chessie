@@ -6,25 +6,25 @@ use super::{MATE_SCORE, score_piece};
 pub(crate) struct LegacyScorer {}
 
 impl LegacyScorer {
-    pub(crate) fn eval(board: &Board) -> f64 {
+    pub(crate) fn eval(board: &Board) -> i32 {
         let mover = board.state().mover();
         Self::score(board, mover, false) - Self::score(board, mover.flip(), false)
     }
 
     #[allow(dead_code)]
-    pub(crate) fn debug_eval(board: &Board) -> f64 {
+    pub(crate) fn debug_eval(board: &Board) -> i32 {
         let mover = board.state().mover();
         Self::score(board, mover, true) - Self::score(board, mover.flip(), true)
     }
 
-    fn score(board: &Board, color: Color, debug: bool) -> f64 {
+    fn score(board: &Board, color: Color, debug: bool) -> i32 {
         if board.get(board.state().mover(), Piece::King) == 0
             || (board.in_check(color) && board.movements(color).is_empty())
         {
             return -MATE_SCORE;
         }
 
-        let material_score: f64 =
+        let material_score: i32 =
             board.pieces(color).map(|(piece, bb)| Self::score_bitboard(piece, bb)).sum();
 
         if debug {
@@ -35,8 +35,7 @@ impl LegacyScorer {
         material_score
     }
 
-    #[allow(clippy::cast_precision_loss)]
-    fn score_bitboard(piece: Piece, bb: BitBoard) -> f64 {
-        bits::count(bb) as f64 * score_piece(piece)
+    fn score_bitboard(piece: Piece, bb: BitBoard) -> i32 {
+        bits::count(bb) as i32 * score_piece(piece)
     }
 }

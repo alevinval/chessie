@@ -15,7 +15,7 @@ pub enum Move {
         from: Sq,
         to: Sq,
         piece: Piece,
-        value: f64,
+        value: i32,
         castling_update: Option<CastlingUpdate>,
         target_castling_update: Option<CastlingUpdate>,
     },
@@ -63,13 +63,13 @@ impl Move {
     }
 
     #[must_use]
-    pub(crate) fn priority(self) -> f64 {
+    pub(crate) fn priority(self) -> i32 {
         match self {
-            Move::Slide { .. } => 1.0,
-            Move::LeftCastle { .. } => 10.0,
-            Move::RightCastle { .. } => 10.0,
-            Move::Takes { value, .. } => 100.0 + value,
-            Move::PawnPromo { .. } => 900.0,
+            Move::Slide { .. } => 1,
+            Move::LeftCastle { .. } => 10,
+            Move::RightCastle { .. } => 10,
+            Move::Takes { value, .. } => 100 + value,
+            Move::PawnPromo { .. } => 900,
         }
     }
 
@@ -274,7 +274,7 @@ mod test {
 
     #[test]
     fn size() {
-        assert_eq!(16, mem::size_of::<Move>());
+        assert_eq!(12, mem::size_of::<Move>());
         assert_eq!(8, mem::size_of::<&Move>());
     }
 }

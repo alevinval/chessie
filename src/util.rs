@@ -27,8 +27,8 @@ pub fn print_board(board: &Board) {
 
 pub(crate) fn print_hboard(board: &Board, highlights: &[Sq]) {
     let state = board.state();
-    let eval = Scorer::eval(board) / 100.0;
-    let legacy_eval = LegacyScorer::eval(board) / 100.0;
+    let eval = Scorer::eval(board) as f64 / 100.0;
+    let legacy_eval = LegacyScorer::eval(board) as f64 / 100.0;
     println!(
         "[move={} mover={} highlights={highlights:?} eval={eval:.1} legacy_eval={legacy_eval:.1}]",
         state.fullmove(),
