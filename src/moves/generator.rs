@@ -2,7 +2,7 @@ use crate::{
     Color, bits,
     board::{Board, GameState},
     defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
-    eval::score_piece,
+    eval::score_material::piece_value,
     magic::{MagicMovements, Masks},
     moves,
     piece::Piece,
@@ -207,7 +207,7 @@ impl<'board> Generator<'board> {
         for to in bits::pos(bb) {
             let (_, moved_piece, _) = self.board.at(self.from).unwrap();
             let (_, taken_piece, _) = self.board.at(to).unwrap();
-            let value = score_piece(taken_piece) - score_piece(moved_piece);
+            let value = piece_value(taken_piece) - piece_value(moved_piece);
             self.push_move(Move::Takes {
                 from: self.from,
                 to,

@@ -1,6 +1,9 @@
+/// DEPRECATED module, don't work on it.
+/// Only purpose is to measure and benchmark improvements to eval
+/// function.
 use crate::{bits, board::Board, color::Color, defs::BitBoard, piece::Piece};
 
-use super::{MATE_SCORE, score_piece};
+use super::MATE_SCORE;
 
 #[derive(Default)]
 pub(crate) struct LegacyScorer {}
@@ -36,6 +39,17 @@ impl LegacyScorer {
     }
 
     fn score_bitboard(piece: Piece, bb: BitBoard) -> i32 {
-        bits::count(bb) as i32 * score_piece(piece)
+        bits::count(bb) as i32 * piece_value(piece)
+    }
+}
+
+const fn piece_value(piece: Piece) -> i32 {
+    match piece {
+        Piece::Pawn => 100,
+        Piece::Rook => 500,
+        Piece::Knight => 280,
+        Piece::Bishop => 300,
+        Piece::Queen => 900,
+        Piece::King => 20000,
     }
 }

@@ -32,19 +32,48 @@ impl Scorer {
     }
 
     fn score_bitboard(piece: Piece, bb: BitBoard) -> i32 {
-        bits::count(bb) as i32 * score_piece(piece)
+        score_material::score(piece, bb) + score_centrality::score(piece, bb)
     }
 }
 
-pub(crate) const fn score_piece(piece: Piece) -> i32 {
-    match piece {
-        Piece::Pawn => 100,
-        Piece::Rook => 500,
-        Piece::Knight => 280,
-        Piece::Bishop => 300,
-        Piece::Queen => 900,
-        // Kings are never captured in legal play and always cancel out in
-        // the mover-minus-opponent difference, so they score zero.
-        Piece::King => 0,
+pub(crate) mod score_material {
+    use super::*;
+
+    pub(super) fn score(piece: Piece, bb: BitBoard) -> i32 {
+        bits::count(bb) as i32 * piece_value(piece)
+    }
+
+    pub const fn piece_value(piece: Piece) -> i32 {
+        match piece {
+            Piece::Pawn => 100,
+            Piece::Rook => 500,
+            Piece::Knight => 280,
+            Piece::Bishop => 300,
+            Piece::Queen => 900,
+            Piece::King => 0,
+        }
+    }
+}
+
+mod score_centrality {
+    use super::*;
+
+    #[rustfmt::skip]
+const CENTRALITY_BIAS: [i32; 64] = [
+     0,  1,  2,  3,  3,  2,  1,  0,
+     1,  2,  3,  4,  4,  3,  2,  1,
+     2,  3,  4,  5,  5,  4,  3,  2,
+     3,  4,  5,  6,  6,  5,  4,  3,
+     3,  4,  5,  6,  6,  5,  4,  3,
+     2,  3,  4,  5,  5,  4,  3,  2,
+     1,  2,  3,  4,  4,  3,  2,  1,
+     0,  1,  2,  3,  3,  2,  1,  0,
+];
+
+    pub(super) fn score(piece: Piece, bb: BitBoard) -> i32 {
+        if !matches!(piece, Piece::Knight | Piece::Bishop) {
+            return 0;
+        }
+        bits::pos(bb).into_iter().map(|sq| CENTRALITY_BIAS[sq as usize]).sum()
     }
 }
