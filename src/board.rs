@@ -58,6 +58,13 @@ impl Board {
         }
     }
 
+    pub(crate) fn slide(&mut self, from: Sq, to: Sq) {
+        let (_, _, bb) = self
+            .at_mut(from)
+            .unwrap_or_else(|| unreachable!("must have a piece in order to slide {from} to {to}"));
+        bits::slide(bb, from, to);
+    }
+
     pub(crate) fn clear(&mut self, sq: Sq) {
         if let Some((_, _, bb)) = self.at_mut(sq) {
             bits::unset(bb, sq);

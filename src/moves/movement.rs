@@ -80,7 +80,7 @@ impl Move {
         match self {
             Move::Takes { from, to, castling_update, target_castling_update, .. } => {
                 board.clear(to);
-                self.slide(board, from, to);
+                board.slide(from, to);
                 if let Some(update) = castling_update {
                     board.disable_castling(mover, update);
                 }
@@ -92,7 +92,7 @@ impl Move {
                 if let Some(update) = castling_update {
                     board.disable_castling(mover, update);
                 }
-                self.slide(board, from, to);
+                board.slide(from, to);
             }
             Move::PawnPromo { from, to, promo_piece: piece, .. } => {
                 board.clear(from);
@@ -101,29 +101,21 @@ impl Move {
             }
             Move::LeftCastle { mover, castling_update } => {
                 board.disable_castling(mover, castling_update);
-                match mover {
-                    Color::B => {
-                        self.slide(board, E8, C8);
-                        self.slide(board, A8, D8);
-                    }
-                    Color::W => {
-                        self.slide(board, E1, C1);
-                        self.slide(board, A1, D1);
-                    }
-                }
+                let (king_from, king_to, rook_from, rook_to) = match mover {
+                    Color::B => (E8, C8, A8, D8),
+                    Color::W => (E1, C1, A1, D1),
+                };
+                board.slide(king_from, king_to);
+                board.slide(rook_from, rook_to);
             }
             Move::RightCastle { mover, castling_update } => {
                 board.disable_castling(mover, castling_update);
-                match mover {
-                    Color::B => {
-                        self.slide(board, E8, G8);
-                        self.slide(board, H8, F8);
-                    }
-                    Color::W => {
-                        self.slide(board, E1, G1);
-                        self.slide(board, H1, F1);
-                    }
-                }
+                let (king_from, king_to, rook_from, rook_to) = match mover {
+                    Color::B => (E8, G8, H8, F8),
+                    Color::W => (E1, G1, H1, F1),
+                };
+                board.slide(king_from, king_to);
+                board.slide(rook_from, rook_to);
             }
         }
     }
@@ -133,7 +125,7 @@ impl Move {
         let mover = opponent.flip();
         match *self {
             Move::Takes { from, to, piece, castling_update, target_castling_update, .. } => {
-                self.slide(board, to, from);
+                board.slide(to, from);
                 board.add(opponent, piece, to);
                 if let Some(update) = castling_update {
                     board.enable_castling(mover, update);
@@ -143,7 +135,7 @@ impl Move {
                 }
             }
             Move::Slide { from, to, castling_update, .. } => {
-                self.slide(board, to, from);
+                board.slide(to, from);
                 if let Some(update) = castling_update {
                     board.enable_castling(mover, update);
                 }
@@ -160,38 +152,23 @@ impl Move {
             }
             Move::LeftCastle { mover, castling_update } => {
                 board.enable_castling(mover, castling_update);
-                match mover {
-                    Color::B => {
-                        self.slide(board, C8, E8);
-                        self.slide(board, D8, A8);
-                    }
-                    Color::W => {
-                        self.slide(board, C1, E1);
-                        self.slide(board, D1, A1);
-                    }
-                }
+                let (king_from, king_to, rook_from, rook_to) = match mover {
+                    Color::B => (C8, E8, D8, A8),
+                    Color::W => (C1, E1, D1, A1),
+                };
+                board.slide(king_from, king_to);
+                board.slide(rook_from, rook_to);
             }
             Move::RightCastle { mover, castling_update } => {
                 board.enable_castling(mover, castling_update);
-                match mover {
-                    Color::B => {
-                        self.slide(board, G8, E8);
-                        self.slide(board, F8, H8);
-                    }
-                    Color::W => {
-                        self.slide(board, G1, E1);
-                        self.slide(board, F1, H1);
-                    }
-                }
+                let (king_from, king_to, rook_from, rook_to) = match mover {
+                    Color::B => (G8, E8, F8, H8),
+                    Color::W => (G1, E1, F1, H1),
+                };
+                board.slide(king_from, king_to);
+                board.slide(rook_from, rook_to);
             }
         }
-    }
-
-    fn slide(&self, board: &mut Board, from: Sq, to: Sq) {
-        let (_, _, bb) = board
-            .at_mut(from)
-            .unwrap_or_else(|| unreachable!("must have a piece in order to move {:?}", self));
-        bits::slide(bb, from, to);
     }
 }
 
