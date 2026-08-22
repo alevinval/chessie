@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::{
-    Color, bits,
+    Color,
     board::Board,
     defs::{CastlingUpdate, Sq},
     piece::Piece,
@@ -141,10 +141,7 @@ impl Move {
                 }
             }
             Move::PawnPromo { from, to, taken_piece, .. } => {
-                let (_, _, bb) = board.at_mut(to).unwrap_or_else(|| {
-                    unreachable!("unapply pawn promotion without piece on destination: {self}")
-                });
-                bits::unset(bb, to);
+                board.clear(to);
                 board.add(mover, Piece::Pawn, from);
                 if let Some(piece) = taken_piece {
                     board.add(opponent, piece, to);
