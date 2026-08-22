@@ -52,8 +52,8 @@ fn encode_mover(out: &mut String, state: &GameState) {
 fn encode_castling(out: &mut String, state: &GameState) {
     out.push(' ');
 
-    let (white_left, white_right) = state.castling(Color::W);
-    let (black_left, black_right) = state.castling(Color::B);
+    let (white_left, white_right) = state.castling_rights(Color::W);
+    let (black_left, black_right) = state.castling_rights(Color::B);
 
     if !white_left && !white_right && !black_left && !black_right {
         out.push('-');

@@ -1,7 +1,7 @@
 use crate::{
     Color, bits,
     board::{Board, GameState},
-    defs::{BitBoard, CastlingTuple, CastlingUpdate, Sq},
+    defs::{BitBoard, CastlingRights, CastlingUpdate, Sq},
     eval::score_material::piece_value,
     magic::{MagicMovements, Masks},
     moves,
@@ -20,7 +20,7 @@ pub(crate) struct Generator<'board> {
     color: Color,
     piece: Piece,
     from: Sq,
-    castling: CastlingTuple,
+    castling_rights: CastlingRights,
     castling_update: Option<CastlingUpdate>,
     moves: Vec<Move>,
     only_legal: bool,
@@ -44,12 +44,12 @@ impl<'board> Generator<'board> {
         only_legal: bool,
     ) -> Self {
         let state = board.state();
-        let castling = state.castling(color);
+        let castling_rights = state.castling_rights(color);
         let castling_update = if only_legal {
             if matches!(piece, Piece::King) {
-                calc_castling_king(castling)
+                calc_castling_king(castling_rights)
             } else if matches!(piece, Piece::Rook) {
-                calc_castling_rook(color, from, castling)
+                calc_castling_rook(color, from, castling_rights)
             } else {
                 None
             }
@@ -63,7 +63,7 @@ impl<'board> Generator<'board> {
             from,
             color,
             piece,
-            castling,
+            castling_rights,
             castling_update,
             moves: vec![],
             only_legal,
@@ -151,7 +151,7 @@ impl<'board> Generator<'board> {
     }
 
     fn emit_castling(&mut self) {
-        let (left, right) = self.castling;
+        let (left, right) = self.castling_rights;
         if left || right {
             let occ = self.board.occupancy();
             let side = self.board.occupancy_side(self.color);
@@ -258,7 +258,7 @@ impl<'board> Generator<'board> {
 
     const fn calc_castling_opponent(&self, pos: Sq) -> Option<CastlingUpdate> {
         let color = self.color.flip();
-        let (left, right) = self.state.castling(color);
+        let (left, right) = self.state.castling_rights(color);
         if pos == right_rook(color) && right {
             Some(CastlingUpdate::Right)
         } else if pos == left_rook(color) && left {
@@ -269,7 +269,7 @@ impl<'board> Generator<'board> {
     }
 }
 
-const fn calc_castling_king((left, right): CastlingTuple) -> Option<CastlingUpdate> {
+const fn calc_castling_king((left, right): CastlingRights) -> Option<CastlingUpdate> {
     if left && right {
         Some(CastlingUpdate::Both)
     } else if right {
@@ -284,7 +284,7 @@ const fn calc_castling_king((left, right): CastlingTuple) -> Option<CastlingUpda
 const fn calc_castling_rook(
     color: Color,
     pos: Sq,
-    (left, right): CastlingTuple,
+    (left, right): CastlingRights,
 ) -> Option<CastlingUpdate> {
     if pos == right_rook(color) && right {
         Some(CastlingUpdate::Right)

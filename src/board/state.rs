@@ -1,18 +1,14 @@
 use crate::{
     color::Color,
-    defs::{CastlingTuple, CastlingUpdate},
+    defs::{CastlingRights, CastlingUpdate},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct GameState {
     mover: Color,
     fullmove: usize,
-
-    // Castling rights
-    white_left: bool,
-    white_right: bool,
-    black_left: bool,
-    black_right: bool,
+    white_castling: CastlingRights,
+    black_castling: CastlingRights,
 }
 
 impl GameState {
@@ -27,10 +23,10 @@ impl GameState {
     }
 
     #[must_use]
-    pub(crate) const fn castling(&self, color: Color) -> CastlingTuple {
+    pub(crate) const fn castling_rights(&self, color: Color) -> CastlingRights {
         match color {
-            Color::B => (self.black_left, self.black_right),
-            Color::W => (self.white_left, self.white_right),
+            Color::B => self.black_castling,
+            Color::W => self.white_castling,
         }
     }
 
@@ -56,24 +52,27 @@ impl GameState {
         self.fullmove = fullmove;
     }
 
-    pub(crate) fn set_castling(&mut self, color: Color, update: CastlingUpdate, value: bool) {
-        let (left, right) = match color {
-            Color::B => (&mut self.black_left, &mut self.black_right),
-            Color::W => (&mut self.white_left, &mut self.white_right),
+    /// Sets the given side(s) of `color` to `value` and returns which sides
+    /// actually changed, as a `(left, right)` tuple.
+    pub(crate) fn set_castling(
+        &mut self,
+        color: Color,
+        update: CastlingUpdate,
+        value: bool,
+    ) -> CastlingRights {
+        let (old_left, old_right) = self.castling_rights(color);
+        let (left, right) = match update {
+            CastlingUpdate::Left => (value, old_right),
+            CastlingUpdate::Right => (old_left, value),
+            CastlingUpdate::Both => (value, value),
         };
 
-        match update {
-            CastlingUpdate::Left => {
-                *left = value;
-            }
-            CastlingUpdate::Right => {
-                *right = value;
-            }
-            CastlingUpdate::Both => {
-                *left = value;
-                *right = value;
-            }
-        }
+        match color {
+            Color::B => self.black_castling = (left, right),
+            Color::W => self.white_castling = (left, right),
+        };
+
+        (old_left != left, old_right != right)
     }
 }
 
@@ -82,10 +81,8 @@ impl Default for GameState {
         Self {
             mover: Color::W,
             fullmove: 1,
-            white_left: true,
-            white_right: true,
-            black_left: true,
-            black_right: true,
+            white_castling: (true, true),
+            black_castling: (true, true),
         }
     }
 }
@@ -142,9 +139,17 @@ mod test {
     #[test_case(Color::B, CastlingUpdate::Both, false, (false, false))]
     fn castling(color: Color, update: CastlingUpdate, value: bool, expected: (bool, bool)) {
         let mut sut = GameState::default();
-        assert_eq!((true, true), sut.castling(color));
+        assert_eq!((true, true), sut.castling_rights(color));
 
         sut.set_castling(color, update, value);
-        assert_eq!(expected, sut.castling(color));
+        assert_eq!(expected, sut.castling_rights(color));
+    }
+
+    #[test]
+    fn set_castling_reports_changed_sides() {
+        let mut sut = GameState::default();
+        assert_eq!((false, false), sut.set_castling(Color::W, CastlingUpdate::Both, true));
+        assert_eq!((true, false), sut.set_castling(Color::W, CastlingUpdate::Left, false));
+        assert_eq!((true, true), sut.set_castling(Color::B, CastlingUpdate::Both, false));
     }
 }

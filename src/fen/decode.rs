@@ -81,7 +81,7 @@ fn decode_castling(board: &mut Board, input: &str) -> Result<(), FenError> {
             'q' => state.set_castling(Color::B, CastlingUpdate::Right, true),
             'k' => state.set_castling(Color::B, CastlingUpdate::Left, true),
             _ => return Err(FenError::Invalid),
-        }
+        };
     }
 
     Ok(())
