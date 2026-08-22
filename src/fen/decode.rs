@@ -61,14 +61,13 @@ fn decode_mover(board: &mut Board, input: &str) -> Result<(), FenError> {
         "b" => Color::B,
         _ => return Err(FenError::Invalid),
     };
-    board.state_mut().set_mover(mover);
+    board.set_mover(mover);
     Ok(())
 }
 
 fn decode_castling(board: &mut Board, input: &str) -> Result<(), FenError> {
-    let state = board.state_mut();
-    state.set_castling(Color::W, CastlingUpdate::Both, false);
-    state.set_castling(Color::B, CastlingUpdate::Both, false);
+    board.disable_castling(Color::W, CastlingUpdate::Both);
+    board.disable_castling(Color::B, CastlingUpdate::Both);
 
     if input == "-" {
         return Ok(());
@@ -76,10 +75,10 @@ fn decode_castling(board: &mut Board, input: &str) -> Result<(), FenError> {
 
     for ch in input.chars() {
         match ch {
-            'Q' => state.set_castling(Color::W, CastlingUpdate::Left, true),
-            'K' => state.set_castling(Color::W, CastlingUpdate::Right, true),
-            'q' => state.set_castling(Color::B, CastlingUpdate::Right, true),
-            'k' => state.set_castling(Color::B, CastlingUpdate::Left, true),
+            'Q' => board.enable_castling(Color::W, CastlingUpdate::Left),
+            'K' => board.enable_castling(Color::W, CastlingUpdate::Right),
+            'q' => board.enable_castling(Color::B, CastlingUpdate::Right),
+            'k' => board.enable_castling(Color::B, CastlingUpdate::Left),
             _ => return Err(FenError::Invalid),
         };
     }
@@ -103,7 +102,7 @@ fn decode_halfmove(_board: &mut Board, input: &str) -> Result<(), FenError> {
 
 fn decode_fullmove(board: &mut Board, input: &str) -> Result<(), FenError> {
     let fullmove: usize = input.parse().map_err(|_| FenError::Invalid)?;
-    board.state_mut().set_fullmove(fullmove);
+    board.set_fullmove(fullmove);
     Ok(())
 }
 

@@ -46,11 +46,6 @@ impl Board {
         self.occupancy
     }
 
-    #[must_use]
-    pub(crate) fn state_mut(&mut self) -> &mut GameState {
-        &mut self.state
-    }
-
     pub(crate) fn add(&mut self, color: Color, piece: Piece, sq: Sq) {
         match color {
             Color::B => bits::set(&mut self.black[piece.idx()], sq),
@@ -72,11 +67,19 @@ impl Board {
     }
 
     pub(crate) fn disable_castling(&mut self, color: Color, update: CastlingUpdate) {
-        self.state_mut().set_castling(color, update, false);
+        self.state.set_castling(color, update, false);
     }
 
     pub(crate) fn enable_castling(&mut self, color: Color, update: CastlingUpdate) {
-        self.state_mut().set_castling(color, update, true);
+        self.state.set_castling(color, update, true);
+    }
+
+    pub(crate) fn set_mover(&mut self, mover: Color) {
+        self.state.set_mover(mover);
+    }
+
+    pub(crate) fn set_fullmove(&mut self, fullmove: usize) {
+        self.state.set_fullmove(fullmove);
     }
 
     #[must_use]
