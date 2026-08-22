@@ -44,8 +44,13 @@ impl GameState {
         self.mover = self.mover.flip();
     }
 
-    pub(crate) fn set_mover(&mut self, mover: Color) {
-        self.mover = mover;
+    pub(crate) fn set_mover(&mut self, mover: Color) -> bool {
+        if self.mover != mover {
+            self.mover = mover;
+            true
+        } else {
+            false
+        }
     }
 
     pub(crate) fn set_fullmove(&mut self, fullmove: usize) {
@@ -59,7 +64,7 @@ impl GameState {
         color: Color,
         update: CastlingUpdate,
         value: bool,
-    ) -> CastlingRights {
+    ) -> (bool, bool) {
         let (old_left, old_right) = self.castling_rights(color);
         let (left, right) = match update {
             CastlingUpdate::Left => (value, old_right),
@@ -143,6 +148,13 @@ mod test {
 
         sut.set_castling(color, update, value);
         assert_eq!(expected, sut.castling_rights(color));
+    }
+
+    #[test]
+    fn set_mover_reports_changed() {
+        let mut sut = GameState::default();
+        assert!(!sut.set_mover(Color::W));
+        assert!(sut.set_mover(Color::B));
     }
 
     #[test]
