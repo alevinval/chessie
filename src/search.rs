@@ -46,7 +46,11 @@ impl Search {
 
         if ply == self.depth {
             let eval = (self.eval_fn)(&self.board);
-            return SearchResult { movement: None, eval, mate_dist: None };
+            return SearchResult {
+                movement: None,
+                eval,
+                mate_dist: (eval <= -MATE_SCORE).then_some(0),
+            };
         }
 
         let mover = self.board.state().mover();
@@ -90,9 +94,6 @@ impl Search {
                 break;
             }
         }
-
-        let mate_dist =
-            mate_dist.or_else(|| if best_eval.abs() >= MATE_SCORE { Some(1) } else { None });
 
         SearchResult { movement: best_move, eval: best_eval, mate_dist }
     }
