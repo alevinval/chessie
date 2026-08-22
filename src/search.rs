@@ -32,19 +32,19 @@ impl Search {
 
     #[must_use]
     pub fn find(mut self) -> SearchResult {
-        self.negamax(self.depth, (-INF, INF))
+        self.negamax(0, (-INF, INF))
     }
 
     #[must_use]
     pub fn find_with_stats(mut self) -> (SearchResult, Stats) {
-        (self.negamax(self.depth, (-INF, INF)), Stats { nodes: self.nodes })
+        (self.negamax(0, (-INF, INF)), Stats { nodes: self.nodes })
     }
 
     #[must_use]
-    fn negamax(&mut self, depth: usize, (mut alpha, beta): (i32, i32)) -> SearchResult {
+    fn negamax(&mut self, ply: usize, (mut alpha, beta): (i32, i32)) -> SearchResult {
         self.nodes += 1;
 
-        if depth == 0 {
+        if ply == self.depth {
             let eval = (self.eval_fn)(&self.board);
             return SearchResult { movement: None, eval, mate_dist: None };
         }
@@ -55,7 +55,7 @@ impl Search {
             if self.board.in_check(mover) {
                 return SearchResult {
                     movement: None,
-                    eval: -MATE_SCORE - depth as i32,
+                    eval: -MATE_SCORE + ply as i32,
                     mate_dist: Some(0),
                 };
             } else {
@@ -72,7 +72,7 @@ impl Search {
 
         for movement in movements {
             self.board.apply_mut(movement);
-            let result = self.negamax(depth - 1, (-beta, -alpha));
+            let result = self.negamax(ply + 1, (-beta, -alpha));
             self.board.unapply_mut(movement);
 
             let eval = -result.eval;
